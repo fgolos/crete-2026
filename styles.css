@@ -131,9 +131,9 @@ h1 { margin:6px 0 8px; font-family:"PT Serif",serif; font-size:clamp(28px,3.2vw,
 .stop-detail-kicker { margin-bottom:2px; color:var(--accent-dark); font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
 .stop-detail h2 { margin:0; font-family:"PT Serif",serif; font-size:20px; line-height:1.15; }
 .stop-detail-role { margin:3px 0 6px; color:var(--muted); font-size:13px; }
-.stop-navigation-link { display:inline-flex; align-items:center; gap:5px; min-height:32px; margin-bottom:4px; color:var(--accent-dark); font-size:12px; font-weight:700; text-decoration:none; }
-.stop-navigation-link:hover span { text-decoration:underline; text-underline-offset:2px; }
-.stop-navigation-link svg { width:14px; height:14px; flex:0 0 auto; }
+.stop-maps-link { position:absolute; top:9px; right:46px; display:grid; place-items:center; width:28px; height:28px; padding:0; border:0; border-radius:4px; background:transparent; color:var(--muted); cursor:pointer; text-decoration:none; transition:all .2s; }
+.stop-maps-link:hover { background:var(--accent-soft); color:var(--accent-dark); }
+.stop-maps-link svg { width:16px; height:16px; }
 .stop-detail-facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:0; padding:6px 0; border-block:1px solid var(--line); }
 .stop-detail-facts div { min-width:0; }
 .stop-detail-facts dt { color:var(--muted); font-size:9px; font-weight:700; text-transform:uppercase; }

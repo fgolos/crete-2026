@@ -9,6 +9,7 @@
   const projectTitle = document.getElementById('project-title');
   const maps = new Map();
   const markerIndex = new Map();
+  const routingIndex = new Map();
   const mobileViewport = window.matchMedia('(max-width: 800px)');
   let activePanel = 'overview';
 
@@ -133,6 +134,10 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3ZM5 5h6v2H7v10h10v-4h2v6H5V5Z"/></svg>
             <span>Открыть в Google Maps</span>
           </a>
+          <div class="route-status" role="status" aria-live="polite" hidden>
+            <span>Маршрут временно недоступен. Показаны точки по прямой.</span>
+            <button class="route-retry" type="button">Повторить</button>
+          </div>
           <aside class="stop-detail" hidden tabindex="-1" aria-live="polite" aria-label="Выбранная остановка"></aside>
           <div class="map-caption">Маршрут дня и выбранная остановка</div>
         </div>
@@ -263,6 +268,50 @@
     renderStopDetail(dayId,order);
   }
 
+  function setRouteFailure(dayId,failed) {
+    const status = document.querySelector(`#${dayId} .route-status`);
+    if (status) status.hidden = !failed;
+  }
+
+  function initializeRoute(dayId) {
+    const day = data.days.find(item => item.id === dayId);
+    const map = maps.get(dayId);
+    if (!day || !map) return;
+
+    const previous = routingIndex.get(dayId);
+    routingIndex.delete(dayId);
+    if (previous?.control) map.removeControl(previous.control);
+    if (previous?.fallback) map.removeLayer(previous.fallback);
+    setRouteFailure(dayId,false);
+
+    const routeStops = day.routeStopOrders.map(order => day.stops.find(stop => stop.order === order));
+    const bounds = day.stops.filter(stop => stop.mapVisible).map(stop => [stop.lat,stop.lon]);
+    const routing = L.Routing.control({
+      waypoints: routeStops.map(stop => L.latLng(stop.lat,stop.lon)),
+      router:L.Routing.osrmv1({ serviceUrl:'https://router.project-osrm.org/route/v1' }),
+      addWaypoints:false, draggableWaypoints:false, routeWhileDragging:false,
+      showAlternatives:false, fitSelectedRoutes:true, createMarker:() => null,
+      lineOptions:{ styles:[{ color:'#fffdf8',opacity:.9,weight:7 },{ color:'#078b9d',opacity:.92,weight:4 }] }
+    }).addTo(map);
+    routingIndex.set(dayId,{ control:routing,fallback:null });
+    routing.on('routesfound', () => {
+      if (routingIndex.get(dayId)?.control !== routing) return;
+      setRouteFailure(dayId,false);
+      const panel = document.getElementById(dayId);
+      if (panel?.classList.contains('mobile-map-view') && !panel.dataset.focusStop) fitDayRoute(dayId);
+    });
+    routing.on('routingerror', () => {
+      const state = routingIndex.get(dayId);
+      if (state?.control !== routing) return;
+      if (bounds.length > 1) {
+        if (state.fallback) map.removeLayer(state.fallback);
+        state.fallback = L.polyline(bounds,{color:'#078b9d',dashArray:'8,8',weight:3}).addTo(map);
+        map.fitBounds(bounds,{padding:[30,30]});
+      }
+      setRouteFailure(dayId,true);
+    });
+  }
+
   function initializeMap(dayId) {
     const day = data.days.find(item => item.id === dayId);
     if (!day) return;
@@ -286,21 +335,7 @@
       bounds.push([stop.lat,stop.lon]);
     });
 
-    const routeStops = day.routeStopOrders.map(order => day.stops.find(stop => stop.order === order));
-    const routing = L.Routing.control({
-      waypoints: routeStops.map(stop => L.latLng(stop.lat,stop.lon)),
-      router:L.Routing.osrmv1({ serviceUrl:'https://router.project-osrm.org/route/v1' }),
-      addWaypoints:false, draggableWaypoints:false, routeWhileDragging:false,
-      showAlternatives:false, fitSelectedRoutes:true, createMarker:() => null,
-      lineOptions:{ styles:[{ color:'#fffdf8',opacity:.9,weight:7 },{ color:'#078b9d',opacity:.92,weight:4 }] }
-    }).addTo(map);
-    routing.on('routesfound', () => {
-      const panel = document.getElementById(dayId);
-      if (panel?.classList.contains('mobile-map-view') && !panel.dataset.focusStop) fitDayRoute(dayId);
-    });
-    routing.on('routingerror', () => {
-      if (bounds.length > 1) { L.polyline(bounds,{color:'#078b9d',dashArray:'8,8',weight:3}).addTo(map); map.fitBounds(bounds,{padding:[30,30]}); }
-    });
+    initializeRoute(dayId);
     setTimeout(() => map.invalidateSize(), 150);
   }
 
@@ -338,6 +373,8 @@
       if (next >= 0) { event.preventDefault(); buttons[next].focus(); activatePanel(buttons[next].dataset.target); }
     });
     app.addEventListener('click', event => {
+      const retryButton = event.target.closest('.route-retry');
+      if (retryButton) { initializeRoute(retryButton.closest('.day-panel').id); return; }
       const closeButton = event.target.closest('.stop-detail-close');
       if (closeButton) { closeStopDetail(closeButton.closest('.day-panel').id); return; }
       const viewButton = event.target.closest('.mobile-view-button');

@@ -1,0 +1,36 @@
+name: Update villa coordinates
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/update-villa-coordinates.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Update Pomegranate Garden Villa coordinates
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('itinerary-data.js')
+          text = path.read_text(encoding='utf-8')
+          old = '"name":"Pomegranate Garden Villa","role":"Заселение и отдых","time":"≈15:15","duration":"Финиш","drive":"2 ч 20–40 мин","distance":"≈125–135 км","note":"Airbnb в Platanes: Lasithiou 4, Rethymno 741 50, Greece.","lat":35.36763,"lon":24.52633,"navigationQuery":"Lasithiou 4, Rethymno 741 50, Greece"'
+          new = '"name":"Pomegranate Garden Villa","role":"Заселение и отдых","time":"≈15:15","duration":"Финиш","drive":"2 ч 20–40 мин","distance":"≈125–135 км","note":"Airbnb в Platanes: Lasithiou 4, Rethymno 741 50, Greece.","lat":35.36855713304881,"lon":24.530239843450914,"navigationQuery":"Lasithiou 4, Rethymno 741 50, Greece"'
+          if text.count(old) != 1:
+              raise SystemExit(f'Expected one coordinate target, found {text.count(old)}')
+          path.write_text(text.replace(old, new), encoding='utf-8')
+          PY
+      - name: Commit updated itinerary
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add itinerary-data.js
+          git commit -m "Correct Pomegranate Garden Villa coordinates"
+          git push

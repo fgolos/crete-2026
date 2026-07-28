@@ -119,6 +119,7 @@
         <div class="mobile-view-switch" role="group" aria-label="Вид маршрута">
           <button class="mobile-view-button active" type="button" data-view="plan" aria-pressed="true">План</button>
           <button class="mobile-view-button" type="button" data-view="map" aria-pressed="false">Карта</button>
+          <button class="mobile-view-button" type="button" data-view="notes" aria-pressed="false">Памятка</button>
         </div>
         <aside class="itinerary">
           <header class="day-header"><div class="eyebrow">${escapeHtml(day.date)}</div><h1>${escapeHtml(day.title)}</h1></header>
@@ -207,10 +208,12 @@
   function setMobileView(dayId, view, restoreScroll = true) {
     const panel = document.getElementById(dayId);
     if (!panel || !mobileViewport.matches) return;
+    const showPlan = view === 'plan';
     const showMap = view === 'map';
-    if (showMap && panel.classList.contains('mobile-plan-view')) panel.dataset.planScroll = String(window.scrollY);
-    panel.classList.toggle('mobile-plan-view', !showMap);
+    if (!showPlan && panel.classList.contains('mobile-plan-view')) panel.dataset.planScroll = String(window.scrollY);
+    panel.classList.toggle('mobile-plan-view', showPlan);
     panel.classList.toggle('mobile-map-view', showMap);
+    panel.classList.toggle('mobile-notes-view', view === 'notes');
     panel.querySelectorAll('.mobile-view-button').forEach(button => {
       const isActive = button.dataset.view === view;
       button.classList.toggle('active', isActive);
@@ -219,9 +222,11 @@
     if (showMap) {
       window.scrollTo({ top:0, behavior:'instant' });
       setTimeout(() => fitDayRoute(dayId), 70);
-    } else if (restoreScroll) {
+    } else if (showPlan && restoreScroll) {
       void panel.offsetHeight;
       window.scrollTo({ top:Number(panel.dataset.planScroll) || 0, behavior:'instant' });
+    } else {
+      window.scrollTo({ top:0, behavior:'instant' });
     }
   }
 

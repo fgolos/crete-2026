@@ -9,6 +9,7 @@
   const projectTitle = document.getElementById('project-title');
   const maps = new Map();
   const markerIndex = new Map();
+  const mobileViewport = window.matchMedia('(max-width: 800px)');
   let activePanel = 'overview';
 
   const escapeHtml = value => String(value)
@@ -103,8 +104,12 @@
       return `<section class="info-card ${key}"><h3>${escapeHtml(section.title)}</h3><ul>${section.items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul></section>`;
     }).join('');
     const mapsUrl = buildGoogleMapsUrl(day);
-    return `<section id="${day.id}" class="panel day-panel" role="tabpanel" aria-labelledby="tab-${day.id}">
+    return `<section id="${day.id}" class="panel day-panel mobile-plan-view" role="tabpanel" aria-labelledby="tab-${day.id}">
       <div class="day-shell">
+        <div class="mobile-view-switch" role="group" aria-label="Вид маршрута">
+          <button class="mobile-view-button active" type="button" data-view="plan" aria-pressed="true">План</button>
+          <button class="mobile-view-button" type="button" data-view="map" aria-pressed="false">Карта</button>
+        </div>
         <aside class="itinerary">
           <header class="day-header"><div class="eyebrow">${escapeHtml(day.date)}</div><h1>${escapeHtml(day.title)}</h1></header>
           <div class="meta-grid">${meta}</div>
@@ -131,6 +136,49 @@
   }
 
   function markerKey(dayId, order) { return `${dayId}:${order}`; }
+
+  function fitDayRoute(dayId) {
+    const day = data.days.find(item => item.id === dayId);
+    const map = maps.get(dayId);
+    if (!day || !map) return;
+    const bounds = L.latLngBounds(day.routeStopOrders.map(order => {
+      const stop = day.stops.find(item => item.order === order);
+      return [stop.lat,stop.lon];
+    }));
+    map.invalidateSize({ pan:false });
+    if (bounds.isValid()) map.fitBounds(bounds,{ padding:[30,30],animate:false });
+  }
+
+  function setMobileView(dayId, view, restoreScroll = true) {
+    const panel = document.getElementById(dayId);
+    if (!panel || !mobileViewport.matches) return;
+    const showMap = view === 'map';
+    if (showMap && panel.classList.contains('mobile-plan-view')) panel.dataset.planScroll = String(window.scrollY);
+    panel.classList.toggle('mobile-plan-view', !showMap);
+    panel.classList.toggle('mobile-map-view', showMap);
+    panel.querySelectorAll('.mobile-view-button').forEach(button => {
+      const isActive = button.dataset.view === view;
+      button.classList.toggle('active', isActive);
+      button.setAttribute('aria-pressed', String(isActive));
+    });
+    if (showMap) {
+      window.scrollTo({ top:0, behavior:'instant' });
+      setTimeout(() => fitDayRoute(dayId), 70);
+    } else if (restoreScroll) {
+      void panel.offsetHeight;
+      window.scrollTo({ top:Number(panel.dataset.planScroll) || 0, behavior:'instant' });
+    }
+  }
+
+  function activateStopRow(row) {
+    const dayId = row.dataset.dayId;
+    const order = Number(row.dataset.stopOrder);
+    if (!mobileViewport.matches) { setActiveStop(dayId, order, true); return; }
+    document.getElementById(dayId).dataset.focusStop = String(order);
+    setActiveStop(dayId, order);
+    setMobileView(dayId, 'map');
+    setTimeout(() => setActiveStop(dayId, order, true), 100);
+  }
 
   function setActiveStop(dayId, order, openPopup = false) {
     document.querySelectorAll(`.route-row[data-day-id="${dayId}"]`).forEach(row => {
@@ -180,6 +228,10 @@
       showAlternatives:false, fitSelectedRoutes:true, createMarker:() => null,
       lineOptions:{ styles:[{ color:'#fffdf8',opacity:.9,weight:7 },{ color:'#078b9d',opacity:.92,weight:4 }] }
     }).addTo(map);
+    routing.on('routesfound', () => {
+      const panel = document.getElementById(dayId);
+      if (panel?.classList.contains('mobile-map-view') && !panel.dataset.focusStop) fitDayRoute(dayId);
+    });
     routing.on('routingerror', () => {
       if (bounds.length > 1) { L.polyline(bounds,{color:'#078b9d',dashArray:'8,8',weight:3}).addTo(map); map.fitBounds(bounds,{padding:[30,30]}); }
     });
@@ -196,6 +248,10 @@
       button.tabIndex = isActive ? 0 : -1;
     });
     initializeMap(panelId);
+    if (mobileViewport.matches && panelId !== 'overview') {
+      delete document.getElementById(panelId).dataset.focusStop;
+      setMobileView(panelId, 'plan', false);
+    }
     if (updateHash) history.replaceState(null,'',`#${panelId}`);
     window.scrollTo({ top:0, behavior:'instant' });
     const activeButton = document.querySelector(`.tab-button[data-target="${panelId}"]`);
@@ -215,12 +271,19 @@
       if (next >= 0) { event.preventDefault(); buttons[next].focus(); activatePanel(buttons[next].dataset.target); }
     });
     app.addEventListener('click', event => {
+      const viewButton = event.target.closest('.mobile-view-button');
+      if (viewButton) {
+        const panel = viewButton.closest('.day-panel');
+        delete panel.dataset.focusStop;
+        setMobileView(panel.id, viewButton.dataset.view);
+        return;
+      }
       const row = event.target.closest('.route-row');
-      if (row) setActiveStop(row.dataset.dayId, Number(row.dataset.stopOrder), true);
+      if (row) activateStopRow(row);
     });
     app.addEventListener('keydown', event => {
       const row = event.target.closest('.route-row');
-      if (row && (event.key==='Enter' || event.key===' ')) { event.preventDefault(); setActiveStop(row.dataset.dayId, Number(row.dataset.stopOrder), true); }
+      if (row && (event.key==='Enter' || event.key===' ')) { event.preventDefault(); activateStopRow(row); }
     });
     app.addEventListener('pointerover', event => {
       const row = event.target.closest('.route-row');

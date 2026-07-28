@@ -122,6 +122,7 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3ZM5 5h6v2H7v10h10v-4h2v6H5V5Z"/></svg>
             <span>Открыть в Google Maps</span>
           </a>
+          <aside class="stop-detail" hidden tabindex="-1" aria-live="polite" aria-label="Выбранная остановка"></aside>
           <div class="map-caption">Маршрут дня и выбранная остановка</div>
         </div>
         <div class="info-grid day-notes">${sections}</div>
@@ -149,6 +150,45 @@
     if (bounds.isValid()) map.fitBounds(bounds,{ padding:[30,30],animate:false });
   }
 
+  function renderStopDetail(dayId,order) {
+    const day = data.days.find(item => item.id === dayId);
+    const stop = day?.stops.find(item => item.order === Number(order));
+    const detail = document.querySelector(`#${dayId} .stop-detail`);
+    if (!stop || !detail) return;
+    detail.innerHTML = `<button class="stop-detail-close" type="button" aria-label="Закрыть информацию об остановке">×</button>
+      <div class="stop-detail-kicker">Остановка ${escapeHtml(stop.order)}</div>
+      <h2>${escapeHtml(stop.name)}</h2>
+      <p class="stop-detail-role">${escapeHtml(stop.role)}</p>
+      <dl class="stop-detail-facts">
+        <div><dt>Время</dt><dd>${escapeHtml(stop.time)}</dd></div>
+        <div><dt>Остановка</dt><dd>${escapeHtml(stop.duration)}</dd></div>
+        <div><dt>От предыдущей</dt><dd>${escapeHtml(stop.drive)}, ${escapeHtml(stop.distance)}</dd></div>
+      </dl>
+      <p class="stop-detail-note"><strong>Примечание:</strong> ${escapeHtml(stop.note)}</p>`;
+    detail.hidden = false;
+    detail.closest('.map-wrap').classList.add('has-stop-detail');
+  }
+
+  function closeStopDetail(dayId,fitRoute = true,restoreFocus = true) {
+    const panel = document.getElementById(dayId);
+    const detail = panel?.querySelector('.stop-detail');
+    if (!detail) return;
+    const activeRow = panel.querySelector('.route-row.is-active');
+    const focusTarget = mobileViewport.matches && panel.classList.contains('mobile-map-view')
+      ? panel.querySelector('[data-view="map"]')
+      : activeRow;
+    detail.hidden = true;
+    detail.innerHTML = '';
+    detail.closest('.map-wrap').classList.remove('has-stop-detail');
+    panel.querySelectorAll('.route-row').forEach(row => row.classList.remove('is-active'));
+    markerIndex.forEach(({ element },key) => {
+      if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-active');
+    });
+    delete panel.dataset.focusStop;
+    if (fitRoute && (!mobileViewport.matches || panel.classList.contains('mobile-map-view'))) fitDayRoute(dayId);
+    if (restoreFocus) focusTarget?.focus({ preventScroll:true });
+  }
+
   function setMobileView(dayId, view, restoreScroll = true) {
     const panel = document.getElementById(dayId);
     if (!panel || !mobileViewport.matches) return;
@@ -173,14 +213,17 @@
   function activateStopRow(row) {
     const dayId = row.dataset.dayId;
     const order = Number(row.dataset.stopOrder);
-    if (!mobileViewport.matches) { setActiveStop(dayId, order, true); return; }
+    if (!mobileViewport.matches) { selectStop(dayId,order,true); return; }
     document.getElementById(dayId).dataset.focusStop = String(order);
-    setActiveStop(dayId, order);
+    selectStop(dayId,order);
     setMobileView(dayId, 'map');
-    setTimeout(() => setActiveStop(dayId, order, true), 100);
+    setTimeout(() => {
+      selectStop(dayId,order,true);
+      document.querySelector(`#${dayId} .stop-detail`)?.focus({ preventScroll:true });
+    },100);
   }
 
-  function setActiveStop(dayId, order, openPopup = false) {
+  function setActiveStop(dayId,order,focusMap = false) {
     document.querySelectorAll(`.route-row[data-day-id="${dayId}"]`).forEach(row => {
       row.classList.toggle('is-active', Number(row.dataset.stopOrder) === Number(order));
     });
@@ -190,10 +233,14 @@
       if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-active');
     });
     if (record.element) record.element.classList.add('is-active');
-    if (openPopup) {
+    if (focusMap) {
       record.map.setView(record.marker.getLatLng(), Math.max(record.map.getZoom(), 13), { animate:true });
-      record.marker.openPopup();
     }
+  }
+
+  function selectStop(dayId,order,focusMap = false) {
+    setActiveStop(dayId,order,focusMap);
+    renderStopDetail(dayId,order);
   }
 
   function initializeMap(dayId) {
@@ -210,8 +257,7 @@
     visibleStops.forEach(stop => {
       const icon = L.divIcon({ className:'', html:`<div class="numbered-marker" data-marker-order="${stop.order}">${stop.order}</div>`, iconSize:[36,36], iconAnchor:[18,18] });
       const marker = L.marker([stop.lat,stop.lon], { icon });
-      marker.bindPopup(`<b>${escapeHtml(stop.order)}. ${escapeHtml(stop.name)}</b><br><b>Время:</b> ${escapeHtml(stop.time)}<br><b>Остановка:</b> ${escapeHtml(stop.duration)}<br><b>От предыдущей:</b> ${escapeHtml(stop.drive)}, ${escapeHtml(stop.distance)}<br><b>Роль:</b> ${escapeHtml(stop.role)}<br><b>Примечание:</b> ${escapeHtml(stop.note)}`);
-      marker.on('click', () => setActiveStop(dayId, stop.order));
+      marker.on('click', () => selectStop(dayId,stop.order));
       marker.on('add', () => {
         const element = marker.getElement()?.querySelector('.numbered-marker');
         markerIndex.set(markerKey(dayId,stop.order), { marker,map,element });
@@ -239,6 +285,7 @@
   }
 
   function activatePanel(panelId, updateHash = true) {
+    if (activePanel !== panelId && activePanel !== 'overview') closeStopDetail(activePanel,false,false);
     activePanel = panelId;
     document.querySelectorAll('.panel').forEach(panel => panel.classList.toggle('active',panel.id===panelId));
     document.querySelectorAll('.tab-button').forEach(button => {
@@ -271,6 +318,8 @@
       if (next >= 0) { event.preventDefault(); buttons[next].focus(); activatePanel(buttons[next].dataset.target); }
     });
     app.addEventListener('click', event => {
+      const closeButton = event.target.closest('.stop-detail-close');
+      if (closeButton) { closeStopDetail(closeButton.closest('.day-panel').id); return; }
       const viewButton = event.target.closest('.mobile-view-button');
       if (viewButton) {
         const panel = viewButton.closest('.day-panel');
@@ -282,6 +331,10 @@
       if (row) activateStopRow(row);
     });
     app.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        const detail = event.target.closest('.stop-detail');
+        if (detail) { closeStopDetail(detail.closest('.day-panel').id); return; }
+      }
       const row = event.target.closest('.route-row');
       if (row && (event.key==='Enter' || event.key===' ')) { event.preventDefault(); activateStopRow(row); }
     });

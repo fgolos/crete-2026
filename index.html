@@ -44,6 +44,9 @@
         '.meta-grid{display:table;margin-bottom:5px}.meta-item{display:table-cell;padding:4px}');
 
       page=page.replace(/35\.207688/g,'35.20820').replace(/26\.106896/g,'26.10285');
+      page=page.replace(/origin=35\.20820,26\.10285/g,'origin=Ioannou%20Kondylaki%2018%2C%20Sitia%2C%2072300');
+      page=page.replace(/destination=35\.20820,26\.10285/g,'destination=Ioannou%20Kondylaki%2018%2C%20Sitia%2C%2072300');
+      page=page.replace(/waypoints=35\.21114,26\.10752\|35\.20820,26\.10285\|/g,'waypoints=35.21114,26.10752|Ioannou%20Kondylaki%2018%2C%20Sitia%2C%2072300|');
       page=page.replace(/<strong>Sitia<\/strong>/g,'<strong>Airbnb — Ioannou Kondylaki 18, Sitia</strong>');
       page=page.replace(/<strong>Sitia — breakfast, packing &amp; departure<\/strong>/g,'<strong>Airbnb — Ioannou Kondylaki 18, Sitia</strong>');
       page=page.replace(/"name": "Sitia"/g,'"name": "Airbnb — Ioannou Kondylaki 18, Sitia"');

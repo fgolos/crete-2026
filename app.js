@@ -177,10 +177,11 @@
       waypoints: routeStops.map(stop => L.latLng(stop.lat,stop.lon)),
       router:L.Routing.osrmv1({ serviceUrl:'https://router.project-osrm.org/route/v1' }),
       addWaypoints:false, draggableWaypoints:false, routeWhileDragging:false,
-      showAlternatives:false, fitSelectedRoutes:true, createMarker:() => null
+      showAlternatives:false, fitSelectedRoutes:true, createMarker:() => null,
+      lineOptions:{ styles:[{ color:'#fffdf8',opacity:.9,weight:7 },{ color:'#078b9d',opacity:.92,weight:4 }] }
     }).addTo(map);
     routing.on('routingerror', () => {
-      if (bounds.length > 1) { L.polyline(bounds,{dashArray:'8,8',weight:3}).addTo(map); map.fitBounds(bounds,{padding:[30,30]}); }
+      if (bounds.length > 1) { L.polyline(bounds,{color:'#078b9d',dashArray:'8,8',weight:3}).addTo(map); map.fitBounds(bounds,{padding:[30,30]}); }
     });
     setTimeout(() => map.invalidateSize(), 150);
   }

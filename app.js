@@ -31,23 +31,36 @@
 
   function renderTabs() {
     const items = [
-      { id:'overview', label:'Overview', subtitle:'11–15 Aug' },
-      ...data.days.map(day => ({ id:day.id, label:day.short, subtitle:day.title }))
+      { id:'overview', label:'Обзор', subtitle:'11–15 августа' },
+      ...data.days.map(day => ({ id:day.id, label:`${day.short.split(' ')[0]} авг`, subtitle:day.title }))
     ];
     tabs.innerHTML = items.map((item,index) => `
-      <button class="tab-button${index===0?' active':''}" data-target="${item.id}" type="button">
+      <button id="tab-${item.id}" class="tab-button${index===0?' active':''}" data-target="${item.id}" type="button" role="tab" aria-controls="${item.id}" aria-selected="${index===0?'true':'false'}" tabindex="${index===0?'0':'-1'}">
         <span>${escapeHtml(item.label)}</span><small>${escapeHtml(item.subtitle)}</small>
       </button>`).join('');
   }
 
+  function bookingStatus(item) {
+    if (/без брони/i.test(item.note)) return { key:'unreserved', label:'Без брони' };
+    if (item.status === 'pending') return { key:'pending', label:'Ожидается' };
+    return { key:'confirmed', label:'Подтверждено' };
+  }
+
+  function bookingSummary(note) {
+    return note.match(/^.*?[.!?](?:\s|$)/)?.[0].trim() || note;
+  }
+
   function renderOverview() {
     const overview = data.overview;
-    return `<section id="overview" class="panel active">
+    return `<section id="overview" class="panel active" role="tabpanel" aria-labelledby="tab-overview">
       <div class="overview-shell">
         <div class="overview-hero">
-          <div class="eyebrow">${escapeHtml(data.project.part)}</div>
-          <h1>${escapeHtml(data.project.heading)}</h1>
-          <p class="lead">${escapeHtml(data.project.lead)}</p>
+          <div class="overview-hero-content">
+            <div class="eyebrow">Восточный Крит</div>
+            <h1>Крит 2026</h1>
+            <p class="lead">${escapeHtml(data.project.lead)}</p>
+          </div>
+          <div class="photo-credit">Фото: <a href="https://commons.wikimedia.org/wiki/File:Vai_R01.jpg" target="_blank" rel="noopener">Marc Ryckaert</a> · <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a></div>
         </div>
         <div class="overview-grid">
           <article class="overview-card">
@@ -56,7 +69,10 @@
           </article>
           <article class="overview-card">
             <h2>Бронирования и ожидания</h2>
-            <div class="booking-list">${overview.bookings.map(item => `<div class="booking-card ${item.status}"><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.when)}</span></div><p>${escapeHtml(item.note)}</p></div>`).join('')}</div>
+            <div class="booking-list">${overview.bookings.map(item => {
+              const status = bookingStatus(item);
+              return `<div class="booking-card ${status.key}"><div class="booking-heading"><strong>${escapeHtml(item.name)}</strong><span class="status-label">${status.label}</span></div><time>${escapeHtml(item.when)}</time><p>${escapeHtml(bookingSummary(item.note))}</p></div>`;
+            }).join('')}</div>
           </article>
         </div>
         <article class="overview-card">
@@ -68,24 +84,32 @@
     </section>`;
   }
 
+  function isFlexibleStop(day, stop) {
+    return day.sections.essentials.items.some(item =>
+      /^Гибкая остановка:/i.test(item) && item.toLocaleLowerCase('ru').includes(stop.name.split('/')[0].trim().toLocaleLowerCase('ru'))
+    );
+  }
+
   function renderDay(day) {
-    const meta = day.meta.map(item => `<div class="meta-item"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`).join('');
-    const rows = day.stops.map(stop => `<tr class="route-row" tabindex="0" data-day-id="${day.id}" data-stop-order="${stop.order}">
-      <td>${stop.order}</td><td><strong>${escapeHtml(stop.name)}</strong><span class="role">${escapeHtml(stop.role)}</span></td>
-      <td>${escapeHtml(stop.time)}</td><td>${escapeHtml(stop.drive)}</td><td>${escapeHtml(stop.distance)}</td></tr>`).join('');
+    const meta = day.meta.map((item,index) => `<div class="meta-item ${index < 3 ? 'primary' : 'secondary'}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`).join('');
+    const rows = day.stops.map(stop => {
+      const flexible = isFlexibleStop(day, stop);
+      return `<tr class="route-row${flexible?' is-flexible':''}" tabindex="0" data-day-id="${day.id}" data-stop-order="${stop.order}" aria-label="Показать ${escapeHtml(stop.name)} на карте">
+        <td class="stop-order">${stop.order}</td><td class="stop-name"><strong>${escapeHtml(stop.name)}</strong>${flexible?'<span class="flexible-label">Гибко</span>':''}<span class="role">${escapeHtml(stop.role)}</span></td>
+        <td data-label="Время">${escapeHtml(stop.time)}</td><td data-label="В пути">${escapeHtml(stop.drive)}</td><td data-label="Расстояние">${escapeHtml(stop.distance)}</td></tr>`;
+    }).join('');
     const sections = ['essentials','food','practical'].map(key => {
       const section = day.sections[key];
       return `<section class="info-card ${key}"><h3>${escapeHtml(section.title)}</h3><ul>${section.items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul></section>`;
     }).join('');
     const mapsUrl = buildGoogleMapsUrl(day);
-    return `<section id="${day.id}" class="panel day-panel">
+    return `<section id="${day.id}" class="panel day-panel" role="tabpanel" aria-labelledby="tab-${day.id}">
       <div class="day-shell">
         <aside class="itinerary">
           <header class="day-header"><div class="eyebrow">${escapeHtml(day.date)}</div><h1>${escapeHtml(day.title)}</h1></header>
           <div class="meta-grid">${meta}</div>
-          <h2>Расписание и плечи маршрута</h2>
-          <table class="route-table"><thead><tr><th>№</th><th>Точка</th><th>Время</th><th>Ехать</th><th>Км</th></tr></thead><tbody>${rows}</tbody></table>
-          <div class="info-grid">${sections}</div>
+          <div class="route-heading"><h2>Маршрут дня</h2><p>Выберите остановку, чтобы показать её на карте.</p></div>
+          <table class="route-table"><thead><tr><th>№</th><th>Точка</th><th>Время</th><th>В пути</th><th>Км</th></tr></thead><tbody>${rows}</tbody></table>
         </aside>
         <div class="map-wrap">
           <div id="map-${day.id}" class="map"></div>
@@ -93,14 +117,15 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3ZM5 5h6v2H7v10h10v-4h2v6H5V5Z"/></svg>
             <span>Открыть в Google Maps</span>
           </a>
-          <div class="map-caption">Карта интерактивна. Нажмите на строку остановки, чтобы открыть точку.</div>
+          <div class="map-caption">Маршрут дня и выбранная остановка</div>
         </div>
+        <div class="info-grid day-notes">${sections}</div>
       </div>
     </section>`;
   }
 
   function render() {
-    projectTitle.textContent = data.project.title;
+    projectTitle.textContent = 'Крит · 11–15 августа';
     renderTabs();
     app.innerHTML = renderOverview() + data.days.map(renderDay).join('');
   }
@@ -163,16 +188,30 @@
   function activatePanel(panelId, updateHash = true) {
     activePanel = panelId;
     document.querySelectorAll('.panel').forEach(panel => panel.classList.toggle('active',panel.id===panelId));
-    document.querySelectorAll('.tab-button').forEach(button => button.classList.toggle('active',button.dataset.target===panelId));
+    document.querySelectorAll('.tab-button').forEach(button => {
+      const isActive = button.dataset.target === panelId;
+      button.classList.toggle('active',isActive);
+      button.setAttribute('aria-selected', String(isActive));
+      button.tabIndex = isActive ? 0 : -1;
+    });
     initializeMap(panelId);
     if (updateHash) history.replaceState(null,'',`#${panelId}`);
     window.scrollTo({ top:0, behavior:'instant' });
+    const activeButton = document.querySelector(`.tab-button[data-target="${panelId}"]`);
+    if (activeButton) tabs.scrollLeft = activeButton.offsetLeft - (tabs.clientWidth - activeButton.offsetWidth) / 2;
   }
 
   function bindEvents() {
     tabs.addEventListener('click', event => {
       const button = event.target.closest('.tab-button');
       if (button) activatePanel(button.dataset.target);
+    });
+    tabs.addEventListener('keydown', event => {
+      if (!event.target.matches('.tab-button')) return;
+      const buttons = [...tabs.querySelectorAll('.tab-button')];
+      const current = buttons.indexOf(event.target);
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : event.key === 'ArrowRight' ? (current + 1) % buttons.length : event.key === 'ArrowLeft' ? (current - 1 + buttons.length) % buttons.length : -1;
+      if (next >= 0) { event.preventDefault(); buttons[next].focus(); activatePanel(buttons[next].dataset.target); }
     });
     app.addEventListener('click', event => {
       const row = event.target.closest('.route-row');

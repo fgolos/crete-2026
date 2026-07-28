@@ -53,6 +53,7 @@
       page=page.replace(/"name": "Sitia — breakfast, packing & departure"/g,'"name": "Airbnb — Ioannou Kondylaki 18, Sitia"');
       page=page.replace(/СОГЛАСОВАНО/g,'');
 
+      page=page.replace('</body>','<script src="site/patch.js"><\/script></body>');
       return page;
     }
 

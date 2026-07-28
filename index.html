@@ -13,8 +13,8 @@
   <div class="loading"><strong>Crete 2026</strong><span>Загружаем маршрут…</span></div>
   <script>
     const parts=[
-      'site/part-00.txt','site/part-01.txt','site/part-02.txt','site/part-03.txt',
-      'site/part-04.txt','site/part-05.txt','site/part-06.txt'
+      'site/part-00.txt','site/part-01.txt','site/part-02.txt',
+      'site/part-03.txt','site/part-04.txt','site/part-05.txt'
     ];
     Promise.all(parts.map(async path=>{
       const response=await fetch(path,{cache:'no-store'});

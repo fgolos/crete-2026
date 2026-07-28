@@ -2,75 +2,28 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Crete 2026 — East Crete master itinerary, 11–15 August">
   <title>Crete 2026</title>
-  <style>
-    body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#edf1eb;color:#172018}
-    .loading{text-align:center;padding:24px}.loading strong{display:block;font-size:22px;margin-bottom:8px}.loading span{color:#647066}
-  </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="loading"><strong>Crete 2026</strong><span>Загружаем маршрут…</span></div>
-  <script>
-    const parts=[
-      'site/part-00.txt','site/part-01.txt','site/part-02.txt',
-      'site/part-03.txt','site/part-04.txt','site/part-05.txt'
-    ];
+  <header class="topbar">
+    <div id="project-title" class="project-title"></div>
+    <nav id="tabs" class="tabs" aria-label="Дни маршрута"></nav>
+  </header>
 
-    function applyCurrentEdits(source){
-      let page=source;
+  <noscript>
+    <div class="noscript">Для интерактивной карты и переключения дней нужен JavaScript.</div>
+  </noscript>
 
-      page=page.replace(/<div class="status-box">[\s\S]*?<\/div><\/div><div class="overview-grid">/,'</div><div class="overview-grid">');
-      page=page.replace(/<span class="day-status">Согласовано<\/span>/g,'');
-      page=page.replace(/<button class="secondary-button print-day" data-day="[^"]+">Печать дня<\/button>/g,'');
+  <main id="app"></main>
 
-      page=page.replace('.overview-hero{display:grid;grid-template-columns:1fr 300px;gap:22px;margin-bottom:22px}',
-        '.overview-hero{display:grid;grid-template-columns:1fr;gap:22px;margin-bottom:22px}');
-
-      page=page.replace(
-        '.meta-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}.meta-item{padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}.meta-item span{display:block;color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase}.meta-item strong{display:block;margin-top:3px;font-size:13px}',
-        '.meta-grid{display:table;width:100%;margin-bottom:10px;border:1px solid var(--line);border-radius:9px;border-collapse:separate;border-spacing:0;overflow:hidden;background:var(--soft)}.meta-item{display:table-cell;padding:6px 8px;border-right:1px solid var(--line);vertical-align:top}.meta-item:last-child{border-right:0}.meta-item span{display:block;color:var(--muted);font-size:8px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}.meta-item strong{display:block;margin-top:2px;font-size:11px;line-height:1.2}'
-      );
-
-      page=page.replace(
-        '.action-row{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:18px}.primary-button,.secondary-button{display:flex;align-items:center;justify-content:center;min-height:42px;border-radius:10px;text-decoration:none;font-weight:800;cursor:pointer}.primary-button{padding:10px 14px;border:1px solid var(--accent);background:var(--accent);color:#fff}.secondary-button{padding:10px 12px;border:1px solid #aeb6ae;background:#fff;color:var(--ink)}',
-        '.action-row{display:flex;justify-content:flex-start;margin-bottom:14px}.primary-button{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:7px 11px;border:1px solid var(--accent);border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-size:12px;font-weight:750;cursor:pointer}'
-      );
-
-      page=page.replace('.action-row{grid-template-columns:1fr}.secondary-button{display:none}',
-        '.action-row{display:flex}.meta-grid{display:grid;grid-template-columns:1fr 1fr}.meta-item{display:block;border-right:0;border-bottom:1px solid var(--line)}.meta-item:last-child{grid-column:1/-1;border-bottom:0}');
-
-      page=page.replace('.meta-grid{grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:5px}.meta-item{padding:4px}',
-        '.meta-grid{display:table;margin-bottom:5px}.meta-item{display:table-cell;padding:4px}');
-
-      page=page.replace(/35\.207688/g,'35.20820').replace(/26\.106896/g,'26.10285');
-      page=page.replace(/origin=35\.20820,26\.10285/g,'origin=Ioannou%20Kondylaki%2018%2C%20Sitia%2C%2072300');
-      page=page.replace(/destination=35\.20820,26\.10285/g,'destination=Ioannou%20Kondylaki%2018%2C%20Sitia%2C%2072300');
-      page=page.replace(/waypoints=35\.21114,26\.10752\|35\.20820,26\.10285\|/g,'waypoints=35.21114,26.10752|Ioannou%20Kondylaki%2018%2C%20Sitia%2C%2072300|');
-      page=page.replace(/<strong>Sitia<\/strong>/g,'<strong>Airbnb — Ioannou Kondylaki 18, Sitia</strong>');
-      page=page.replace(/<strong>Sitia — breakfast, packing &amp; departure<\/strong>/g,'<strong>Airbnb — Ioannou Kondylaki 18, Sitia</strong>');
-      page=page.replace(/"name": "Sitia"/g,'"name": "Airbnb — Ioannou Kondylaki 18, Sitia"');
-      page=page.replace(/"name": "Sitia — breakfast, packing & departure"/g,'"name": "Airbnb — Ioannou Kondylaki 18, Sitia"');
-      page=page.replace(/СОГЛАСОВАНО/g,'');
-
-      page=page.replace('</body>','<script src="site/patch.js"><\/script></body>');
-      return page;
-    }
-
-    Promise.all(parts.map(async path=>{
-      const response=await fetch(path,{cache:'no-store'});
-      if(!response.ok) throw new Error(`${path}: ${response.status}`);
-      return new Uint8Array(await response.arrayBuffer());
-    })).then(chunks=>{
-      const total=chunks.reduce((sum,chunk)=>sum+chunk.length,0);
-      const all=new Uint8Array(total);
-      let offset=0;
-      for(const chunk of chunks){all.set(chunk,offset);offset+=chunk.length;}
-      const page=applyCurrentEdits(new TextDecoder('utf-8').decode(all));
-      document.open();document.write(page);document.close();
-    }).catch(error=>{
-      document.body.innerHTML=`<div class="loading"><strong>Не удалось загрузить маршрут</strong><span>${error.message}</span></div>`;
-    });
-  </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+  <script src="itinerary-data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

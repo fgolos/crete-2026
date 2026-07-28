@@ -126,14 +126,14 @@ h1 { margin:6px 0 8px; font-family:"PT Serif",serif; font-size:clamp(28px,3.2vw,
 .stop-detail { position:absolute; left:16px; bottom:16px; z-index:700; width:min(460px,calc(100% - 32px)); max-height:48%; overflow-y:auto; padding:10px 40px 10px 12px; border:1px solid rgba(8,101,116,.24); border-radius:8px; background:rgba(255,253,248,.97); color:var(--ink); box-shadow:0 8px 28px rgba(20,54,58,.22); backdrop-filter:blur(12px); }
 .stop-detail[hidden] { display:none; }
 .stop-detail:focus { outline:3px solid rgba(7,139,157,.38); outline-offset:-3px; }
-.stop-detail-close { position:absolute; top:9px; right:9px; display:grid; place-items:center; width:32px; height:32px; padding:0; border:0; border-radius:50%; background:transparent; color:var(--muted); font-size:24px; line-height:1; cursor:pointer; }
+.stop-detail-close { position:absolute; top:9px; right:9px; display:grid; place-items:center; width:32px; height:32px; padding:0; border:0; border-radius:50%; background:transparent; color:var(--muted); font-size:20px; line-height:1; cursor:pointer; }
 .stop-detail-close:hover { background:var(--accent-soft); color:var(--accent-dark); }
 .stop-detail-kicker { margin-bottom:2px; color:var(--accent-dark); font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
 .stop-detail h2 { margin:0; font-family:"PT Serif",serif; font-size:20px; line-height:1.15; }
 .stop-detail-role { margin:3px 0 6px; color:var(--muted); font-size:13px; }
-.stop-maps-link { position:absolute; top:9px; right:46px; display:grid; place-items:center; width:28px; height:28px; padding:0; border:0; border-radius:4px; background:transparent; color:var(--muted); cursor:pointer; text-decoration:none; transition:all .2s; }
-.stop-maps-link:hover { background:var(--accent-soft); color:var(--accent-dark); }
-.stop-maps-link svg { width:16px; height:16px; }
+.stop-maps-link { display:inline-flex; align-items:center; gap:6px; color:inherit; text-decoration:none; transition:opacity .2s; }
+.stop-maps-link:hover { opacity:.75; }
+.stop-maps-link svg { width:18px; height:18px; flex:0 0 auto; color:var(--accent-dark); }
 .stop-detail-facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:0; padding:6px 0; border-block:1px solid var(--line); }
 .stop-detail-facts div { min-width:0; }
 .stop-detail-facts dt { color:var(--muted); font-size:9px; font-weight:700; text-transform:uppercase; }

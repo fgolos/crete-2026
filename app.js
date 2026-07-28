@@ -321,11 +321,8 @@
     if (!stop || !detail) return;
     const navigationUrl = buildStopNavigationUrl(stop);
     detail.innerHTML = `<button class="stop-detail-close" type="button" aria-label="Закрыть информацию об остановке">×</button>
-      <a class="stop-maps-link" href="${navigationUrl}" target="_blank" rel="noopener" aria-label="Открыть ${escapeHtml(stop.name)} в Google Maps">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3ZM5 5h6v2H7v10h10v-4h2v6H5V5Z"/></svg>
-      </a>
       <div class="stop-detail-kicker">Остановка ${escapeHtml(stop.order)}</div>
-      <h2>${escapeHtml(stop.name)}</h2>
+      <h2><a class="stop-maps-link" href="${navigationUrl}" target="_blank" rel="noopener" aria-label="Открыть ${escapeHtml(stop.name)} в Google Maps">${escapeHtml(stop.name)}<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3ZM5 5h6v2H7v10h10v-4h2v6H5V5Z"/></svg></a></h2>
       <p class="stop-detail-role">${escapeHtml(stop.role)}</p>
       <dl class="stop-detail-facts">
         <div><dt>Время</dt><dd>${escapeHtml(stop.time)}</dd></div>
@@ -523,7 +520,7 @@
       const retryButton = event.target.closest('.route-retry');
       if (retryButton) { initializeRoute(retryButton.closest('.day-panel').id); return; }
       const closeButton = event.target.closest('.stop-detail-close');
-      if (closeButton) { closeStopDetail(closeButton.closest('.day-panel').id); return; }
+      if (closeButton) { closeStopDetail(closeButton.closest('.day-panel').id, false); return; }
       const viewButton = event.target.closest('.mobile-view-button');
       if (viewButton) {
         const panel = viewButton.closest('.day-panel');

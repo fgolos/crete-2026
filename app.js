@@ -30,6 +30,16 @@
     return `https://www.google.com/maps/dir/?${params.toString()}`;
   }
 
+  function buildStopNavigationUrl(stop) {
+    const params = new URLSearchParams({
+      api:'1',
+      destination:stop.navigationQuery,
+      travelmode:'driving',
+      dir_action:'navigate'
+    });
+    return `https://www.google.com/maps/dir/?${params.toString()}`;
+  }
+
   function renderTabs() {
     const items = [
       { id:'overview', label:'Обзор', subtitle:'11–15 августа' },
@@ -155,10 +165,15 @@
     const stop = day?.stops.find(item => item.order === Number(order));
     const detail = document.querySelector(`#${dayId} .stop-detail`);
     if (!stop || !detail) return;
+    const navigationUrl = buildStopNavigationUrl(stop);
     detail.innerHTML = `<button class="stop-detail-close" type="button" aria-label="Закрыть информацию об остановке">×</button>
       <div class="stop-detail-kicker">Остановка ${escapeHtml(stop.order)}</div>
       <h2>${escapeHtml(stop.name)}</h2>
       <p class="stop-detail-role">${escapeHtml(stop.role)}</p>
+      <a class="stop-navigation-link" href="${navigationUrl}" target="_blank" rel="noopener" aria-label="Открыть ${escapeHtml(stop.name)} в Google Maps">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3ZM5 5h6v2H7v10h10v-4h2v6H5V5Z"/></svg>
+        <span>Открыть точку в Google Maps</span>
+      </a>
       <dl class="stop-detail-facts">
         <div><dt>Время</dt><dd>${escapeHtml(stop.time)}</dd></div>
         <div><dt>Остановка</dt><dd>${escapeHtml(stop.duration)}</dd></div>

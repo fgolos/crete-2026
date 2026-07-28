@@ -108,7 +108,10 @@ h1 { margin:6px 0 8px; font-family:"PT Serif",serif; font-size:clamp(28px,3.2vw,
 .stop-detail-close:hover { background:var(--accent-soft); color:var(--accent-dark); }
 .stop-detail-kicker { margin-bottom:3px; color:var(--accent-dark); font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
 .stop-detail h2 { margin:0; font-family:"PT Serif",serif; font-size:20px; line-height:1.15; }
-.stop-detail-role { margin:5px 0 12px; color:var(--muted); font-size:13px; }
+.stop-detail-role { margin:5px 0 10px; color:var(--muted); font-size:13px; }
+.stop-navigation-link { display:inline-flex; align-items:center; gap:5px; min-height:32px; margin-bottom:4px; color:var(--accent-dark); font-size:12px; font-weight:700; text-decoration:none; }
+.stop-navigation-link:hover span { text-decoration:underline; text-underline-offset:2px; }
+.stop-navigation-link svg { width:14px; height:14px; flex:0 0 auto; }
 .stop-detail-facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:0; padding:10px 0; border-block:1px solid var(--line); }
 .stop-detail-facts div { min-width:0; }
 .stop-detail-facts dt { color:var(--muted); font-size:9px; font-weight:700; text-transform:uppercase; }

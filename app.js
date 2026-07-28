@@ -136,13 +136,14 @@
     const bounds = [];
     visibleStops.forEach(stop => {
       const icon = L.divIcon({ className:'', html:`<div class="numbered-marker" data-marker-order="${stop.order}">${stop.order}</div>`, iconSize:[36,36], iconAnchor:[18,18] });
-      const marker = L.marker([stop.lat,stop.lon], { icon }).addTo(map);
+      const marker = L.marker([stop.lat,stop.lon], { icon });
       marker.bindPopup(`<b>${escapeHtml(stop.order)}. ${escapeHtml(stop.name)}</b><br><b>Время:</b> ${escapeHtml(stop.time)}<br><b>Остановка:</b> ${escapeHtml(stop.duration)}<br><b>От предыдущей:</b> ${escapeHtml(stop.drive)}, ${escapeHtml(stop.distance)}<br><b>Роль:</b> ${escapeHtml(stop.role)}<br><b>Примечание:</b> ${escapeHtml(stop.note)}`);
       marker.on('click', () => setActiveStop(dayId, stop.order));
       marker.on('add', () => {
         const element = marker.getElement()?.querySelector('.numbered-marker');
         markerIndex.set(markerKey(dayId,stop.order), { marker,map,element });
       });
+      marker.addTo(map);
       bounds.push([stop.lat,stop.lon]);
     });
 

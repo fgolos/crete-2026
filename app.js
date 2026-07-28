@@ -108,13 +108,146 @@
     );
   }
 
+  function parseTimeToMinutes(timeStr) {
+    if (!timeStr || timeStr === '—' || timeStr === '-') return 0;
+    let minutes = 0;
+    const hourMatch = timeStr.match(/(\d+)\s*(?:h|ч)/i);
+    const minMatch = timeStr.match(/(\d+)\s*(?:m|мин)/i);
+    if (hourMatch) minutes += Number(hourMatch[1]) * 60;
+    if (minMatch) minutes += Number(minMatch[1]);
+    return minutes;
+  }
+
+  function abbreviateTime(fullLabel) {
+    if (!fullLabel || fullLabel === '—' || fullLabel === '-') return fullLabel;
+    
+    let minutes = 0;
+    
+    // Pattern 1: "≈1 ч 30 мин – 2 ч" (hours:minutes to hours)
+    let match = fullLabel.match(/([0-9]+)\s*ч\s*([0-9]+)\s*мин?\s*[–—-]\s*([0-9]+)\s*ч/i);
+    if (match) {
+      const startMin = parseInt(match[1]) * 60 + parseInt(match[2]);
+      const endMin = parseInt(match[3]) * 60;
+      minutes = Math.ceil((startMin + endMin) / 2 / 5) * 5;
+      return formatTimeShort(minutes);
+    }
+    
+    // Pattern 2: "1 ч 35–50 мин" (hours + minute range)
+    match = fullLabel.match(/([0-9]+)\s*ч\s*([0-9]+)\s*[–—-]\s*([0-9]+)\s*мин/i);
+    if (match) {
+      const hours = parseInt(match[1]);
+      const minStart = parseInt(match[2]);
+      const minEnd = parseInt(match[3]);
+      const start = hours * 60 + minStart;
+      const end = hours * 60 + minEnd;
+      minutes = Math.ceil((start + end) / 2 / 5) * 5;
+      return formatTimeShort(minutes);
+    }
+    
+    // Pattern 3: "40–45 мин" (minutes only range)
+    match = fullLabel.match(/([0-9]+)\s*[–—-]\s*([0-9]+)\s*мин/i);
+    if (match) {
+      const start = parseInt(match[1]);
+      const end = parseInt(match[2]);
+      minutes = Math.ceil((start + end) / 2 / 5) * 5;
+      return formatTimeShort(minutes);
+    }
+    
+    // Pattern 4: "≈2 ч 40 мин" or "≈2 ч" (exact times with hours)
+    match = fullLabel.match(/([0-9]+)\s*ч\s*(?:([0-9]+)\s*мин)?/i);
+    if (match) {
+      const hours = parseInt(match[1]);
+      const mins = match[2] ? parseInt(match[2]) : 0;
+      minutes = hours * 60 + mins;
+      minutes = Math.ceil(minutes / 5) * 5;
+      return formatTimeShort(minutes);
+    }
+    
+    // Pattern 5: "≈30 мин" (exact minutes only)
+    match = fullLabel.match(/([0-9]+)\s*мин/i);
+    if (match) {
+      minutes = parseInt(match[1]);
+      minutes = Math.ceil(minutes / 5) * 5;
+      return formatTimeShort(minutes);
+    }
+    
+    return fullLabel;
+  }
+
+  function formatTimeShort(minutes) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}:${mins.toString().padStart(2, '0')}`;
+  }
+
+  function renderTimeline(day) {
+    const segments = [];
+    let totalMinutes = 0;
+    
+    // Build segments array: alternating between drive and stop durations
+    for (let i = 0; i < day.stops.length; i++) {
+      const stop = day.stops[i];
+      const nextStop = day.stops[i + 1];
+      
+      // Add drive time (except for first stop)
+      if (i > 0 && stop.drive && stop.drive !== '—' && stop.drive !== '-') {
+        const driveMinutes = parseTimeToMinutes(stop.drive);
+        if (driveMinutes > 0) {
+          const prevStop = day.stops[i - 1];
+          const description = `${prevStop.name} → ${stop.name}`;
+          segments.push({ 
+            type: 'drive', 
+            minutes: driveMinutes, 
+            fullLabel: stop.drive, 
+            shortLabel: abbreviateTime(stop.drive),
+            description: description,
+            stopOrder: stop.order
+          });
+          totalMinutes += driveMinutes;
+        }
+      }
+      
+      // Add stop duration
+      if (stop.duration && stop.duration !== '—' && stop.duration !== '-' && stop.duration !== 'Вылет') {
+        const stopMinutes = parseTimeToMinutes(stop.duration);
+        if (stopMinutes > 0) {
+          // Extract key activity from role (first part before comma)
+          const activity = stop.role.split(',')[0].trim();
+          const description = `${stop.name}: ${activity}`;
+          segments.push({ 
+            type: 'stop', 
+            minutes: stopMinutes, 
+            fullLabel: stop.duration, 
+            shortLabel: abbreviateTime(stop.duration),
+            description: description,
+            stopOrder: stop.order
+          });
+          totalMinutes += stopMinutes;
+        }
+      }
+    }
+    
+    if (segments.length === 0 || totalMinutes === 0) return '';
+    
+    // Render timeline segments
+    const segmentHtml = segments.map((seg, idx) => {
+      const percentage = (seg.minutes / totalMinutes * 100).toFixed(1);
+      const fullTooltip = `${seg.description} (${escapeHtml(seg.fullLabel)})`;
+      const dayIndex = data.days.findIndex(d => d === day);
+      const segmentId = `day-${dayIndex}-seg-${idx}`;
+      return `<div class="timeline-segment timeline-${seg.type}" data-segment-id="${segmentId}" data-stop-order="${seg.stopOrder}" data-segment-type="${seg.type}" data-expanded="false" style="flex:${seg.minutes} 0 0" aria-label="${seg.type === 'drive' ? 'Вождение' : 'Остановка'}: ${fullTooltip}"><span class="timeline-time">${escapeHtml(seg.shortLabel)}</span><span class="timeline-fulltime">${escapeHtml(seg.fullLabel)}</span><span class="timeline-desc">${escapeHtml(seg.description)}</span></div>`;
+    }).join('');
+    
+    return `<div class="timeline-container" data-timeline="day-${data.days.findIndex(d => d === day)}" aria-label="Визуальный обзор дня: вождение и остановки">${segmentHtml}</div>`;
+  }
+
   function renderDay(day) {
     const meta = day.meta.map((item,index) => `<div class="meta-item ${index < 3 ? 'primary' : 'secondary'}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`).join('');
     const rows = day.stops.map(stop => {
       const flexible = isFlexibleStop(day, stop);
       return `<tr class="route-row${flexible?' is-flexible':''}" tabindex="0" data-day-id="${day.id}" data-stop-order="${stop.order}" aria-label="Показать ${escapeHtml(stop.name)} на карте">
         <td class="stop-order">${stop.order}</td><td class="stop-name"><strong>${escapeHtml(stop.name)}</strong>${flexible?'<span class="flexible-label">Гибко</span>':''}<span class="role">${escapeHtml(stop.role)}</span></td>
-        <td data-label="Время">${escapeHtml(stop.time)}</td><td data-label="В пути">${escapeHtml(stop.drive)}</td><td data-label="Расстояние">${escapeHtml(stop.distance)}</td></tr>`;
+        <td data-label="Расстояние">${escapeHtml(stop.distance)}</td><td data-label="В пути">${escapeHtml(stop.drive)}</td><td data-label="Время">${escapeHtml(stop.time)}</td></tr>`;
     }).join('');
     const sections = ['essentials','food','practical'].map(key => {
       const section = day.sections[key];
@@ -131,8 +264,8 @@
         <aside class="itinerary">
           <header class="day-header"><div class="eyebrow">${escapeHtml(day.date)}</div><h1>${escapeHtml(day.title)}</h1></header>
           <div class="meta-grid">${meta}</div>
-          <div class="route-heading"><h2>Маршрут дня</h2><p>Выберите остановку, чтобы показать её на карте.</p></div>
-          <table class="route-table"><thead><tr><th>№</th><th>Точка</th><th>Время</th><th>В пути</th><th>Км</th></tr></thead><tbody>${rows}</tbody></table>
+          ${renderTimeline(day)}
+          <table class="route-table"><thead><tr><th>№</th><th>Точка</th><th>Км</th><th>В пути</th><th>Время</th></tr></thead><tbody>${rows}</tbody></table>
         </aside>
         <div class="map-wrap">
           <div id="map-${day.id}" class="map"></div>
@@ -152,10 +285,19 @@
     </section>`;
   }
 
+  function setupTimelineListeners() {
+    document.querySelectorAll('.timeline-container').forEach(container => {
+      container.addEventListener('mouseleave', () => {
+        container.querySelectorAll('.timeline-segment').forEach(seg => seg.dataset.expanded = 'false');
+      });
+    });
+  }
+
   function render() {
     projectTitle.textContent = 'Крит · 11–15 августа';
     renderTabs();
     app.innerHTML = renderOverview() + data.days.map(renderDay).join('');
+    setupTimelineListeners();
   }
 
   function markerKey(dayId, order) { return `${dayId}:${order}`; }
@@ -390,8 +532,47 @@
         setMobileView(panel.id, viewButton.dataset.view);
         return;
       }
+      const timelineSegment = event.target.closest('.timeline-segment');
+      if (timelineSegment) {
+        const container = timelineSegment.closest('.timeline-container');
+        if (container) {
+          const allSegments = container.querySelectorAll('.timeline-segment');
+          const isExpanded = timelineSegment.dataset.expanded === 'true';
+          // Collapse all segments
+          allSegments.forEach(seg => seg.dataset.expanded = 'false');
+          // Toggle the clicked segment (if it wasn't expanded, expand it; if it was, leave it collapsed)
+          if (!isExpanded) timelineSegment.dataset.expanded = 'true';
+        }
+        return;
+      }
       const row = event.target.closest('.route-row');
       if (row) activateStopRow(row);
+    });
+    app.addEventListener('mouseover', event => {
+      const timelineSegment = event.target.closest('.timeline-segment');
+      if (!timelineSegment) return;
+      const container = timelineSegment.closest('.timeline-container');
+      if (!container) return;
+      const dayPanel = container.closest('.panel');
+      if (!dayPanel) return;
+      const stopOrder = timelineSegment.dataset.stopOrder;
+      const segmentType = timelineSegment.dataset.segmentType;
+      if (!stopOrder) return;
+      const row = dayPanel.querySelector(`.route-row[data-stop-order="${stopOrder}"]`);
+      if (row) {
+        row.classList.add(segmentType === 'stop' ? 'highlight-time' : 'highlight-drive');
+      }
+    });
+    app.addEventListener('mouseout', event => {
+      const timelineSegment = event.target.closest('.timeline-segment');
+      if (!timelineSegment) return;
+      const container = timelineSegment.closest('.timeline-container');
+      if (!container) return;
+      const dayPanel = container.closest('.panel');
+      if (!dayPanel) return;
+      dayPanel.querySelectorAll('.route-row').forEach(row => {
+        row.classList.remove('highlight-time', 'highlight-drive');
+      });
     });
     app.addEventListener('keydown', event => {
       if (event.key === 'Escape') {

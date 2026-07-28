@@ -7,11 +7,17 @@
   const app = document.getElementById('app');
   const tabs = document.getElementById('tabs');
   const projectTitle = document.getElementById('project-title');
+  const appStatus = document.getElementById('app-status');
+  const appStatusText = document.getElementById('app-status-text');
+  const appStatusAction = document.getElementById('app-status-action');
   const maps = new Map();
   const markerIndex = new Map();
   const routingIndex = new Map();
   const mobileViewport = window.matchMedia('(max-width: 800px)');
   let activePanel = 'overview';
+  let isOffline = !navigator.onLine;
+  let waitingWorker = null;
+  let reloadingForUpdate = false;
 
   const escapeHtml = value => String(value)
     .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
@@ -417,9 +423,72 @@
     return data.days.some(day => day.id === panelId) ? panelId : 'overview';
   }
 
+  function registerServiceWorker() {
+    function refreshStatus() {
+      if (waitingWorker) {
+        appStatusText.textContent = 'Доступна новая версия маршрута.';
+        appStatusAction.hidden = false;
+        appStatus.hidden = false;
+      } else if (isOffline) {
+        appStatusText.textContent = 'Офлайн · план и памятка доступны';
+        appStatusAction.hidden = true;
+        appStatus.hidden = false;
+      } else {
+        appStatus.hidden = true;
+      }
+    }
+
+    async function checkConnection() {
+      if (!navigator.onLine) {
+        isOffline = true;
+      } else if (location.protocol === 'file:') {
+        isOffline = false;
+      } else {
+        try {
+          const response = await fetch('./',{ method:'HEAD',cache:'no-store' });
+          isOffline = !response.ok;
+        } catch {
+          isOffline = true;
+        }
+      }
+      refreshStatus();
+    }
+
+    function trackInstalling(worker) {
+      worker?.addEventListener('statechange', () => {
+        if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+          waitingWorker = worker;
+          refreshStatus();
+        }
+      });
+    }
+
+    window.addEventListener('online',checkConnection);
+    window.addEventListener('offline', () => { isOffline = true; refreshStatus(); });
+    checkConnection();
+    if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
+
+    appStatusAction.addEventListener('click', () => waitingWorker?.postMessage({ type:'SKIP_WAITING' }));
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!waitingWorker || reloadingForUpdate) return;
+      reloadingForUpdate = true;
+      location.reload();
+    });
+    navigator.serviceWorker.register('./service-worker.js').then(registration => {
+      if (registration.waiting) {
+        waitingWorker = registration.waiting;
+        refreshStatus();
+      }
+      registration.addEventListener('updatefound', () => trackInstalling(registration.installing));
+    }).catch(error => {
+      console.warn('Offline support is unavailable.',error);
+    });
+  }
+
   render();
   bindEvents();
   const hash = location.hash.slice(1);
   const hashPanel = hash && (hash === 'overview' || data.days.some(day => day.id === hash)) ? hash : null;
   activatePanel(hashPanel || panelForDate(openingDate()), false);
+  registerServiceWorker();
 })();

@@ -1,0 +1,20 @@
+{
+  "name": "Crete 2026 itinerary",
+  "short_name": "Crete 2026",
+  "description": "Read-only family itinerary for East Crete, 11-15 August 2026.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fffdf8",
+  "theme_color": "#086574",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

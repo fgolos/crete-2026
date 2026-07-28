@@ -4,7 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Crete 2026 — East Crete master itinerary, 11–15 August">
+  <meta name="theme-color" content="#086574">
   <title>Crete 2026</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=PT+Serif:wght@700&display=swap" rel="stylesheet">
@@ -23,6 +26,10 @@
   </noscript>
 
   <main id="app"></main>
+  <div id="app-status" class="app-status" role="status" aria-live="polite" hidden>
+    <span id="app-status-text"></span>
+    <button id="app-status-action" type="button" hidden>Обновить</button>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>

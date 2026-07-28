@@ -29,6 +29,10 @@ Edit `index.html` only when the shell or loaded assets must change.
 
 Every push to `main` automatically deploys to GitHub Pages.
 
+## Previewing date-aware opening
+
+Without a day in the URL hash, the site opens the matching itinerary day from 11–15 August 2026 and opens Overview on other dates. Use `?date=2026-08-12` to preview a trip date without changing the system clock. An explicit hash still wins, for example `?date=2026-08-12#day14` opens 14 August.
+
 ## Data notes
 
 Each day contains:

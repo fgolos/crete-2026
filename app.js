@@ -365,8 +365,24 @@
     window.addEventListener('beforeprint', () => { data.days.forEach(day => initializeMap(day.id)); setTimeout(() => [...maps.values()].forEach(map => map.invalidateSize()),300); });
   }
 
+  function openingDate() {
+    const preview = new URLSearchParams(location.search).get('date');
+    const match = preview?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return new Date();
+    const [,year,month,day] = match.map(Number);
+    const date = new Date(year,month - 1,day);
+    return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : new Date();
+  }
+
+  function panelForDate(date) {
+    if (date.getFullYear() !== 2026 || date.getMonth() !== 7) return 'overview';
+    const panelId = `day${date.getDate()}`;
+    return data.days.some(day => day.id === panelId) ? panelId : 'overview';
+  }
+
   render();
   bindEvents();
   const hash = location.hash.slice(1);
-  activatePanel(hash && (hash==='overview' || data.days.some(day => day.id===hash)) ? hash : 'overview', false);
+  const hashPanel = hash && (hash === 'overview' || data.days.some(day => day.id === hash)) ? hash : null;
+  activatePanel(hashPanel || panelForDate(openingDate()), false);
 })();

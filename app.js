@@ -399,7 +399,8 @@
 
   function renderDay(day) {
     const timelineData = renderTimeline(day);
-    const meta = day.meta.map((item,index) => `<div class="meta-item ${index < 3 ? 'primary' : 'secondary'}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`).join('');
+    const metaItems = day.mealSummary ? [...day.meta, { label:'Питание', value:day.mealSummary }] : day.meta;
+    const meta = metaItems.map((item,index) => `<div class="meta-item ${index < 3 ? 'primary' : 'secondary'}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`).join('');
     const rows = day.stops.map(stop => {
       const flexible = isFlexibleStop(day, stop);
       return `<tr class="route-row${flexible?' is-flexible':''}" tabindex="0" data-day-id="${day.id}" data-stop-order="${stop.order}" aria-label="Показать ${escapeHtml(stop.name)} на карте">

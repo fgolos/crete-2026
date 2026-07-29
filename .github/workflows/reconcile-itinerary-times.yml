@@ -1,0 +1,107 @@
+name: Reconcile itinerary times
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/reconcile-itinerary-times.yml
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Recalculate all itinerary times
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import re
+
+          path = Path('itinerary-data.js')
+          text = path.read_text(encoding='utf-8')
+          prefix = 'window.CRETE_ITINERARY='
+          if not text.startswith(prefix) or not text.rstrip().endswith(';'):
+              raise SystemExit('Unexpected itinerary-data.js format')
+          data = json.loads(text[len(prefix):].rstrip()[:-1])
+
+          # The airport processing block on 11 August is now exact rather than ranged.
+          day11 = next(day for day in data['days'] if day['id'] == 'day11')
+          airport = next(stop for stop in day11['stops'] if stop['order'] == 1)
+          airport['duration'] = '1 ч 55 мин'
+
+          def clock_to_minutes(value):
+              m = re.fullmatch(r'(\d{1,2}):(\d{2})', value)
+              if not m:
+                  raise ValueError(f'Unexpected clock time: {value!r}')
+              return int(m.group(1)) * 60 + int(m.group(2))
+
+          def minutes_to_clock(value):
+              value %= 24 * 60
+              return f'{value // 60:02d}:{value % 60:02d}'
+
+          def time_start(value):
+              return value.split('–', 1)[0]
+
+          def compact_drive(value):
+              if not value or value in {'—', '-'}:
+                  return 0
+              m = re.fullmatch(r'(\d+):(\d{2})', value)
+              if not m:
+                  raise ValueError(f'Unexpected drive value: {value!r}')
+              return int(m.group(1)) * 60 + int(m.group(2))
+
+          def duration_minutes(value):
+              if value in {'Старт', 'Финиш', 'Вылет', 'Заселение и отдых'}:
+                  return None
+              hours = re.search(r'(\d+)\s*ч', value)
+              mins = re.search(r'(\d+)\s*мин', value)
+              if not hours and not mins:
+                  raise ValueError(f'Unexpected duration: {value!r}')
+              return (int(hours.group(1)) * 60 if hours else 0) + (int(mins.group(1)) if mins else 0)
+
+          for day in data['days']:
+              route_stops = [next(stop for stop in day['stops'] if stop['order'] == order) for order in day['routeStopOrders']]
+              current_departure = None
+
+              for index, stop in enumerate(route_stops):
+                  if index == 0:
+                      arrival = clock_to_minutes(time_start(stop['time']))
+                  else:
+                      arrival = current_departure + compact_drive(stop['drive'])
+
+                  duration = duration_minutes(stop['duration'])
+                  if duration is None:
+                      stop['time'] = minutes_to_clock(arrival)
+                      current_departure = arrival
+                  else:
+                      departure = arrival + duration
+                      stop['time'] = f'{minutes_to_clock(arrival)}–{minutes_to_clock(departure)}'
+                      current_departure = departure
+
+              finish = next(item for item in day['meta'] if item['label'] == 'Финиш')
+              finish['value'] = route_stops[-1]['time']
+
+          # Validate every route leg after recalculation.
+          for day in data['days']:
+              route_stops = [next(stop for stop in day['stops'] if stop['order'] == order) for order in day['routeStopOrders']]
+              for previous, current in zip(route_stops, route_stops[1:]):
+                  previous_departure = clock_to_minutes(previous['time'].split('–')[-1])
+                  expected_arrival = previous_departure + compact_drive(current['drive'])
+                  actual_arrival = clock_to_minutes(time_start(current['time']))
+                  if actual_arrival != expected_arrival:
+                      raise SystemExit(f"Time mismatch in {day['id']}: {previous['name']} -> {current['name']}")
+
+          serialized = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
+          path.write_text(prefix + serialized + ';', encoding='utf-8')
+          PY
+      - name: Commit reconciled itinerary
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add itinerary-data.js
+          git commit -m "Reconcile itinerary times across all days"
+          git push

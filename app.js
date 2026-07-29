@@ -550,45 +550,71 @@
     detail.closest('.map-wrap').classList.add('has-stop-detail');
   }
 
-  function syncSelectionUI(dayId, selectedType, selectedOrder) {
+  function syncSelectionUI(dayId, selectedType, selectedOrder, isHover = false) {
     const panel = document.getElementById(dayId);
     if (!panel) return;
     
-    // Clear all previous selections
-    panel.querySelectorAll('.route-row').forEach(row => {
-      row.classList.remove('is-active', 'is-drive-selected', 'is-stop-selected');
-    });
-    panel.querySelectorAll('.timeline-segment').forEach(seg => {
-      seg.classList.remove('is-selected');
-    });
-    markerIndex.forEach(({ element }, key) => {
-      if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-active');
-    });
+    // Determine CSS class suffix based on hover/selected
+    const suffix = isHover ? 'hovered' : 'active';
+    const selectionClass = isHover ? 'is-hovered' : 'is-selected';
+    const rowActiveClass = isHover ? 'is-hovered' : 'is-active';
     
-    if (!selectedType || selectedOrder === null) return; // Cleared but no new selection
+    // Clear previous hover states if this is a hover, or selection states if not
+    if (isHover) {
+      panel.querySelectorAll('.route-row.is-hovered, .route-row.is-stop-hovered, .route-row.is-drive-hovered').forEach(row => {
+        row.classList.remove('is-hovered', 'is-stop-hovered', 'is-drive-hovered');
+      });
+      panel.querySelectorAll('.timeline-segment.is-hovered').forEach(seg => {
+        seg.classList.remove('is-hovered');
+      });
+      markerIndex.forEach(({ element }, key) => {
+        if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-hovered');
+      });
+    } else {
+      // Clear all previous selections
+      panel.querySelectorAll('.route-row').forEach(row => {
+        row.classList.remove('is-active', 'is-drive-selected', 'is-stop-selected');
+      });
+      panel.querySelectorAll('.timeline-segment').forEach(seg => {
+        seg.classList.remove('is-selected');
+      });
+      markerIndex.forEach(({ element }, key) => {
+        if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-active');
+      });
+    }
     
-    // Apply selection based on type
+    if (!selectedType || selectedOrder === null) return; // Cleared but no new selection/hover
+    
+    // Apply selection/hover based on type
     if (selectedType === 'stop') {
       // Highlight the stop row
       const row = panel.querySelector(`.route-row[data-stop-order="${selectedOrder}"]`);
-      row?.classList.add('is-active', 'is-stop-selected');
+      if (isHover) {
+        row?.classList.add('is-hovered', 'is-stop-hovered');
+      } else {
+        row?.classList.add('is-active', 'is-stop-selected');
+      }
       
       // Highlight the stop timeline segment
       const segment = panel.querySelector(`.timeline-segment[data-stop-order="${selectedOrder}"][data-segment-type="stop"]`);
-      segment?.classList.add('is-selected');
+      segment?.classList.add(selectionClass);
       
       // Highlight the map marker
       const marker = markerIndex.get(markerKey(dayId, selectedOrder));
-      marker?.element?.classList.add('is-active');
+      marker?.element?.classList.add(isHover ? 'is-hovered' : 'is-active');
       
     } else if (selectedType === 'drive') {
       // Highlight the destination stop's row with drive column styling (Км + В пути)
       const row = panel.querySelector(`.route-row[data-stop-order="${selectedOrder}"]`);
-      row?.classList.add('is-active', 'is-drive-selected');
+      if (isHover) {
+        row?.classList.add('is-hovered', 'is-drive-hovered');
+      } else {
+        row?.classList.add('is-active', 'is-drive-selected');
+      }
       
       // Highlight the drive timeline segment
       const segment = panel.querySelector(`.timeline-segment[data-stop-order="${selectedOrder}"][data-segment-type="drive"]`);
-      segment?.classList.add('is-selected');
+      segment?.classList.add(selectionClass);
     }
   }
 
@@ -604,6 +630,7 @@
     detail.innerHTML = '';
     detail.closest('.map-wrap').classList.remove('has-stop-detail');
     syncSelectionUI(dayId, null, null);
+    clearHoverDrive(dayId);
     delete panel.dataset.focusStop;
     if (fitRoute && (!mobileViewport.matches || panel.classList.contains('mobile-map-view'))) fitDayRoute(dayId);
     if (restoreFocus) focusTarget?.focus({ preventScroll:true });
@@ -714,6 +741,41 @@
     syncSelectionUI(dayId, 'drive', stopOrder);
   }
 
+  function setHoverDrive(dayId, stopOrder) {
+    const panel = document.getElementById(dayId);
+    const map = maps.get(dayId);
+    const state = routingIndex.get(dayId);
+    if (!panel || !map || !state) return;
+    
+    // Clear previous hover highlight
+    if (state.driveHoverHighlight) {
+      map.removeLayer(state.driveHoverHighlight);
+      state.driveHoverHighlight = null;
+    }
+    
+    const day = data.days.find(item => item.id === dayId);
+    if (!day) return;
+    
+    const currentOrderIndex = day.routeStopOrders.indexOf(Number(stopOrder));
+    if (currentOrderIndex <= 0) return;
+    
+    // Get coordinates for this drive segment
+    const segCoords = routeSegmentCoordinates(dayId, currentOrderIndex - 1, currentOrderIndex);
+    if (segCoords && segCoords.length > 1) {
+      state.driveHoverHighlight = L.polyline(segCoords, { color:'#f3b11f', weight:4, opacity:.6, lineCap:'round', dashArray:'5,5' }).addTo(map);
+    }
+  }
+
+  function clearHoverDrive(dayId) {
+    const map = maps.get(dayId);
+    const state = routingIndex.get(dayId);
+    if (!map || !state) return;
+    if (state.driveHoverHighlight) {
+      map.removeLayer(state.driveHoverHighlight);
+      state.driveHoverHighlight = null;
+    }
+  }
+
   function focusTimelineStop(dayId, stopOrder) {
     const panel = document.getElementById(dayId);
     if (!panel) return;
@@ -785,7 +847,7 @@
       showAlternatives:false, fitSelectedRoutes:true, createMarker:() => null,
       lineOptions:{ styles:[{ color:'#fffdf8',opacity:.9,weight:7 },{ color:'#078b9d',opacity:.92,weight:4 }] }
     }).addTo(map);
-    routingIndex.set(dayId,{ control:routing,fallback:null,driveHighlight:null,lastRoute:null,segmentOverlays:[] });
+    routingIndex.set(dayId,{ control:routing,fallback:null,driveHighlight:null,driveHoverHighlight:null,lastRoute:null,segmentOverlays:[] });
     routing.on('routesfound', event => {
       if (routingIndex.get(dayId)?.control !== routing) return;
       const state = routingIndex.get(dayId);
@@ -800,6 +862,15 @@
         const stopOrder = day.routeStopOrders[i];
         const overlay = L.polyline(segCoords, { weight:20, opacity:0.001, interactive:true, pane:'routeOverlays' }).addTo(map);
         overlay.on('click', () => focusTimelineDrive(dayId, stopOrder));
+        // Add hover listeners to route overlay
+        overlay.on('mouseover', () => {
+          syncSelectionUI(dayId, 'drive', stopOrder, true);
+          setHoverDrive(dayId, stopOrder);
+        });
+        overlay.on('mouseout', () => {
+          syncSelectionUI(dayId, null, null, true);
+          clearHoverDrive(dayId);
+        });
         state.segmentOverlays.push(overlay);
       }
       const panel = document.getElementById(dayId);
@@ -837,6 +908,16 @@
       marker.on('add', () => {
         const element = marker.getElement()?.querySelector('.numbered-marker');
         markerIndex.set(markerKey(dayId,stop.order), { marker,map,element });
+        // Add hover listeners to marker
+        if (element) {
+          element.addEventListener('mouseover', () => {
+            syncSelectionUI(dayId, 'stop', stop.order, true);
+          });
+          element.addEventListener('mouseout', () => {
+            syncSelectionUI(dayId, null, null, true);
+            clearHoverDrive(dayId);
+          });
+        }
       });
       marker.addTo(map);
       bounds.push([stop.lat,stop.lon]);
@@ -957,10 +1038,62 @@
       const row = event.target.closest('.route-row');
       if (row && (event.key==='Enter' || event.key===' ')) { event.preventDefault(); activateStopRow(row); }
     });
-    app.addEventListener('pointerover', event => {
-      const row = event.target.closest('.route-row');
-      if (row) setActiveStop(row.dataset.dayId, Number(row.dataset.stopOrder));
+    // Add hover listeners to timeline segments using mouseover/mouseout (bubbling events)
+    app.addEventListener('mouseover', event => {
+      const segment = event.target.closest('.timeline-segment');
+      if (!segment) return;
+      const container = segment.closest('.timeline-container');
+      const dayPanel = container?.closest('.day-panel');
+      if (dayPanel) {
+        const stopOrder = Number(segment.dataset.stopOrder);
+        const segmentType = segment.dataset.segmentType;
+        syncSelectionUI(dayPanel.id, segmentType, stopOrder, true);
+        // Show drive highlight on map when hovering over drive segment
+        if (segmentType === 'drive') {
+          setHoverDrive(dayPanel.id, stopOrder);
+        }
+      }
     });
+    app.addEventListener('mouseout', event => {
+      const segment = event.target.closest('.timeline-segment');
+      if (!segment) return;
+      const container = segment.closest('.timeline-container');
+      const dayPanel = container?.closest('.day-panel');
+      if (dayPanel) {
+        syncSelectionUI(dayPanel.id, null, null, true);
+        clearHoverDrive(dayPanel.id);
+      }
+    });
+    
+    // Add hover listeners to table rows using mouseover/mouseout (bubbling events)
+    app.addEventListener('mouseover', event => {
+      const row = event.target.closest('.route-row');
+      if (!row) return;
+      const dayId = row.dataset.dayId;
+      const stopOrder = Number(row.dataset.stopOrder);
+      const cell = event.target.closest('td');
+      if (cell) {
+        const cellIndex = [...row.cells].indexOf(cell);
+        // Hovering on км (col 3) or в пути (col 4) cells highlights drive, otherwise highlights stop
+        const isDriveCell = (cellIndex === 2 || cellIndex === 3) && cell.textContent.trim() !== '—';
+        const selectedType = isDriveCell ? 'drive' : 'stop';
+        syncSelectionUI(dayId, selectedType, stopOrder, true);
+        // Show drive highlight on map when hovering over drive columns
+        if (isDriveCell) {
+          setHoverDrive(dayId, stopOrder);
+        }
+      } else {
+        syncSelectionUI(dayId, 'stop', stopOrder, true);
+      }
+    });
+    app.addEventListener('mouseout', event => {
+      const row = event.target.closest('.route-row');
+      if (!row) return;
+      const dayId = row.dataset.dayId;
+      syncSelectionUI(dayId, null, null, true);
+      clearHoverDrive(dayId);
+    });
+    
     window.addEventListener('beforeprint', () => { data.days.forEach(day => initializeMap(day.id)); setTimeout(() => [...maps.values()].forEach(map => map.invalidateSize()),300); });
   }
 

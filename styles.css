@@ -84,10 +84,12 @@ h1 { margin:6px 0 8px; font-family:"PT Serif",serif; font-size:clamp(28px,3.2vw,
 .timeline-hour-mark { position:absolute; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; pointer-events:none; top:0; gap:1px; }
 .timeline-hour-label { font-size:11px; font-weight:700; color:var(--muted); white-space:nowrap; line-height:1; flex-shrink:0; }
 .timeline-hour-line { width:1px; height:6px; background:var(--muted); opacity:0.5; flex-shrink:0; }
-.meta-grid { display:grid; grid-template-columns:repeat(6,1fr); width:100%; margin-bottom:12px; overflow:hidden; border:1px solid var(--line); border-radius:7px; background:var(--soft); }
-.meta-item { grid-column:span 2; padding:5px 6px; border-right:1px solid var(--line); }
-.meta-item:nth-child(3) { border-right:0; }
-.meta-item.secondary { grid-column:span 3; border-top:1px solid var(--line); }
+.meta-grid { display:grid; grid-template-columns:repeat(4,1fr); width:100%; margin-bottom:12px; overflow:hidden; border:1px solid var(--line); border-radius:7px; background:var(--soft); }
+.meta-item { grid-column:span 1; padding:5px 6px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); }
+.meta-item.primary { grid-column:span 1; }
+.meta-item.secondary { grid-column:span 2; }
+.meta-item:nth-child(4),.meta-item:nth-child(6) { border-right:0; }
+.meta-item:nth-child(n+5) { border-bottom:0; }
 .meta-item:last-child { border-right:0; }
 .meta-item span { display:block; color:var(--muted); font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
 .meta-item strong { display:block; margin-top:1px; font-size:13px; line-height:1.25; }
@@ -196,9 +198,9 @@ h1 { margin:6px 0 8px; font-family:"PT Serif",serif; font-size:clamp(28px,3.2vw,
   .meta-item.primary { padding:4px 5px; }
   .meta-item.primary span { font-size:9px; }
   .meta-item.primary strong { margin-top:1px; font-size:13px; line-height:1.2; }
-  .meta-item:nth-child(2),.meta-item:nth-child(4) { border-right:0; }
-  .meta-item:nth-child(3) { grid-column:1/-1; border-right:0; }
-  .meta-item:last-child { border-right:0; border-bottom:0; }
+  .meta-item:nth-child(even) { border-right:0; }
+  .meta-item:nth-child(n+5) { border-bottom:0; }
+  .meta-item:last-child { border-right:0; }
   .route-heading { display:block; }
   .route-heading p { margin-top:3px; font-size:12px; text-align:left; }
   .route-table { display:block; margin-top:12px; font-size:14px; }

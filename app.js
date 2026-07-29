@@ -399,8 +399,27 @@
 
   function renderDay(day) {
     const timelineData = renderTimeline(day);
-    const metaItems = day.mealSummary ? [...day.meta, { label:'Питание', value:day.mealSummary }] : day.meta;
-    const meta = metaItems.map((item,index) => `<div class="meta-item ${index < 3 ? 'primary' : 'secondary'}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`).join('');
+    const metaOrder = ['выезд', 'финиш', 'расстояние', 'вождение', 'купание', 'питание'];
+    const normalizeLabel = value => value.trim().toLowerCase();
+    const metaItems = Array.isArray(day.meta) ? [...day.meta] : [];
+    const hasExplicitFood = metaItems.some(item => normalizeLabel(item.label) === 'питание');
+    if (!hasExplicitFood && day.mealSummary) {
+      metaItems.push({ label: 'Питание', value: day.mealSummary });
+    }
+
+    const rankByLabel = new Map(metaOrder.map((label, index) => [label, index]));
+    const orderedMeta = metaItems
+      .map((item, index) => ({ item, index }))
+      .sort((a, b) => {
+        const rankA = rankByLabel.get(normalizeLabel(a.item.label));
+        const rankB = rankByLabel.get(normalizeLabel(b.item.label));
+        const safeRankA = rankA === undefined ? metaOrder.length + a.index : rankA;
+        const safeRankB = rankB === undefined ? metaOrder.length + b.index : rankB;
+        return safeRankA - safeRankB;
+      })
+      .map(({ item }) => item);
+
+    const meta = orderedMeta.map((item,index) => `<div class="meta-item ${index < 4 ? 'primary' : 'secondary'}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`).join('');
     const rows = day.stops.map(stop => {
       const flexible = isFlexibleStop(day, stop);
       return `<tr class="route-row${flexible?' is-flexible':''}" tabindex="0" data-day-id="${day.id}" data-stop-order="${stop.order}" aria-label="Показать ${escapeHtml(stop.name)} на карте">

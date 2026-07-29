@@ -1,0 +1,58 @@
+name: Update daily distance totals
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/update-daily-distance-totals.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Recalculate daily distance totals
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import re
+
+          path = Path('itinerary-data.js')
+          text = path.read_text(encoding='utf-8')
+          prefix = 'window.CRETE_ITINERARY='
+          suffix = ';'
+          if not text.startswith(prefix) or not text.rstrip().endswith(suffix):
+              raise SystemExit('Unexpected itinerary-data.js format')
+
+          payload = text[len(prefix):].rstrip()[:-1]
+          data = json.loads(payload)
+
+          def compact_km(value):
+              if not value or value in {'—', '-'}:
+                  return 0
+              match = re.fullmatch(r'(\d+)км', value)
+              if not match:
+                  raise SystemExit(f'Unexpected compact distance: {value!r}')
+              return int(match.group(1))
+
+          for day in data['days']:
+              total = sum(compact_km(stop.get('distance')) for stop in day['stops'])
+              meta = next((item for item in day['meta'] if item.get('label') == 'Расстояние'), None)
+              if meta is None:
+                  raise SystemExit(f"Missing distance meta for {day['id']}")
+              meta['value'] = f'{total} км'
+
+          serialized = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
+          path.write_text(prefix + serialized + ';', encoding='utf-8')
+          PY
+      - name: Commit updated itinerary
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add itinerary-data.js
+          git commit -m "Use single daily distance totals"
+          git push

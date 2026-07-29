@@ -1,0 +1,64 @@
+name: Update daily driving totals
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/update-daily-driving-totals.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Recalculate daily driving totals
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          path = Path('itinerary-data.js')
+          text = path.read_text(encoding='utf-8')
+          prefix = 'window.CRETE_ITINERARY='
+          suffix = ';'
+          if not text.startswith(prefix) or not text.rstrip().endswith(suffix):
+              raise SystemExit('Unexpected itinerary-data.js format')
+
+          payload = text[len(prefix):].rstrip()
+          payload = payload[:-1]
+          data = json.loads(payload)
+
+          def compact_minutes(value):
+              if not value or value in {'—', '-'}:
+                  return 0
+              hours, minutes = value.split(':', 1)
+              return int(hours) * 60 + int(minutes)
+
+          def format_total(total):
+              hours, minutes = divmod(total, 60)
+              if hours and minutes:
+                  return f'{hours} ч {minutes:02d} мин'
+              if hours:
+                  return f'{hours} ч'
+              return f'{minutes} мин'
+
+          for day in data['days']:
+              total = sum(compact_minutes(stop.get('drive')) for stop in day['stops'])
+              meta = next((item for item in day['meta'] if item.get('label') == 'Вождение'), None)
+              if meta is None:
+                  raise SystemExit(f"Missing driving meta for {day['id']}")
+              meta['value'] = format_total(total)
+
+          serialized = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
+          path.write_text(prefix + serialized + ';', encoding='utf-8')
+          PY
+      - name: Commit updated itinerary
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add itinerary-data.js
+          git commit -m "Use single daily driving totals"
+          git push

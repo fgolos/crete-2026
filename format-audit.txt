@@ -1,0 +1,11 @@
+FORMAT AUDIT
+day11 meta Выезд: compact duration -> 05:15
+day11 meta Финиш: compact duration -> 15:00
+day12 meta Выезд: compact duration -> 09:45
+day12 meta Финиш: compact duration -> 18:50
+day13 meta Выезд: compact duration -> 09:30
+day13 meta Финиш: compact duration -> 17:50
+day14 meta Выезд: compact duration -> 09:30
+day14 meta Финиш: compact duration -> 18:05
+day15 meta Выезд: compact duration -> 08:30
+day15 meta Финиш: compact duration -> 15:15

@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -23,80 +23,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Apply flight segment migration
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import json
-
-          data_path = Path('itinerary-data.js')
-          text = data_path.read_text(encoding='utf-8')
-          prefix = 'window.CRETE_ITINERARY='
-          if not text.startswith(prefix) or not text.rstrip().endswith(';'):
-              raise SystemExit('Unexpected itinerary-data.js format')
-          data = json.loads(text[len(prefix):].rstrip()[:-1])
-          day11 = next(day for day in data['days'] if day['id'] == 'day11')
-          heraklion = next(stop for stop in day11['stops'] if stop['order'] == 1)
-          heraklion.update({
-              'mode': 'flight',
-              'drive': '3 ч 20 мин',
-              'distance': '2 145 км',
-              'includeInDrivingTotals': False,
-              'includeInDistanceTotals': False,
-              'showOnRouteMap': False,
-          })
-          serialized = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
-          data_path.write_text(prefix + serialized + ';', encoding='utf-8')
-
-          app_path = Path('app.js')
-          app = app_path.read_text(encoding='utf-8')
-          if "type: segmentType," not in app:
-              old = """          let driveLabel = nextStop.drive && nextStop.drive !== '—' && nextStop.drive !== '-' 
-            ? nextStop.drive 
-            : formatTimeShort(driveMinutes);
-          
-          segments.push({
-            type: 'drive',"""
-              new = """          let driveLabel = nextStop.drive && nextStop.drive !== '—' && nextStop.drive !== '-' 
-            ? nextStop.drive 
-            : formatTimeShort(driveMinutes);
-          const segmentType = nextStop.mode === 'flight' ? 'flight' : 'drive';
-          
-          segments.push({
-            type: segmentType,"""
-              if old not in app:
-                  raise SystemExit('Could not find timeline drive segment block')
-              app = app.replace(old, new, 1)
-          old_aria = "${seg.type === 'drive' ? 'Вождение' : 'Остановка'}: ${fullTooltip}"
-          new_aria = "${seg.type === 'flight' ? 'Перелёт' : seg.type === 'drive' ? 'Вождение' : 'Остановка'}: ${fullTooltip}"
-          if old_aria in app:
-              app = app.replace(old_aria, new_aria, 1)
-          elif new_aria not in app:
-              raise SystemExit('Could not find timeline aria label')
-          app_path.write_text(app, encoding='utf-8')
-
-          styles_path = Path('styles.css')
-          styles = styles_path.read_text(encoding='utf-8')
-          old_style = '.timeline-drive { background:#9cb2b8; color:#2a3e43; }'
-          new_style = '.timeline-drive,.timeline-flight { background:#9cb2b8; color:#2a3e43; }'
-          if old_style in styles:
-              styles = styles.replace(old_style, new_style, 1)
-          elif new_style not in styles:
-              raise SystemExit('Could not find timeline drive style')
-          styles_path.write_text(styles, encoding='utf-8')
-
-          assert day11['routeStopOrders'] == [1, 2, 3]
-          assert heraklion['includeInDrivingTotals'] is False
-          assert heraklion['includeInDistanceTotals'] is False
-          assert heraklion['showOnRouteMap'] is False
-          PY
-          if ! git diff --quiet -- itinerary-data.js app.js styles.css; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add itinerary-data.js app.js styles.css
-            git commit -m "Model Vilnius to Heraklion as a flight segment"
-            git push
-          fi
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site

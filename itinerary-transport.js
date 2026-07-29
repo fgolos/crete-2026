@@ -2,7 +2,17 @@
   'use strict';
 
   const itinerary = window.CRETE_ITINERARY;
-  const day = itinerary?.days?.find(item => item.id === 'day11');
+  if (!itinerary) return;
+
+  itinerary.days?.forEach(day => {
+    day.stops?.forEach(stop => {
+      if (stop.name === 'Airbnb — Ioannou Kondylaki 18, Sitia') {
+        stop.name = 'Sitia Airbnb';
+      }
+    });
+  });
+
+  const day = itinerary.days?.find(item => item.id === 'day11');
   const arrival = day?.stops?.find(stop => stop.order === 1);
   if (!arrival) return;
 

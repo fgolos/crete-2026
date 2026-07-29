@@ -77,7 +77,6 @@ jobs:
           styles = styles.replace(old_style, new_style, 1)
           styles_path.write_text(styles, encoding='utf-8')
 
-          # Guardrails: flight is visible in the schedule but excluded from the road route.
           assert day11['routeStopOrders'][0] == 1
           assert all(order != 0 for order in day11['routeStopOrders'])
           assert heraklion['includeInDrivingTotals'] is False

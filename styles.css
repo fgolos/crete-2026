@@ -68,6 +68,14 @@ h1 { margin:6px 0 8px; font-family:"PT Serif",serif; font-size:clamp(28px,3.2vw,
 .rules-list { columns:2; column-gap:18px; margin:0; padding-left:15px; line-height:1.24; font-size:12px; }
 .rules-list li { margin-bottom:3px; break-inside:avoid; }
 .privacy-note { margin-top:6px; padding:6px 8px; border:1px solid #e6d4aa; border-radius:7px; background:var(--sand); color:#685b3d; font-size:11px; line-height:1.24; }
+.days-summary { width:100%; border-collapse:collapse; font-size:12px; }
+.summary-day { cursor:pointer; border-bottom:1px solid var(--line); transition:background 120ms ease; }
+.summary-day:hover,.summary-day:focus { background:var(--accent-soft); outline:none; }
+.summary-day td { padding:5px 6px; vertical-align:middle; }
+.summary-day-label { width:140px; }
+.summary-day-label strong { display:block; font-size:12px; font-weight:600; }
+.summary-day-label span { display:block; margin-top:1px; color:var(--muted); font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.summary-day td:not(.summary-day-label) { text-align:right; color:var(--ink); font-size:11px; }
 .day-shell { display:grid; grid-template-columns:minmax(560px,620px) 1fr; grid-template-rows:auto 1fr; min-height:calc(100vh - 96px); }
 .mobile-view-switch { display:none; }
 .itinerary { grid-column:1; grid-row:1; padding:8px; }
@@ -209,6 +217,8 @@ h1 { margin:6px 0 8px; font-family:"PT Serif",serif; font-size:clamp(28px,3.2vw,
   .overview-hero h1 { font-size:25px; }
   .overview-hero .lead { font-size:12px; line-height:1.26; }
   .overview-grid { grid-template-columns:1fr; }
+  .summary-day-label { width:auto; }
+  .summary-day td { padding:4px 5px; }
   .rules-list { columns:1; }
   .day-shell { display:flex; flex-direction:column; }
   .timeline-container { height:28px; margin-bottom:12px; }
@@ -260,6 +270,7 @@ h1 { margin:6px 0 8px; font-family:"PT Serif",serif; font-size:clamp(28px,3.2vw,
   .booking-heading { align-items:flex-start; }
   .status-label { margin-top:1px; }
   .map-overlay-link { padding:8px 10px; }
+  .summary-day td { padding:3px 4px; font-size:10px; }
 }
 @media (max-width:350px) {
   .route-table td[data-label] { padding-inline:2px; font-size:11px; white-space:normal; }

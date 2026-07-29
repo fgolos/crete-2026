@@ -94,6 +94,13 @@
           </article>
         </div>
         <article class="overview-card">
+          <h2>Дни маршрута</h2>
+          <table class="days-summary"><tbody>${data.days.map((day, index) => {
+            const metaValues = day.meta.slice(0, 4).map(item => `<td>${escapeHtml(item.value)}</td>`).join('');
+            return `<tr class="summary-day" data-day-id="${day.id}" tabindex="0" role="button" aria-label="Перейти к ${escapeHtml(day.title)}"><td class="summary-day-label"><strong>${escapeHtml(day.short)}</strong><span>${escapeHtml(day.title)}</span></td>${metaValues}</tr>`;
+          }).join('')}</tbody></table>
+        </article>
+        <article class="overview-card">
           <h2>Правила маршрута</h2>
           <ul class="rules-list">${overview.rules.map(rule => `<li>${escapeHtml(rule)}</li>`).join('')}</ul>
         </article>
@@ -994,6 +1001,15 @@
         }
         return;
       }
+      const summaryDay = event.target.closest('.summary-day');
+      if (summaryDay) {
+        const dayId = summaryDay.dataset.dayId;
+        const dayTab = document.getElementById(`tab-${dayId}`);
+        if (dayTab) {
+          dayTab.click();
+          return;
+        }
+      }
       const row = event.target.closest('.route-row');
       if (row) {
         // Clicks on Км (col 3) or В пути (col 4) cells with real data trigger drive selection
@@ -1012,6 +1028,12 @@
       if (event.key === 'Escape') {
         const detail = event.target.closest('.stop-detail');
         if (detail) { closeStopDetail(detail.closest('.day-panel').id); return; }
+      }
+      const summaryDay = event.target.closest('.summary-day');
+      if (summaryDay && (event.key === 'Enter' || event.key === ' ')) {
+        event.preventDefault();
+        summaryDay.click();
+        return;
       }
       const timelineSegment = event.target.closest('.timeline-segment');
       if (timelineSegment) {

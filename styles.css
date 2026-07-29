@@ -154,8 +154,13 @@ h1 { margin:6px 0 8px; font-family:"PT Serif",serif; font-size:clamp(28px,3.2vw,
   border-color:#cc8d00;
   color:#7d5600;
 }
-.route-row.is-drive-selected td:nth-child(4),
-.route-row.is-drive-selected td:nth-child(5) {
+.route-row.is-drive-selected td:nth-child(3),
+.route-row.is-drive-selected td:nth-child(4) {
+  background:rgba(243,177,31,.18);
+  font-weight:600;
+  color:#8b6a00;
+}
+.route-row.is-stop-selected td:nth-child(5) {
   background:rgba(243,177,31,.18);
   font-weight:600;
   color:#8b6a00;

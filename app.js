@@ -348,7 +348,7 @@
     
     // Clear all previous selections
     panel.querySelectorAll('.route-row').forEach(row => {
-      row.classList.remove('is-active', 'is-drive-selected');
+      row.classList.remove('is-active', 'is-drive-selected', 'is-stop-selected');
     });
     panel.querySelectorAll('.timeline-segment').forEach(seg => {
       seg.classList.remove('is-selected');
@@ -363,7 +363,7 @@
     if (selectedType === 'stop') {
       // Highlight the stop row
       const row = panel.querySelector(`.route-row[data-stop-order="${selectedOrder}"]`);
-      row?.classList.add('is-active');
+      row?.classList.add('is-active', 'is-stop-selected');
       
       // Highlight the stop timeline segment
       const segment = panel.querySelector(`.timeline-segment[data-stop-order="${selectedOrder}"][data-segment-type="stop"]`);
@@ -374,10 +374,9 @@
       marker?.element?.classList.add('is-active');
       
     } else if (selectedType === 'drive') {
-      // For drives: highlight the destination stop's row with drive styling
+      // Highlight the destination stop's row with drive column styling (Км + В пути)
       const row = panel.querySelector(`.route-row[data-stop-order="${selectedOrder}"]`);
-      row?.classList.add('is-active');
-      row?.classList.add('is-drive-selected'); // Special class for drive column highlighting
+      row?.classList.add('is-active', 'is-drive-selected');
       
       // Highlight the drive timeline segment
       const segment = panel.querySelector(`.timeline-segment[data-stop-order="${selectedOrder}"][data-segment-type="drive"]`);
@@ -566,6 +565,7 @@
     if (previous?.control) map.removeControl(previous.control);
     if (previous?.fallback) map.removeLayer(previous.fallback);
     if (previous?.driveHighlight) map.removeLayer(previous.driveHighlight);
+    previous?.segmentOverlays?.forEach(l => map.removeLayer(l));
     setRouteFailure(dayId,false);
 
     const routeStops = day.routeStopOrders.map(order => day.stops.find(stop => stop.order === order));
@@ -577,12 +577,23 @@
       showAlternatives:false, fitSelectedRoutes:true, createMarker:() => null,
       lineOptions:{ styles:[{ color:'#fffdf8',opacity:.9,weight:7 },{ color:'#078b9d',opacity:.92,weight:4 }] }
     }).addTo(map);
-    routingIndex.set(dayId,{ control:routing,fallback:null,driveHighlight:null,lastRoute:null });
+    routingIndex.set(dayId,{ control:routing,fallback:null,driveHighlight:null,lastRoute:null,segmentOverlays:[] });
     routing.on('routesfound', event => {
       if (routingIndex.get(dayId)?.control !== routing) return;
       const state = routingIndex.get(dayId);
       if (state) state.lastRoute = event.routes?.[0] || null;
       setRouteFailure(dayId,false);
+      // Add invisible wide overlays on each segment so they're clickable
+      state.segmentOverlays?.forEach(l => map.removeLayer(l));
+      state.segmentOverlays = [];
+      for (let i = 1; i < day.routeStopOrders.length; i++) {
+        const segCoords = routeSegmentCoordinates(dayId, i - 1, i);
+        if (!segCoords) continue;
+        const stopOrder = day.routeStopOrders[i];
+        const overlay = L.polyline(segCoords, { weight:20, opacity:0.001, interactive:true, pane:'routeOverlays' }).addTo(map);
+        overlay.on('click', () => focusTimelineDrive(dayId, stopOrder));
+        state.segmentOverlays.push(overlay);
+      }
       const panel = document.getElementById(dayId);
       if (panel?.classList.contains('mobile-map-view') && !panel.dataset.focusStop) fitDayRoute(dayId);
     });
@@ -605,6 +616,8 @@
 
     const map = L.map(`map-${dayId}`, { zoomControl:true });
     maps.set(dayId, map);
+    map.createPane('routeOverlays');
+    map.getPane('routeOverlays').style.zIndex = 450;
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap contributors' }).addTo(map);
 
     const visibleStops = day.stops.filter(stop => stop.mapVisible);
@@ -704,7 +717,18 @@
         return;
       }
       const row = event.target.closest('.route-row');
-      if (row) activateStopRow(row);
+      if (row) {
+        // Clicks on Км (col 3) or В пути (col 4) cells with real data trigger drive selection
+        const cell = event.target.closest('td');
+        if (cell) {
+          const cellIndex = [...row.cells].indexOf(cell);
+          if ((cellIndex === 2 || cellIndex === 3) && cell.textContent.trim() !== '—') {
+            focusTimelineDrive(row.dataset.dayId, Number(row.dataset.stopOrder));
+            return;
+          }
+        }
+        activateStopRow(row);
+      }
     });
     app.addEventListener('keydown', event => {
       if (event.key === 'Escape') {

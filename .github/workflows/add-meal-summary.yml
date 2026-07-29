@@ -1,0 +1,72 @@
+name: Add meal summaries
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/add-meal-summary.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Add explicit meal summaries and render them
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          data_path = Path('itinerary-data.js')
+          text = data_path.read_text(encoding='utf-8')
+          prefix = 'window.CRETE_ITINERARY='
+          if not text.startswith(prefix) or not text.rstrip().endswith(';'):
+              raise SystemExit('Unexpected itinerary-data.js format')
+          data = json.loads(text[len(prefix):].rstrip()[:-1])
+
+          summaries = {
+              'day11': 'обед в Mochlos; ужин в Me Raki',
+              'day12': 'поздний обед в Hiona Taverna; ужин свободно',
+              'day13': 'кофе в Ziros; поздний обед в Taverna Kostas; Inodion в 21:00',
+              'day14': 'обед в Nostos; ужин свободно в Sitia',
+              'day15': 'завтрак в Sitia; ранний обед в Lastros',
+          }
+          day_ids = {day['id'] for day in data['days']}
+          if day_ids != set(summaries):
+              raise SystemExit(f'Unexpected day ids: {sorted(day_ids)}')
+          for day in data['days']:
+              day['mealSummary'] = summaries[day['id']]
+
+          data_path.write_text(prefix + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + ';', encoding='utf-8')
+
+          app_path = Path('app.js')
+          app = app_path.read_text(encoding='utf-8')
+          old = "    const meta = day.meta.map((item,index) => `<div class=\"meta-item ${index < 3 ? 'primary' : 'secondary'}\"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`).join('');"
+          new = "    const metaItems = day.mealSummary ? [...day.meta, { label:'Питание', value:day.mealSummary }] : day.meta;\n    const meta = metaItems.map((item,index) => `<div class=\"meta-item ${index < 3 ? 'primary' : 'secondary'}\"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`).join('');"
+          if app.count(old) != 1:
+              raise SystemExit(f'Expected one renderDay meta target, found {app.count(old)}')
+          app_path.write_text(app.replace(old, new), encoding='utf-8')
+          PY
+      - name: Validate meal summaries
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          text = Path('itinerary-data.js').read_text(encoding='utf-8')
+          data = json.loads(text[len('window.CRETE_ITINERARY='):].rstrip()[:-1])
+          assert len(data['days']) == 5
+          assert all(day.get('mealSummary') for day in data['days'])
+          app = Path('app.js').read_text(encoding='utf-8')
+          assert "label:'Питание'" in app
+          assert 'day.mealSummary' in app
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add itinerary-data.js app.js
+          git commit -m "Add explicit daily meal summaries"
+          git push

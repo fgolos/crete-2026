@@ -118,6 +118,27 @@
     return minutes;
   }
 
+  function parseClockTime(timeStr) {
+    // Parse "HH:MM" format to minutes since midnight
+    if (!timeStr) return null;
+    const match = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return null;
+    const hours = parseInt(match[1]);
+    const minutes = parseInt(match[2]);
+    return hours * 60 + minutes;
+  }
+
+  function formatClockTime(minutesSinceMidnight) {
+    const hours = Math.floor(minutesSinceMidnight / 60);
+    const minutes = minutesSinceMidnight % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  }
+
+  function formatHourLabel(minutesSinceMidnight) {
+    const hours = Math.floor(minutesSinceMidnight / 60);
+    return hours.toString().padStart(2, '0');
+  }
+
   function abbreviateTime(fullLabel) {
     if (!fullLabel || fullLabel === '—' || fullLabel === '-') return fullLabel;
     
@@ -226,7 +247,47 @@
       }
     }
     
-    if (segments.length === 0 || totalMinutes === 0) return '';
+    if (segments.length === 0 || totalMinutes === 0) return { ruler: '', timeline: '' };
+    
+    // Extract start time: look for "Выезд" in meta, fallback to first stop time
+    let startMinutes = null;
+    const startMeta = day.meta.find(m => /выезд/i.test(m.label));
+    if (startMeta) {
+      startMinutes = parseClockTime(startMeta.value);
+    }
+    if (startMinutes === null && day.stops[0]) {
+      startMinutes = parseClockTime(day.stops[0].time);
+    }
+    
+    // Generate hour grid based on full hours (09:00, 10:00, 11:00, etc.)
+    const hourMarks = [];
+    if (startMinutes !== null) {
+      const startHour = Math.ceil(startMinutes / 60);
+      const endMinutes = startMinutes + totalMinutes;
+      const endHour = Math.ceil(endMinutes / 60);
+      
+      for (let h = startHour; h <= endHour; h++) {
+        const hourMinutes = h * 60;
+        const offsetFromStart = hourMinutes - startMinutes;
+        if (offsetFromStart >= 0 && offsetFromStart <= totalMinutes) {
+          hourMarks.push({
+            time: formatHourLabel(hourMinutes),
+            offsetPercent: (offsetFromStart / totalMinutes) * 100
+          });
+        }
+      }
+    }
+    
+    // Render timeline ruler with full hour marks and vertical grid lines
+    let rulerHtml = '<div class="timeline-ruler">';
+    if (hourMarks.length > 0) {
+      rulerHtml += '<div class="timeline-hour-grid">';
+      hourMarks.forEach(mark => {
+        rulerHtml += `<div class="timeline-hour-mark" style="left:${mark.offsetPercent}%;" data-time="${escapeHtml(mark.time)}"><div class="timeline-hour-label">${escapeHtml(mark.time)}</div><div class="timeline-hour-line"></div></div>`;
+      });
+      rulerHtml += '</div>';
+    }
+    rulerHtml += '</div>';
     
     // Render timeline segments
     const segmentHtml = segments.map(seg => {
@@ -234,10 +295,13 @@
       return `<div class="timeline-segment timeline-${seg.type}" data-stop-order="${seg.stopOrder}" data-segment-type="${seg.type}" data-expanded="false" tabindex="0" role="button" aria-expanded="false" aria-label="${seg.type === 'drive' ? 'Вождение' : 'Остановка'}: ${fullTooltip}" style="flex:${seg.minutes} 0 0"><span class="timeline-time">${escapeHtml(seg.shortLabel)}</span><span class="timeline-fulltime">${escapeHtml(seg.fullLabel)}</span><span class="timeline-desc">${escapeHtml(seg.description)}</span></div>`;
     }).join('');
     
-    return `<div class="timeline-container" data-timeline="day-${data.days.findIndex(d => d === day)}" aria-label="Визуальный обзор дня: вождение и остановки">${segmentHtml}</div>`;
+    const timelineHtml = `<div class="timeline-container" data-timeline="day-${data.days.findIndex(d => d === day)}" aria-label="Визуальный обзор дня: вождение и остановки">${segmentHtml}</div>`;
+    
+    return { ruler: rulerHtml, timeline: timelineHtml };
   }
 
   function renderDay(day) {
+    const timelineData = renderTimeline(day);
     const meta = day.meta.map((item,index) => `<div class="meta-item ${index < 3 ? 'primary' : 'secondary'}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`).join('');
     const rows = day.stops.map(stop => {
       const flexible = isFlexibleStop(day, stop);
@@ -260,7 +324,10 @@
         <aside class="itinerary">
           <header class="day-header"><div class="eyebrow">${escapeHtml(day.date)}</div><h1>${escapeHtml(day.title)}</h1></header>
           <div class="meta-grid">${meta}</div>
-          ${renderTimeline(day)}
+          <div class="timeline-wrapper">
+            ${timelineData.ruler}
+            ${timelineData.timeline}
+          </div>
           <table class="route-table"><thead><tr><th>№</th><th>Точка</th><th>Км</th><th>В пути</th><th>Время</th></tr></thead><tbody>${rows}</tbody></table>
         </aside>
         <div class="map-wrap">

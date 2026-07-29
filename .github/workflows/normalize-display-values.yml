@@ -1,0 +1,101 @@
+name: Normalize display values
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/normalize-display-values.yml
+
+permissions:
+  contents: write
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Normalize route values and audit consistency
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import re
+
+          path = Path('itinerary-data.js')
+          text = path.read_text(encoding='utf-8')
+          prefix = 'window.CRETE_ITINERARY='
+          if not text.startswith(prefix) or not text.rstrip().endswith(';'):
+              raise SystemExit('Unexpected itinerary-data.js format')
+          data = json.loads(text[len(prefix):].rstrip()[:-1])
+
+          def parse_compact_drive(value):
+              if value in {'—', '-'}:
+                  return None
+              match = re.fullmatch(r'(\d+):(\d{2})', value)
+              if match:
+                  return int(match.group(1)) * 60 + int(match.group(2))
+              match = re.fullmatch(r'(?:(\d+)\s*ч(?:\s+(\d+)\s*мин)?)|(?:(\d+)\s*мин)', value)
+              if not match:
+                  raise ValueError(f'Unexpected drive format: {value!r}')
+              if match.group(3):
+                  return int(match.group(3))
+              return int(match.group(1)) * 60 + int(match.group(2) or 0)
+
+          def format_duration(total):
+              if total is None:
+                  return '—'
+              hours, minutes = divmod(total, 60)
+              if hours and minutes:
+                  return f'{hours} ч {minutes} мин'
+              if hours:
+                  return f'{hours} ч'
+              return f'{minutes} мин'
+
+          def parse_distance(value):
+              if value in {'—', '-'}:
+                  return None
+              match = re.fullmatch(r'(\d+)\s*км', value)
+              if not match:
+                  raise ValueError(f'Unexpected distance format: {value!r}')
+              return int(match.group(1))
+
+          for day in data['days']:
+              for stop in day['stops']:
+                  stop['drive'] = format_duration(parse_compact_drive(stop['drive']))
+                  distance = parse_distance(stop['distance'])
+                  stop['distance'] = '—' if distance is None else f'{distance} км'
+
+          candidates = []
+          for day in data['days']:
+              for item in day['meta']:
+                  value = item.get('value', '')
+                  if '≈' in value:
+                      candidates.append(f"{day['id']} meta {item['label']}: contains ≈ -> {value}")
+                  if re.search(r'\d+км', value):
+                      candidates.append(f"{day['id']} meta {item['label']}: missing space before км -> {value}")
+                  if re.fullmatch(r'\d+:\d{2}', value):
+                      candidates.append(f"{day['id']} meta {item['label']}: compact duration -> {value}")
+              for stop in day['stops']:
+                  for field in ('drive', 'distance', 'duration', 'time'):
+                      value = str(stop.get(field, ''))
+                      if '≈' in value:
+                          candidates.append(f"{day['id']} stop {stop['order']} {field}: contains ≈ -> {value}")
+                      if re.search(r'\d+км', value):
+                          candidates.append(f"{day['id']} stop {stop['order']} {field}: missing space before км -> {value}")
+                      if field == 'drive' and re.fullmatch(r'\d+:\d{2}', value):
+                          candidates.append(f"{day['id']} stop {stop['order']} drive: compact duration -> {value}")
+
+          report = ['FORMAT AUDIT']
+          report.extend(candidates if candidates else ['No additional formatting inconsistencies found.'])
+          Path('format-audit.txt').write_text('\n'.join(report) + '\n', encoding='utf-8')
+
+          serialized = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
+          path.write_text(prefix + serialized + ';', encoding='utf-8')
+          PY
+      - name: Commit normalized values and audit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add itinerary-data.js format-audit.txt
+          git commit -m "Normalize route value formatting"
+          git push

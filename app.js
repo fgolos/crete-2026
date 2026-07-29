@@ -110,6 +110,8 @@
 
   function parseTimeToMinutes(timeStr) {
     if (!timeStr || timeStr === '—' || timeStr === '-') return 0;
+    const compactMatch = timeStr.match(/^(\d+):(\d{2})$/);
+    if (compactMatch) return Number(compactMatch[1]) * 60 + Number(compactMatch[2]);
     let minutes = 0;
     const hourMatch = timeStr.match(/(\d+)\s*(?:h|ч)/i);
     const minMatch = timeStr.match(/(\d+)\s*(?:m|мин)/i);

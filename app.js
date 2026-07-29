@@ -187,7 +187,6 @@
     // Build segments array: alternating between drive and stop durations
     for (let i = 0; i < day.stops.length; i++) {
       const stop = day.stops[i];
-      const nextStop = day.stops[i + 1];
       
       // Add drive time (except for first stop)
       if (i > 0 && stop.drive && stop.drive !== '—' && stop.drive !== '-') {
@@ -230,12 +229,9 @@
     if (segments.length === 0 || totalMinutes === 0) return '';
     
     // Render timeline segments
-    const segmentHtml = segments.map((seg, idx) => {
-      const percentage = (seg.minutes / totalMinutes * 100).toFixed(1);
+    const segmentHtml = segments.map(seg => {
       const fullTooltip = `${seg.description} (${escapeHtml(seg.fullLabel)})`;
-      const dayIndex = data.days.findIndex(d => d === day);
-      const segmentId = `day-${dayIndex}-seg-${idx}`;
-      return `<div class="timeline-segment timeline-${seg.type}" data-segment-id="${segmentId}" data-stop-order="${seg.stopOrder}" data-segment-type="${seg.type}" data-expanded="false" style="flex:${seg.minutes} 0 0" aria-label="${seg.type === 'drive' ? 'Вождение' : 'Остановка'}: ${fullTooltip}"><span class="timeline-time">${escapeHtml(seg.shortLabel)}</span><span class="timeline-fulltime">${escapeHtml(seg.fullLabel)}</span><span class="timeline-desc">${escapeHtml(seg.description)}</span></div>`;
+      return `<div class="timeline-segment timeline-${seg.type}" data-stop-order="${seg.stopOrder}" data-segment-type="${seg.type}" data-expanded="false" tabindex="0" role="button" aria-expanded="false" aria-label="${seg.type === 'drive' ? 'Вождение' : 'Остановка'}: ${fullTooltip}" style="flex:${seg.minutes} 0 0"><span class="timeline-time">${escapeHtml(seg.shortLabel)}</span><span class="timeline-fulltime">${escapeHtml(seg.fullLabel)}</span><span class="timeline-desc">${escapeHtml(seg.description)}</span></div>`;
     }).join('');
     
     return `<div class="timeline-container" data-timeline="day-${data.days.findIndex(d => d === day)}" aria-label="Визуальный обзор дня: вождение и остановки">${segmentHtml}</div>`;
@@ -288,9 +284,21 @@
   function setupTimelineListeners() {
     document.querySelectorAll('.timeline-container').forEach(container => {
       container.addEventListener('mouseleave', () => {
-        container.querySelectorAll('.timeline-segment').forEach(seg => seg.dataset.expanded = 'false');
+        const focusedSegment = container.querySelector('.timeline-segment:focus');
+        if (focusedSegment instanceof HTMLElement) focusedSegment.blur();
+        container.querySelectorAll('.timeline-segment').forEach(seg => {
+          seg.dataset.expanded = 'false';
+          seg.setAttribute('aria-expanded', 'false');
+          seg.classList.remove('is-selected');
+        });
       });
     });
+  }
+
+  function setActiveTimelineSegment(container, segment) {
+    if (!container || !segment) return;
+    container.querySelectorAll('.timeline-segment').forEach(seg => seg.classList.remove('is-selected'));
+    segment.classList.add('is-selected');
   }
 
   function render() {
@@ -382,6 +390,7 @@
   function activateStopRow(row) {
     const dayId = row.dataset.dayId;
     const order = Number(row.dataset.stopOrder);
+    clearActiveDrive(dayId);
     if (!mobileViewport.matches) { selectStop(dayId,order,true); return; }
     document.getElementById(dayId).dataset.focusStop = String(order);
     selectStop(dayId,order);
@@ -408,8 +417,99 @@
   }
 
   function selectStop(dayId,order,focusMap = false) {
+    clearActiveDrive(dayId);
     setActiveStop(dayId,order,focusMap);
     renderStopDetail(dayId,order);
+  }
+
+  function clearMapDriveHighlight(dayId) {
+    const map = maps.get(dayId);
+    const state = routingIndex.get(dayId);
+    if (!map || !state?.driveHighlight) return;
+    map.removeLayer(state.driveHighlight);
+    state.driveHighlight = null;
+  }
+
+  function clearActiveDrive(dayId) {
+    const panel = document.getElementById(dayId);
+    if (!panel) return;
+    clearMapDriveHighlight(dayId);
+  }
+
+  function routeSegmentCoordinates(dayId, fromRouteIndex, toRouteIndex) {
+    const state = routingIndex.get(dayId);
+    const route = state?.lastRoute;
+    if (!route || !Array.isArray(route.coordinates) || !Array.isArray(route.waypointIndices)) return null;
+    const startCoordIndex = route.waypointIndices[fromRouteIndex];
+    const endCoordIndex = route.waypointIndices[toRouteIndex];
+    if (!Number.isInteger(startCoordIndex) || !Number.isInteger(endCoordIndex) || endCoordIndex <= startCoordIndex) return null;
+    const segmentCoords = route.coordinates.slice(startCoordIndex, endCoordIndex + 1)
+      .map(point => {
+        if (Array.isArray(point) && point.length >= 2) return [point[0], point[1]];
+        if (point && typeof point.lat === 'number' && typeof point.lng === 'number') return [point.lat, point.lng];
+        if (point && typeof point.lat === 'number' && typeof point.lon === 'number') return [point.lat, point.lon];
+        return null;
+      })
+      .filter(Boolean);
+    return segmentCoords.length > 1 ? segmentCoords : null;
+  }
+
+  function setActiveDrive(dayId, stopOrder, driveCoordinates) {
+    const panel = document.getElementById(dayId);
+    const map = maps.get(dayId);
+    const state = routingIndex.get(dayId);
+    if (!panel) return;
+    clearActiveDrive(dayId);
+    panel.querySelectorAll('.route-row').forEach(row => row.classList.remove('is-active'));
+    const row = panel.querySelector(`.route-row[data-stop-order="${stopOrder}"]`);
+    if (row) row.classList.add('is-active');
+    if (map && state && Array.isArray(driveCoordinates) && driveCoordinates.length > 1) {
+      state.driveHighlight = L.polyline(driveCoordinates, { color:'#f3b11f', weight:6, opacity:.92, lineCap:'round' }).addTo(map);
+    }
+  }
+
+  function focusTimelineStop(dayId, stopOrder) {
+    const panel = document.getElementById(dayId);
+    if (!panel) return;
+    const row = panel.querySelector(`.route-row[data-stop-order="${stopOrder}"]`);
+    if (row) {
+      activateStopRow(row);
+      return;
+    }
+    setActiveStop(dayId, stopOrder, true);
+    renderStopDetail(dayId, stopOrder);
+  }
+
+  function focusTimelineDrive(dayId, stopOrder) {
+    const panel = document.getElementById(dayId);
+    const day = data.days.find(item => item.id === dayId);
+    if (!panel || !day) return;
+    if (mobileViewport.matches && panel.classList.contains('mobile-plan-view')) {
+      setMobileView(dayId, 'map');
+      setTimeout(() => focusTimelineDrive(dayId, stopOrder), 100);
+      return;
+    }
+
+    const map = maps.get(dayId);
+    const currentOrderIndex = day.routeStopOrders.indexOf(Number(stopOrder));
+    if (!map || currentOrderIndex <= 0) return;
+
+    const currentStop = day.stops.find(item => item.order === Number(stopOrder));
+    const previousStop = day.stops.find(item => item.order === day.routeStopOrders[currentOrderIndex - 1]);
+    if (!currentStop || !previousStop) return;
+    const segmentCoordinates = routeSegmentCoordinates(dayId, currentOrderIndex - 1, currentOrderIndex);
+
+    closeStopDetail(dayId, false, false);
+    setActiveDrive(dayId, stopOrder, segmentCoordinates);
+    map.invalidateSize({ pan:false });
+    if (segmentCoordinates) {
+      map.fitBounds(segmentCoordinates, { padding:[60,60], maxZoom:13, animate:true });
+      return;
+    }
+    map.fitBounds([
+      [previousStop.lat, previousStop.lon],
+      [currentStop.lat, currentStop.lon]
+    ], { padding:[60,60], maxZoom:13, animate:true });
   }
 
   function setRouteFailure(dayId,failed) {
@@ -426,6 +526,7 @@
     routingIndex.delete(dayId);
     if (previous?.control) map.removeControl(previous.control);
     if (previous?.fallback) map.removeLayer(previous.fallback);
+    if (previous?.driveHighlight) map.removeLayer(previous.driveHighlight);
     setRouteFailure(dayId,false);
 
     const routeStops = day.routeStopOrders.map(order => day.stops.find(stop => stop.order === order));
@@ -437,9 +538,11 @@
       showAlternatives:false, fitSelectedRoutes:true, createMarker:() => null,
       lineOptions:{ styles:[{ color:'#fffdf8',opacity:.9,weight:7 },{ color:'#078b9d',opacity:.92,weight:4 }] }
     }).addTo(map);
-    routingIndex.set(dayId,{ control:routing,fallback:null });
-    routing.on('routesfound', () => {
+    routingIndex.set(dayId,{ control:routing,fallback:null,driveHighlight:null,lastRoute:null });
+    routing.on('routesfound', event => {
       if (routingIndex.get(dayId)?.control !== routing) return;
+      const state = routingIndex.get(dayId);
+      if (state) state.lastRoute = event.routes?.[0] || null;
       setRouteFailure(dayId,false);
       const panel = document.getElementById(dayId);
       if (panel?.classList.contains('mobile-map-view') && !panel.dataset.focusStop) fitDayRoute(dayId);
@@ -520,11 +623,17 @@
       const retryButton = event.target.closest('.route-retry');
       if (retryButton) { initializeRoute(retryButton.closest('.day-panel').id); return; }
       const closeButton = event.target.closest('.stop-detail-close');
-      if (closeButton) { closeStopDetail(closeButton.closest('.day-panel').id, false); return; }
+      if (closeButton) {
+        const panelId = closeButton.closest('.day-panel').id;
+        clearActiveDrive(panelId);
+        closeStopDetail(panelId, false);
+        return;
+      }
       const viewButton = event.target.closest('.mobile-view-button');
       if (viewButton) {
         const panel = viewButton.closest('.day-panel');
         delete panel.dataset.focusStop;
+        clearActiveDrive(panel.id);
         setMobileView(panel.id, viewButton.dataset.view);
         return;
       }
@@ -534,46 +643,57 @@
         if (container) {
           const allSegments = container.querySelectorAll('.timeline-segment');
           const isExpanded = timelineSegment.dataset.expanded === 'true';
+          const dayPanel = container.closest('.day-panel');
+          const stopOrder = Number(timelineSegment.dataset.stopOrder);
+          const segmentType = timelineSegment.dataset.segmentType;
           // Collapse all segments
-          allSegments.forEach(seg => seg.dataset.expanded = 'false');
+          allSegments.forEach(seg => {
+            seg.dataset.expanded = 'false';
+            seg.setAttribute('aria-expanded', 'false');
+          });
           // Toggle the clicked segment (if it wasn't expanded, expand it; if it was, leave it collapsed)
-          if (!isExpanded) timelineSegment.dataset.expanded = 'true';
+          if (!isExpanded) {
+            timelineSegment.dataset.expanded = 'true';
+            timelineSegment.setAttribute('aria-expanded', 'true');
+          }
+          setActiveTimelineSegment(container, timelineSegment);
+          if (dayPanel && stopOrder) {
+            if (segmentType === 'drive') focusTimelineDrive(dayPanel.id, stopOrder);
+            if (segmentType === 'stop') focusTimelineStop(dayPanel.id, stopOrder);
+          }
         }
         return;
       }
       const row = event.target.closest('.route-row');
       if (row) activateStopRow(row);
     });
-    app.addEventListener('mouseover', event => {
-      const timelineSegment = event.target.closest('.timeline-segment');
-      if (!timelineSegment) return;
-      const container = timelineSegment.closest('.timeline-container');
-      if (!container) return;
-      const dayPanel = container.closest('.panel');
-      if (!dayPanel) return;
-      const stopOrder = timelineSegment.dataset.stopOrder;
-      const segmentType = timelineSegment.dataset.segmentType;
-      if (!stopOrder) return;
-      const row = dayPanel.querySelector(`.route-row[data-stop-order="${stopOrder}"]`);
-      if (row) {
-        row.classList.add(segmentType === 'stop' ? 'highlight-time' : 'highlight-drive');
-      }
-    });
-    app.addEventListener('mouseout', event => {
-      const timelineSegment = event.target.closest('.timeline-segment');
-      if (!timelineSegment) return;
-      const container = timelineSegment.closest('.timeline-container');
-      if (!container) return;
-      const dayPanel = container.closest('.panel');
-      if (!dayPanel) return;
-      dayPanel.querySelectorAll('.route-row').forEach(row => {
-        row.classList.remove('highlight-time', 'highlight-drive');
-      });
-    });
     app.addEventListener('keydown', event => {
       if (event.key === 'Escape') {
         const detail = event.target.closest('.stop-detail');
         if (detail) { closeStopDetail(detail.closest('.day-panel').id); return; }
+      }
+      const timelineSegment = event.target.closest('.timeline-segment');
+      if (timelineSegment) {
+        const container = timelineSegment.closest('.timeline-container');
+        const segments = container ? [...container.querySelectorAll('.timeline-segment')] : [];
+        const currentIndex = segments.indexOf(timelineSegment);
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          timelineSegment.click();
+          return;
+        }
+        const targetIndex = event.key === 'Home' ? 0
+          : event.key === 'End' ? segments.length - 1
+          : event.key === 'ArrowRight' ? Math.min(currentIndex + 1, segments.length - 1)
+          : event.key === 'ArrowLeft' ? Math.max(currentIndex - 1, 0)
+          : -1;
+        if (targetIndex >= 0 && segments[targetIndex]) {
+          event.preventDefault();
+          const nextSegment = segments[targetIndex];
+          nextSegment.focus();
+          if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') nextSegment.click();
+        }
+        return;
       }
       const row = event.target.closest('.route-row');
       if (row && (event.key==='Enter' || event.key===' ')) { event.preventDefault(); activateStopRow(row); }

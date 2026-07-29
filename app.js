@@ -205,53 +205,9 @@
 
   function renderTimeline(day) {
     const segments = [];
-    let totalMinutes = 0;
+    let timelineEvents = []; // Track events with actual clock times
     
-    // Build segments array: alternating between drive and stop durations
-    for (let i = 0; i < day.stops.length; i++) {
-      const stop = day.stops[i];
-      
-      // Add drive time (except for first stop)
-      if (i > 0 && stop.drive && stop.drive !== '—' && stop.drive !== '-') {
-        const driveMinutes = parseTimeToMinutes(stop.drive);
-        if (driveMinutes > 0) {
-          const prevStop = day.stops[i - 1];
-          const description = `${prevStop.name} → ${stop.name}`;
-          segments.push({ 
-            type: 'drive', 
-            minutes: driveMinutes, 
-            fullLabel: stop.drive, 
-            shortLabel: abbreviateTime(stop.drive),
-            description: description,
-            stopOrder: stop.order
-          });
-          totalMinutes += driveMinutes;
-        }
-      }
-      
-      // Add stop duration
-      if (stop.duration && stop.duration !== '—' && stop.duration !== '-' && stop.duration !== 'Вылет') {
-        const stopMinutes = parseTimeToMinutes(stop.duration);
-        if (stopMinutes > 0) {
-          // Extract key activity from role (first part before comma)
-          const activity = stop.role.split(',')[0].trim();
-          const description = `${stop.name}: ${activity}`;
-          segments.push({ 
-            type: 'stop', 
-            minutes: stopMinutes, 
-            fullLabel: stop.duration, 
-            shortLabel: abbreviateTime(stop.duration),
-            description: description,
-            stopOrder: stop.order
-          });
-          totalMinutes += stopMinutes;
-        }
-      }
-    }
-    
-    if (segments.length === 0 || totalMinutes === 0) return { ruler: '', timeline: '' };
-    
-    // Extract start time: look for "Выезд" in meta, fallback to first stop time
+    // Extract start time
     let startMinutes = null;
     const startMeta = day.meta.find(m => /выезд/i.test(m.label));
     if (startMeta) {
@@ -261,26 +217,160 @@
       startMinutes = parseClockTime(day.stops[0].time);
     }
     
-    // Generate hour grid based on full hours (09:00, 10:00, 11:00, etc.)
-    const hourMarks = [];
-    if (startMinutes !== null) {
-      const startHour = Math.ceil(startMinutes / 60);
-      const endMinutes = startMinutes + totalMinutes;
-      const endHour = Math.ceil(endMinutes / 60);
+    if (startMinutes === null) {
+      return { ruler: '', timeline: '' };
+    }
+    
+    // Build timeline events with wall-clock times
+    let maxEndTime = startMinutes;
+    
+    for (let i = 0; i < day.stops.length; i++) {
+      const stop = day.stops[i];
       
-      for (let h = startHour; h <= endHour; h++) {
-        const hourMinutes = h * 60;
-        const offsetFromStart = hourMinutes - startMinutes;
-        if (offsetFromStart >= 0 && offsetFromStart <= totalMinutes) {
-          hourMarks.push({
-            time: formatHourLabel(hourMinutes),
-            offsetPercent: (offsetFromStart / totalMinutes) * 100
+      // For each stop, extract its time range
+      const stopTimeStr = stop.time;
+      let stopStartTime = null;
+      let stopEndTime = null;
+      
+      // Try to parse time range (e.g., "10:15-12:15")
+      const rangeMatch = stopTimeStr.match(/^(\d{1,2}):(\d{2})\s*[–—-]\s*(\d{1,2}):(\d{2})$/);
+      if (rangeMatch) {
+        const startHour = parseInt(rangeMatch[1]);
+        const startMin = parseInt(rangeMatch[2]);
+        const endHour = parseInt(rangeMatch[3]);
+        const endMin = parseInt(rangeMatch[4]);
+        stopStartTime = startHour * 60 + startMin;
+        stopEndTime = endHour * 60 + endMin;
+      } else {
+        // Single time (like departure point)
+        stopStartTime = parseClockTime(stopTimeStr);
+      }
+      
+      // Add events to timeline
+      if (stopStartTime !== null) {
+        timelineEvents.push({
+          time: stopStartTime,
+          type: 'stop-start',
+          stopIndex: i,
+          stopName: stop.name
+        });
+        if (stopEndTime !== null) {
+          timelineEvents.push({
+            time: stopEndTime,
+            type: 'stop-end',
+            stopIndex: i,
+            stopName: stop.name
+          });
+          maxEndTime = Math.max(maxEndTime, stopEndTime);
+        } else {
+          maxEndTime = Math.max(maxEndTime, stopStartTime);
+        }
+      }
+      
+      // Add drive segment BETWEEN consecutive stops (regardless of stop.drive property)
+      if (i < day.stops.length - 1) {
+        const nextStop = day.stops[i + 1];
+        const nextTimeStr = nextStop.time;
+        
+        // Try to extract next stop's start time
+        let nextStartTime = null;
+        const nextRangeMatch = nextTimeStr.match(/^(\d{1,2}):(\d{2})\s*[–—-]\s*(\d{1,2}):(\d{2})$/);
+        if (nextRangeMatch) {
+          const nextStartHour = parseInt(nextRangeMatch[1]);
+          const nextStartMin = parseInt(nextRangeMatch[2]);
+          nextStartTime = nextStartHour * 60 + nextStartMin;
+        } else {
+          // Single time
+          nextStartTime = parseClockTime(nextTimeStr);
+        }
+        
+        // Current stop's end time (for calculating drive duration)
+        const currentStopEnd = stopEndTime || stopStartTime;
+        
+        // If both times are valid, create a drive segment for the gap
+        if (nextStartTime !== null && currentStopEnd !== null && nextStartTime > currentStopEnd) {
+          const driveMinutes = nextStartTime - currentStopEnd;
+          const description = `${stop.name} → ${nextStop.name}`;
+          
+          // Use nextStop.drive label (the drive time TO reach the next stop), otherwise calculate from minutes
+          let driveLabel = nextStop.drive && nextStop.drive !== '—' && nextStop.drive !== '-' 
+            ? nextStop.drive 
+            : formatTimeShort(driveMinutes);
+          
+          segments.push({
+            type: 'drive',
+            minutes: driveMinutes,
+            fullLabel: driveLabel,
+            shortLabel: abbreviateTime(driveLabel),
+            description: description,
+            stopOrder: nextStop.order,
+            clockStart: currentStopEnd,
+            clockEnd: nextStartTime
           });
         }
       }
     }
     
-    // Render timeline ruler with full hour marks and vertical grid lines
+    // Build activity segments from clock times
+    for (let i = 0; i < day.stops.length; i++) {
+      const stop = day.stops[i];
+      const stopTimeStr = stop.time;
+      
+      // Try to parse time range for activity
+      const rangeMatch = stopTimeStr.match(/^(\d{1,2}):(\d{2})\s*[–—-]\s*(\d{1,2}):(\d{2})$/);
+      if (rangeMatch) {
+        const startHour = parseInt(rangeMatch[1]);
+        const startMin = parseInt(rangeMatch[2]);
+        const endHour = parseInt(rangeMatch[3]);
+        const endMin = parseInt(rangeMatch[4]);
+        const clockStart = startHour * 60 + startMin;
+        const clockEnd = endHour * 60 + endMin;
+        const activityMinutes = clockEnd - clockStart;
+        
+        if (activityMinutes > 0) {
+          const activity = stop.role.split(',')[0].trim();
+          const description = `${stop.name}: ${activity}`;
+          segments.push({
+            type: 'stop',
+            minutes: activityMinutes,
+            fullLabel: stop.duration,
+            shortLabel: abbreviateTime(stop.duration),
+            description: description,
+            stopOrder: stop.order,
+            clockStart: clockStart,
+            clockEnd: clockEnd
+          });
+        }
+      }
+    }
+    
+    // Sort segments by clock start time
+    segments.sort((a, b) => (a.clockStart || 0) - (b.clockStart || 0));
+    
+    // Calculate total timeline span
+    const totalMinutes = maxEndTime - startMinutes;
+    
+    if (segments.length === 0 || totalMinutes === 0) return { ruler: '', timeline: '' };
+    
+    console.log(`DEBUG: ${day.id} - startMinutes: ${startMinutes} (${formatClockTime(startMinutes)}), endTime: ${maxEndTime} (${formatClockTime(maxEndTime)}), total: ${totalMinutes}`);
+    
+    // Generate hour grid based on full hours
+    const hourMarks = [];
+    const startHour = Math.ceil(startMinutes / 60);
+    const endHour = Math.ceil(maxEndTime / 60);
+    
+    for (let h = startHour; h <= endHour; h++) {
+      const hourMinutes = h * 60;
+      const offsetFromStart = hourMinutes - startMinutes;
+      if (offsetFromStart >= 0 && offsetFromStart <= totalMinutes) {
+        hourMarks.push({
+          time: formatHourLabel(hourMinutes),
+          offsetPercent: (offsetFromStart / totalMinutes) * 100
+        });
+      }
+    }
+    
+    // Render timeline ruler with full hour marks
     let rulerHtml = '<div class="timeline-ruler">';
     if (hourMarks.length > 0) {
       rulerHtml += '<div class="timeline-hour-grid">';
@@ -291,10 +381,15 @@
     }
     rulerHtml += '</div>';
     
-    // Render timeline segments
+    // Render timeline segments with proper wall-clock positioning
     const segmentHtml = segments.map(seg => {
+      // Calculate position and width based on wall-clock time
+      const offsetStart = (seg.clockStart - startMinutes) / totalMinutes * 100;
+      const offsetEnd = (seg.clockEnd - startMinutes) / totalMinutes * 100;
+      const width = offsetEnd - offsetStart;
+      
       const fullTooltip = `${seg.description} (${escapeHtml(seg.fullLabel)})`;
-      return `<div class="timeline-segment timeline-${seg.type}" data-stop-order="${seg.stopOrder}" data-segment-type="${seg.type}" data-expanded="false" tabindex="0" role="button" aria-expanded="false" aria-label="${seg.type === 'drive' ? 'Вождение' : 'Остановка'}: ${fullTooltip}" style="flex:${seg.minutes} 0 0"><span class="timeline-time">${escapeHtml(seg.shortLabel)}</span><span class="timeline-fulltime">${escapeHtml(seg.fullLabel)}</span><span class="timeline-desc">${escapeHtml(seg.description)}</span></div>`;
+      return `<div class="timeline-segment timeline-${seg.type}" data-stop-order="${seg.stopOrder}" data-segment-type="${seg.type}" data-width-percent="${width}" tabindex="0" role="button" aria-label="${seg.type === 'drive' ? 'Вождение' : 'Остановка'}: ${fullTooltip}" title="${fullTooltip}" style="left:${offsetStart}%; width:${width}%;"><span class="timeline-time">${escapeHtml(seg.shortLabel)}</span></div>`;
     }).join('');
     
     const timelineHtml = `<div class="timeline-container" data-timeline="day-${data.days.findIndex(d => d === day)}" aria-label="Визуальный обзор дня: вождение и остановки">${segmentHtml}</div>`;
@@ -350,14 +445,37 @@
     </section>`;
   }
 
+  function adjustTimelineSegmentDisplay() {
+    // Use requestAnimationFrame to ensure DOM is fully laid out
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.timeline-container').forEach(container => {
+        const containerWidth = container.offsetWidth;
+        if (containerWidth === 0) return; // Not visible yet
+        
+        container.querySelectorAll('.timeline-segment').forEach(seg => {
+          const segWidthPercent = parseFloat(seg.dataset.widthPercent) || 0;
+          const segWidthPixels = (segWidthPercent / 100) * containerWidth;
+          
+          // Remove all display mode classes
+          seg.classList.remove('is-narrow', 'is-ultra-narrow');
+          
+          // Classify based on width:
+          // ≥35px: normal (show text)
+          // <35px: narrow (hide text, show colored segment only)
+          if (segWidthPixels < 35) {
+            seg.classList.add('is-narrow');
+          }
+        });
+      });
+    });
+  }
+
   function setupTimelineListeners() {
     document.querySelectorAll('.timeline-container').forEach(container => {
       container.addEventListener('mouseleave', () => {
         const focusedSegment = container.querySelector('.timeline-segment:focus');
         if (focusedSegment instanceof HTMLElement) focusedSegment.blur();
         container.querySelectorAll('.timeline-segment').forEach(seg => {
-          seg.dataset.expanded = 'false';
-          seg.setAttribute('aria-expanded', 'false');
           seg.classList.remove('is-selected');
         });
       });
@@ -375,6 +493,7 @@
     renderTabs();
     app.innerHTML = renderOverview() + data.days.map(renderDay).join('');
     setupTimelineListeners();
+    adjustTimelineSegmentDisplay();
   }
 
   function markerKey(dayId, order) { return `${dayId}:${order}`; }
@@ -718,6 +837,7 @@
       button.tabIndex = isActive ? 0 : -1;
     });
     initializeMap(panelId);
+    adjustTimelineSegmentDisplay();
     if (mobileViewport.matches && panelId !== 'overview') {
       delete document.getElementById(panelId).dataset.focusStop;
       setMobileView(panelId, 'plan', false);
@@ -762,21 +882,9 @@
       if (timelineSegment) {
         const container = timelineSegment.closest('.timeline-container');
         if (container) {
-          const allSegments = container.querySelectorAll('.timeline-segment');
-          const isExpanded = timelineSegment.dataset.expanded === 'true';
           const dayPanel = container.closest('.day-panel');
           const stopOrder = Number(timelineSegment.dataset.stopOrder);
           const segmentType = timelineSegment.dataset.segmentType;
-          // Collapse all segments
-          allSegments.forEach(seg => {
-            seg.dataset.expanded = 'false';
-            seg.setAttribute('aria-expanded', 'false');
-          });
-          // Toggle the clicked segment (if it wasn't expanded, expand it; if it was, leave it collapsed)
-          if (!isExpanded) {
-            timelineSegment.dataset.expanded = 'true';
-            timelineSegment.setAttribute('aria-expanded', 'true');
-          }
           setActiveTimelineSegment(container, timelineSegment);
           if (dayPanel && stopOrder) {
             if (segmentType === 'drive') focusTimelineDrive(dayPanel.id, stopOrder);
@@ -823,7 +931,6 @@
           event.preventDefault();
           const nextSegment = segments[targetIndex];
           nextSegment.focus();
-          if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') nextSegment.click();
         }
         return;
       }

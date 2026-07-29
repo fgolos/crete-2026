@@ -342,6 +342,49 @@
     detail.closest('.map-wrap').classList.add('has-stop-detail');
   }
 
+  function syncSelectionUI(dayId, selectedType, selectedOrder) {
+    const panel = document.getElementById(dayId);
+    if (!panel) return;
+    
+    // Clear all previous selections
+    panel.querySelectorAll('.route-row').forEach(row => {
+      row.classList.remove('is-active', 'is-drive-selected');
+    });
+    panel.querySelectorAll('.timeline-segment').forEach(seg => {
+      seg.classList.remove('is-selected');
+    });
+    markerIndex.forEach(({ element }, key) => {
+      if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-active');
+    });
+    
+    if (!selectedType || selectedOrder === null) return; // Cleared but no new selection
+    
+    // Apply selection based on type
+    if (selectedType === 'stop') {
+      // Highlight the stop row
+      const row = panel.querySelector(`.route-row[data-stop-order="${selectedOrder}"]`);
+      row?.classList.add('is-active');
+      
+      // Highlight the stop timeline segment
+      const segment = panel.querySelector(`.timeline-segment[data-stop-order="${selectedOrder}"][data-segment-type="stop"]`);
+      segment?.classList.add('is-selected');
+      
+      // Highlight the map marker
+      const marker = markerIndex.get(markerKey(dayId, selectedOrder));
+      marker?.element?.classList.add('is-active');
+      
+    } else if (selectedType === 'drive') {
+      // For drives: highlight the destination stop's row with drive styling
+      const row = panel.querySelector(`.route-row[data-stop-order="${selectedOrder}"]`);
+      row?.classList.add('is-active');
+      row?.classList.add('is-drive-selected'); // Special class for drive column highlighting
+      
+      // Highlight the drive timeline segment
+      const segment = panel.querySelector(`.timeline-segment[data-stop-order="${selectedOrder}"][data-segment-type="drive"]`);
+      segment?.classList.add('is-selected');
+    }
+  }
+
   function closeStopDetail(dayId,fitRoute = true,restoreFocus = true) {
     const panel = document.getElementById(dayId);
     const detail = panel?.querySelector('.stop-detail');
@@ -353,10 +396,7 @@
     detail.hidden = true;
     detail.innerHTML = '';
     detail.closest('.map-wrap').classList.remove('has-stop-detail');
-    panel.querySelectorAll('.route-row').forEach(row => row.classList.remove('is-active'));
-    markerIndex.forEach(({ element },key) => {
-      if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-active');
-    });
+    syncSelectionUI(dayId, null, null);
     delete panel.dataset.focusStop;
     if (fitRoute && (!mobileViewport.matches || panel.classList.contains('mobile-map-view'))) fitDayRoute(dayId);
     if (restoreFocus) focusTarget?.focus({ preventScroll:true });
@@ -420,6 +460,7 @@
     clearActiveDrive(dayId);
     setActiveStop(dayId,order,focusMap);
     renderStopDetail(dayId,order);
+    syncSelectionUI(dayId, 'stop', order);
   }
 
   function clearMapDriveHighlight(dayId) {
@@ -460,12 +501,10 @@
     const state = routingIndex.get(dayId);
     if (!panel) return;
     clearActiveDrive(dayId);
-    panel.querySelectorAll('.route-row').forEach(row => row.classList.remove('is-active'));
-    const row = panel.querySelector(`.route-row[data-stop-order="${stopOrder}"]`);
-    if (row) row.classList.add('is-active');
     if (map && state && Array.isArray(driveCoordinates) && driveCoordinates.length > 1) {
       state.driveHighlight = L.polyline(driveCoordinates, { color:'#f3b11f', weight:6, opacity:.92, lineCap:'round' }).addTo(map);
     }
+    syncSelectionUI(dayId, 'drive', stopOrder);
   }
 
   function focusTimelineStop(dayId, stopOrder) {

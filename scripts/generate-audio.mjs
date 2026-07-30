@@ -76,16 +76,18 @@ function storySpeechText(story, dictionary) {
 
 function buildSsmlFromBlocks(blocks, {
   voice,
-  rate,
+  rate = '0%',
+  pitch = '0%',
+  breakMs = 650,
   style = null,
   styleDegree = null,
   spokenLocale = null
 }) {
   const paragraphs = blocks
     .map(paragraph => `<p>${escapeXml(paragraph)}</p>`)
-    .join('<break time="650ms"/>');
+    .join(`<break time="${breakMs}ms"/>`);
 
-  let content = `<prosody rate="${escapeXml(rate)}">${paragraphs}</prosody>`;
+  let content = `<prosody rate="${escapeXml(rate)}" pitch="${escapeXml(pitch)}">${paragraphs}</prosody>`;
   if (spokenLocale) {
     content = `<lang xml:lang="${escapeXml(spokenLocale)}">${content}</lang>`;
   }
@@ -129,6 +131,47 @@ function replaceStoryAudio(source, storyId, audioPath) {
   return source.replace(idPattern, `$1'${audioPath}'`);
 }
 
+async function generateVariantSet({
+  story,
+  previewBlocks,
+  variants,
+  dryRun,
+  key,
+  region
+}) {
+  const results = [];
+
+  for (const variant of variants) {
+    const filename = `${story.id}-${variant.id}.mp3`;
+    const outputFile = path.join(PREVIEW_DIR, filename);
+    const detailLabel = [
+      `rate ${variant.rate}`,
+      `pitch ${variant.pitch || '0%'}`,
+      `pause ${variant.breakMs ?? 650}ms`,
+      variant.style ? `${variant.style} ${variant.styleDegree}` : null
+    ].filter(Boolean).join(', ');
+
+    console.log(`${dryRun ? '[dry-run] ' : ''}${story.id}: ${variant.voice}, ${detailLabel} -> ${path.relative(ROOT, outputFile)}`);
+
+    if (dryRun) {
+      results.push({ variant, ok: true });
+      continue;
+    }
+
+    try {
+      const ssml = buildSsmlFromBlocks(previewBlocks, variant);
+      await synthesize({ ssml, outputFile, key, region });
+      console.log(`✓ ${filename}`);
+      results.push({ variant, ok: true });
+    } catch (error) {
+      console.error(`✗ ${filename}: ${error.message}`);
+      results.push({ variant, ok: false, error });
+    }
+  }
+
+  return results;
+}
+
 async function main() {
   await loadLocalEnv();
   const { source: originalStoriesSource, value: stories } = await loadWindowData(STORIES_FILE, 'CRETE_STORIES');
@@ -139,10 +182,12 @@ async function main() {
   const dryRun = hasFlag('--dry-run');
   const preview = hasFlag('--preview');
   const previewVariants = hasFlag('--preview-variants');
+  const previewMai = hasFlag('--preview-mai');
   const voiceOverride = argValue('--voice');
 
-  if (preview && previewVariants) {
-    throw new Error('Используйте либо --preview, либо --preview-variants, но не оба сразу. Даже Azure не любит раздвоение личности.');
+  const previewModes = [preview, previewVariants, previewMai].filter(Boolean).length;
+  if (previewModes > 1) {
+    throw new Error('Используйте только один режим: --preview, --preview-variants или --preview-mai. Azure и без нашей помощи достаточно запутан.');
   }
 
   const key = process.env.AZURE_SPEECH_KEY;
@@ -154,7 +199,7 @@ async function main() {
     throw new Error('Создайте локальный .env с AZURE_SPEECH_KEY и AZURE_SPEECH_REGION. Ключ в GitHub не коммитим, потому что мы всё-таки стремимся не кормить интернет секретами.');
   }
 
-  let selected = requestedStory ? stories.filter(story => story.id === requestedStory) : stories;
+  const selected = requestedStory ? stories.filter(story => story.id === requestedStory) : stories;
   if (!selected.length) throw new Error(`История ${requestedStory} не найдена`);
 
   const previewVoices = [
@@ -163,40 +208,64 @@ async function main() {
     'ru-RU-DariyaNeural'
   ];
 
-  const expressivePreviewVariants = [
+  const dmitryPreviewVariants = [
     {
       id: '01-dmitry-neutral',
       voice: 'ru-RU-DmitryNeural',
-      rate: '0%'
+      rate: '0%',
+      pitch: '0%',
+      breakMs: 650
     },
     {
-      id: '02-lev-friendly',
+      id: '02-dmitry-warmer',
+      voice: 'ru-RU-DmitryNeural',
+      rate: '+2%',
+      pitch: '+1%',
+      breakMs: 500
+    },
+    {
+      id: '03-dmitry-conversational',
+      voice: 'ru-RU-DmitryNeural',
+      rate: '+4%',
+      pitch: '+2%',
+      breakMs: 400
+    },
+    {
+      id: '04-dmitry-relaxed',
+      voice: 'ru-RU-DmitryNeural',
+      rate: '-2%',
+      pitch: '+1%',
+      breakMs: 500
+    }
+  ];
+
+  const maiPreviewVariants = [
+    {
+      id: 'mai-01-lev-friendly',
       voice: 'ru-RU-Lev:MAI-Voice-2',
       rate: '0%',
+      pitch: '0%',
+      breakMs: 500,
       style: 'friendly',
       styleDegree: 0.8
     },
     {
-      id: '03-lev-curious',
+      id: 'mai-02-lev-curious',
       voice: 'ru-RU-Lev:MAI-Voice-2',
       rate: '0%',
+      pitch: '0%',
+      breakMs: 500,
       style: 'curious',
       styleDegree: 0.8
     },
     {
-      id: '04-lev-adventurous',
+      id: 'mai-03-lev-adventurous',
       voice: 'ru-RU-Lev:MAI-Voice-2',
       rate: '0%',
+      pitch: '0%',
+      breakMs: 500,
       style: 'adventurous',
       styleDegree: 0.6
-    },
-    {
-      id: '05-davis-funny',
-      voice: 'en-US-DavisMultilingualNeural',
-      rate: '0%',
-      style: 'funny',
-      styleDegree: 0.5,
-      spokenLocale: 'ru-RU'
     }
   ];
 
@@ -204,30 +273,29 @@ async function main() {
 
   let storiesSource = originalStoriesSource;
   let totalCharacters = 0;
+  const previewResults = [];
 
   for (const story of selected) {
     const speechBlocks = storySpeechText(story, pronunciations);
     totalCharacters += speechBlocks.join('\n').length;
 
-    if (previewVariants) {
+    if (previewVariants || previewMai) {
       const previewBlocks = [
         applyPronunciations(story.title, pronunciations),
         applyPronunciations((story.text || [])[0] || '', pronunciations),
         applyPronunciations(pronunciationTestText, pronunciations)
       ].filter(Boolean);
 
-      for (const variant of expressivePreviewVariants) {
-        const filename = `${story.id}-${variant.id}.mp3`;
-        const outputFile = path.join(PREVIEW_DIR, filename);
-        const styleLabel = variant.style
-          ? `${variant.style} ${variant.styleDegree}`
-          : 'neutral';
-        console.log(`${dryRun ? '[dry-run] ' : ''}${story.id}: ${variant.voice}, ${styleLabel} -> ${path.relative(ROOT, outputFile)}`);
-        if (!dryRun) {
-          const ssml = buildSsmlFromBlocks(previewBlocks, variant);
-          await synthesize({ ssml, outputFile, key, region });
-        }
-      }
+      const variants = previewMai ? maiPreviewVariants : dmitryPreviewVariants;
+      const results = await generateVariantSet({
+        story,
+        previewBlocks,
+        variants,
+        dryRun,
+        key,
+        region
+      });
+      previewResults.push(...results);
       continue;
     }
 
@@ -268,7 +336,15 @@ async function main() {
   }
 
   console.log(`Объём выбранного текста: примерно ${totalCharacters.toLocaleString('ru-RU')} символов.`);
-  if (!dryRun && !preview && !previewVariants && storiesSource !== originalStoriesSource) {
+
+  if (previewResults.length && !dryRun) {
+    const succeeded = previewResults.filter(result => result.ok).length;
+    const failed = previewResults.length - succeeded;
+    console.log(`Preview: создано ${succeeded}, ошибок ${failed}.`);
+    if (failed) process.exitCode = 1;
+  }
+
+  if (!dryRun && !preview && !previewVariants && !previewMai && storiesSource !== originalStoriesSource) {
     await fs.writeFile(STORIES_FILE, storiesSource, 'utf8');
     console.log('stories-data.js обновлён путями к MP3.');
   }

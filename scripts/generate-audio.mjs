@@ -74,11 +74,33 @@ function storySpeechText(story, dictionary) {
   return blocks.map(block => applyPronunciations(block, dictionary));
 }
 
-function buildSsml(story, dictionary, voice, rate) {
-  const paragraphs = storySpeechText(story, dictionary)
+function buildSsmlFromBlocks(blocks, {
+  voice,
+  rate,
+  style = null,
+  styleDegree = null,
+  spokenLocale = null
+}) {
+  const paragraphs = blocks
     .map(paragraph => `<p>${escapeXml(paragraph)}</p>`)
     .join('<break time="650ms"/>');
-  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="ru-RU"><voice name="${escapeXml(voice)}"><prosody rate="${escapeXml(rate)}">${paragraphs}</prosody></voice></speak>`;
+
+  let content = `<prosody rate="${escapeXml(rate)}">${paragraphs}</prosody>`;
+  if (spokenLocale) {
+    content = `<lang xml:lang="${escapeXml(spokenLocale)}">${content}</lang>`;
+  }
+  if (style) {
+    const degreeAttribute = styleDegree == null
+      ? ''
+      : ` styledegree="${escapeXml(String(styleDegree))}"`;
+    content = `<mstts:express-as style="${escapeXml(style)}"${degreeAttribute}>${content}</mstts:express-as>`;
+  }
+
+  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="ru-RU"><voice name="${escapeXml(voice)}">${content}</voice></speak>`;
+}
+
+function buildSsml(story, dictionary, voice, rate) {
+  return buildSsmlFromBlocks(storySpeechText(story, dictionary), { voice, rate });
 }
 
 async function synthesize({ ssml, outputFile, key, region }) {
@@ -116,7 +138,12 @@ async function main() {
   const force = hasFlag('--force');
   const dryRun = hasFlag('--dry-run');
   const preview = hasFlag('--preview');
+  const previewVariants = hasFlag('--preview-variants');
   const voiceOverride = argValue('--voice');
+
+  if (preview && previewVariants) {
+    throw new Error('Используйте либо --preview, либо --preview-variants, но не оба сразу. Даже Azure не любит раздвоение личности.');
+  }
 
   const key = process.env.AZURE_SPEECH_KEY;
   const region = process.env.AZURE_SPEECH_REGION;
@@ -136,12 +163,73 @@ async function main() {
     'ru-RU-DariyaNeural'
   ];
 
+  const expressivePreviewVariants = [
+    {
+      id: '01-dmitry-neutral',
+      voice: 'ru-RU-DmitryNeural',
+      rate: '0%'
+    },
+    {
+      id: '02-lev-friendly',
+      voice: 'ru-RU-Lev:MAI-Voice-2',
+      rate: '0%',
+      style: 'friendly',
+      styleDegree: 0.8
+    },
+    {
+      id: '03-lev-curious',
+      voice: 'ru-RU-Lev:MAI-Voice-2',
+      rate: '0%',
+      style: 'curious',
+      styleDegree: 0.8
+    },
+    {
+      id: '04-lev-adventurous',
+      voice: 'ru-RU-Lev:MAI-Voice-2',
+      rate: '0%',
+      style: 'adventurous',
+      styleDegree: 0.6
+    },
+    {
+      id: '05-davis-funny',
+      voice: 'en-US-DavisMultilingualNeural',
+      rate: '0%',
+      style: 'funny',
+      styleDegree: 0.5,
+      spokenLocale: 'ru-RU'
+    }
+  ];
+
+  const pronunciationTestText = 'Сегодня проверяем, как рассказчик произносит Mochlos, Sitia, Mirabello и Gournia, а также диапазон 260–270 миллионов лет.';
+
   let storiesSource = originalStoriesSource;
   let totalCharacters = 0;
 
   for (const story of selected) {
     const speechBlocks = storySpeechText(story, pronunciations);
     totalCharacters += speechBlocks.join('\n').length;
+
+    if (previewVariants) {
+      const previewBlocks = [
+        applyPronunciations(story.title, pronunciations),
+        applyPronunciations((story.text || [])[0] || '', pronunciations),
+        applyPronunciations(pronunciationTestText, pronunciations)
+      ].filter(Boolean);
+
+      for (const variant of expressivePreviewVariants) {
+        const filename = `${story.id}-${variant.id}.mp3`;
+        const outputFile = path.join(PREVIEW_DIR, filename);
+        const styleLabel = variant.style
+          ? `${variant.style} ${variant.styleDegree}`
+          : 'neutral';
+        console.log(`${dryRun ? '[dry-run] ' : ''}${story.id}: ${variant.voice}, ${styleLabel} -> ${path.relative(ROOT, outputFile)}`);
+        if (!dryRun) {
+          const ssml = buildSsmlFromBlocks(previewBlocks, variant);
+          await synthesize({ ssml, outputFile, key, region });
+        }
+      }
+      continue;
+    }
 
     if (preview) {
       const excerptStory = {
@@ -180,7 +268,7 @@ async function main() {
   }
 
   console.log(`Объём выбранного текста: примерно ${totalCharacters.toLocaleString('ru-RU')} символов.`);
-  if (!dryRun && !preview && storiesSource !== originalStoriesSource) {
+  if (!dryRun && !preview && !previewVariants && storiesSource !== originalStoriesSource) {
     await fs.writeFile(STORIES_FILE, storiesSource, 'utf8');
     console.log('stories-data.js обновлён путями к MP3.');
   }

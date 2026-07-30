@@ -7,6 +7,7 @@ import process from 'node:process';
 const ROOT = process.cwd();
 const STORIES_FILE = path.join(ROOT, 'stories-data.js');
 const PRONUNCIATIONS_FILE = path.join(ROOT, 'pronunciations-data.js');
+const NARRATIONS_FILE = path.join(ROOT, 'narration-data.js');
 const AUDIO_DIR = path.join(ROOT, 'audio');
 const PREVIEW_DIR = path.join(AUDIO_DIR, 'previews');
 
@@ -41,14 +42,21 @@ async function loadLocalEnv() {
   }
 }
 
-async function loadWindowData(file, property) {
-  const source = await fs.readFile(file, 'utf8');
-  const sandbox = { window: {} };
-  vm.createContext(sandbox);
-  vm.runInContext(source, sandbox, { filename: file });
-  const value = sandbox.window[property];
-  if (!value) throw new Error(`В ${path.basename(file)} не найден window.${property}`);
-  return { source, value };
+async function loadWindowData(file, property, { optional = false } = {}) {
+  try {
+    const source = await fs.readFile(file, 'utf8');
+    const sandbox = { window: {} };
+    vm.createContext(sandbox);
+    vm.runInContext(source, sandbox, { filename: file });
+    const value = sandbox.window[property];
+    if (!value && !optional) {
+      throw new Error(`В ${path.basename(file)} не найден window.${property}`);
+    }
+    return { source, value: value || {} };
+  } catch (error) {
+    if (optional && error.code === 'ENOENT') return { source: '', value: {} };
+    throw error;
+  }
 }
 
 function applyPronunciations(text, dictionary) {
@@ -58,7 +66,7 @@ function applyPronunciations(text, dictionary) {
 }
 
 function escapeXml(value) {
-  return value
+  return String(value)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -72,6 +80,12 @@ function storySpeechText(story, dictionary) {
     blocks.push(`Когда будем на месте, обратите внимание. ${story.lookFor.join('. ')}.`);
   }
   return blocks.map(block => applyPronunciations(block, dictionary));
+}
+
+function narrationSpeechText(story, narrations, dictionary) {
+  const narration = narrations[story.id];
+  if (!narration?.blocks?.length) return null;
+  return narration.blocks.map(block => applyPronunciations(block, dictionary));
 }
 
 function buildSsmlFromBlocks(blocks, {
@@ -101,8 +115,20 @@ function buildSsmlFromBlocks(blocks, {
   return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="ru-RU"><voice name="${escapeXml(voice)}">${content}</voice></speak>`;
 }
 
-function buildSsml(story, dictionary, voice, rate) {
-  return buildSsmlFromBlocks(storySpeechText(story, dictionary), { voice, rate });
+function buildStorySsml(story, narrations, dictionary, defaults) {
+  const narration = narrations[story.id];
+  const blocks = narrationSpeechText(story, narrations, dictionary)
+    || storySpeechText(story, dictionary);
+  return {
+    blocks,
+    options: {
+      voice: narration?.voice || defaults.voice,
+      rate: narration?.rate || defaults.rate,
+      pitch: narration?.pitch || '0%',
+      breakMs: narration?.breakMs ?? 650
+    },
+    style: narration?.style || null
+  };
 }
 
 async function synthesize({ ssml, outputFile, key, region }) {
@@ -137,12 +163,7 @@ const NARRATION_PREVIEWS = {
     {
       id: '01-original',
       label: 'исходный текст',
-      blocks: story => [
-        story.title,
-        story.text?.[0] || '',
-        story.text?.[1] || '',
-        story.text?.[4] || ''
-      ]
+      blocks: story => [story.title, story.text?.[0] || '', story.text?.[1] || '', story.text?.[4] || '']
     },
     {
       id: '02-conversational',
@@ -177,25 +198,13 @@ const NARRATION_PREVIEWS = {
   ]
 };
 
-async function generateVariantSet({
-  story,
-  variants,
-  dictionary,
-  dryRun,
-  key,
-  region
-}) {
+async function generateVariantSet({ story, variants, dictionary, dryRun, key, region }) {
   const results = [];
-
   for (const variant of variants) {
     const filename = `${story.id}-${variant.id}.mp3`;
     const outputFile = path.join(PREVIEW_DIR, filename);
-    const rawBlocks = typeof variant.blocks === 'function'
-      ? variant.blocks(story)
-      : variant.blocks;
-    const blocks = rawBlocks
-      .filter(Boolean)
-      .map(block => applyPronunciations(block, dictionary));
+    const rawBlocks = typeof variant.blocks === 'function' ? variant.blocks(story) : variant.blocks;
+    const blocks = rawBlocks.filter(Boolean).map(block => applyPronunciations(block, dictionary));
     const detailLabel = [
       variant.label,
       `rate ${variant.rate || '0%'}`,
@@ -205,12 +214,10 @@ async function generateVariantSet({
     ].filter(Boolean).join(', ');
 
     console.log(`${dryRun ? '[dry-run] ' : ''}${story.id}: ${variant.voice}, ${detailLabel} -> ${path.relative(ROOT, outputFile)}`);
-
     if (dryRun) {
       results.push({ variant, ok: true });
       continue;
     }
-
     try {
       const ssml = buildSsmlFromBlocks(blocks, variant);
       await synthesize({ ssml, outputFile, key, region });
@@ -221,7 +228,6 @@ async function generateVariantSet({
       results.push({ variant, ok: false, error });
     }
   }
-
   return results;
 }
 
@@ -229,6 +235,7 @@ async function main() {
   await loadLocalEnv();
   const { source: originalStoriesSource, value: stories } = await loadWindowData(STORIES_FILE, 'CRETE_STORIES');
   const { value: pronunciations } = await loadWindowData(PRONUNCIATIONS_FILE, 'CRETE_PRONUNCIATIONS');
+  const { value: narrations } = await loadWindowData(NARRATIONS_FILE, 'CRETE_NARRATIONS', { optional: true });
 
   const requestedStory = argValue('--story');
   const force = hasFlag('--force');
@@ -247,7 +254,6 @@ async function main() {
   const region = process.env.AZURE_SPEECH_REGION;
   const defaultVoice = voiceOverride || process.env.AZURE_SPEECH_VOICE || 'ru-RU-DmitryNeural';
   const rate = process.env.AZURE_SPEECH_RATE || '0%';
-
   if (!dryRun && (!key || !region)) {
     throw new Error('Создайте локальный .env с AZURE_SPEECH_KEY и AZURE_SPEECH_REGION. Ключ в GitHub не коммитим, потому что мы всё-таки стремимся не кормить интернет секретами.');
   }
@@ -255,46 +261,11 @@ async function main() {
   const selected = requestedStory ? stories.filter(story => story.id === requestedStory) : stories;
   if (!selected.length) throw new Error(`История ${requestedStory} не найдена`);
 
-  const previewVoices = [
-    'ru-RU-SvetlanaNeural',
-    'ru-RU-DmitryNeural',
-    'ru-RU-DariyaNeural'
-  ];
-
+  const previewVoices = ['ru-RU-SvetlanaNeural', 'ru-RU-DmitryNeural', 'ru-RU-DariyaNeural'];
   const maiPreviewVariants = [
-    {
-      id: 'mai-01-lev-friendly',
-      label: 'MAI friendly',
-      voice: 'ru-RU-Lev:MAI-Voice-2',
-      rate: '0%',
-      pitch: '0%',
-      breakMs: 500,
-      style: 'friendly',
-      styleDegree: 0.8,
-      blocks: story => [story.title, story.text?.[0] || '']
-    },
-    {
-      id: 'mai-02-lev-curious',
-      label: 'MAI curious',
-      voice: 'ru-RU-Lev:MAI-Voice-2',
-      rate: '0%',
-      pitch: '0%',
-      breakMs: 500,
-      style: 'curious',
-      styleDegree: 0.8,
-      blocks: story => [story.title, story.text?.[0] || '']
-    },
-    {
-      id: 'mai-03-lev-adventurous',
-      label: 'MAI adventurous',
-      voice: 'ru-RU-Lev:MAI-Voice-2',
-      rate: '0%',
-      pitch: '0%',
-      breakMs: 500,
-      style: 'adventurous',
-      styleDegree: 0.6,
-      blocks: story => [story.title, story.text?.[0] || '']
-    }
+    { id: 'mai-01-lev-friendly', label: 'MAI friendly', voice: 'ru-RU-Lev:MAI-Voice-2', rate: '0%', pitch: '0%', breakMs: 500, style: 'friendly', styleDegree: 0.8, blocks: story => [story.title, story.text?.[0] || ''] },
+    { id: 'mai-02-lev-curious', label: 'MAI curious', voice: 'ru-RU-Lev:MAI-Voice-2', rate: '0%', pitch: '0%', breakMs: 500, style: 'curious', styleDegree: 0.8, blocks: story => [story.title, story.text?.[0] || ''] },
+    { id: 'mai-03-lev-adventurous', label: 'MAI adventurous', voice: 'ru-RU-Lev:MAI-Voice-2', rate: '0%', pitch: '0%', breakMs: 500, style: 'adventurous', styleDegree: 0.6, blocks: story => [story.title, story.text?.[0] || ''] }
   ];
 
   let storiesSource = originalStoriesSource;
@@ -302,8 +273,8 @@ async function main() {
   const previewResults = [];
 
   for (const story of selected) {
-    const speechBlocks = storySpeechText(story, pronunciations);
-    totalCharacters += speechBlocks.join('\n').length;
+    const fullNarration = buildStorySsml(story, narrations, pronunciations, { voice: defaultVoice, rate });
+    totalCharacters += fullNarration.blocks.join('\n').length;
 
     if (previewVariants || previewMai) {
       let variants;
@@ -311,41 +282,24 @@ async function main() {
         variants = maiPreviewVariants;
       } else {
         const narrationVariants = NARRATION_PREVIEWS[story.id];
-        if (!narrationVariants) {
-          throw new Error(`Для истории ${story.id} ещё не подготовлены текстовые preview-варианты.`);
-        }
-        variants = narrationVariants.map(variant => ({
-          ...variant,
-          voice: 'ru-RU-DmitryNeural',
-          rate: '0%',
-          pitch: '0%',
-          breakMs: 500
-        }));
+        if (!narrationVariants) throw new Error(`Для истории ${story.id} ещё не подготовлены текстовые preview-варианты.`);
+        variants = narrationVariants.map(variant => ({ ...variant, voice: 'ru-RU-DmitryNeural', rate: '0%', pitch: '0%', breakMs: 500 }));
       }
-
-      const results = await generateVariantSet({
-        story,
-        variants,
-        dictionary: pronunciations,
-        dryRun,
-        key,
-        region
-      });
+      const results = await generateVariantSet({ story, variants, dictionary: pronunciations, dryRun, key, region });
       previewResults.push(...results);
       continue;
     }
 
     if (preview) {
-      const excerptStory = {
-        ...story,
-        text: (story.text || []).slice(0, 2),
-        lookFor: []
-      };
+      const excerptStory = { ...story, text: (story.text || []).slice(0, 2), lookFor: [] };
       for (const voice of previewVoices) {
         const filename = `${story.id}-${voice.replace(/^ru-RU-/, '').replace(/Neural$/, '').toLowerCase()}.mp3`;
         const outputFile = path.join(PREVIEW_DIR, filename);
         console.log(`${dryRun ? '[dry-run] ' : ''}${story.id}: preview ${voice} -> ${path.relative(ROOT, outputFile)}`);
-        if (!dryRun) await synthesize({ ssml: buildSsml(excerptStory, pronunciations, voice, rate), outputFile, key, region });
+        if (!dryRun) {
+          const ssml = buildSsmlFromBlocks(storySpeechText(excerptStory, pronunciations), { voice, rate });
+          await synthesize({ ssml, outputFile, key, region });
+        }
       }
       continue;
     }
@@ -353,10 +307,7 @@ async function main() {
     const audioPath = `audio/${story.id}.mp3`;
     const outputFile = path.join(ROOT, audioPath);
     let exists = false;
-    try {
-      await fs.access(outputFile);
-      exists = true;
-    } catch {}
+    try { await fs.access(outputFile); exists = true; } catch {}
 
     if (exists && !force) {
       console.log(`${story.id}: уже существует, пропуск. Для замены добавьте --force.`);
@@ -364,22 +315,22 @@ async function main() {
       continue;
     }
 
-    console.log(`${dryRun ? '[dry-run] ' : ''}${story.id}: ${defaultVoice} -> ${audioPath}`);
+    const sourceLabel = narrations[story.id] ? `narration ${narrations[story.id].style || 'custom'}` : 'story text';
+    console.log(`${dryRun ? '[dry-run] ' : ''}${story.id}: ${fullNarration.options.voice}, ${sourceLabel} -> ${audioPath}`);
     if (!dryRun) {
-      await synthesize({ ssml: buildSsml(story, pronunciations, defaultVoice, rate), outputFile, key, region });
+      const ssml = buildSsmlFromBlocks(fullNarration.blocks, fullNarration.options);
+      await synthesize({ ssml, outputFile, key, region });
       storiesSource = replaceStoryAudio(storiesSource, story.id, audioPath);
     }
   }
 
   console.log(`Объём выбранного текста: примерно ${totalCharacters.toLocaleString('ru-RU')} символов.`);
-
   if (previewResults.length && !dryRun) {
     const succeeded = previewResults.filter(result => result.ok).length;
     const failed = previewResults.length - succeeded;
     console.log(`Preview: создано ${succeeded}, ошибок ${failed}.`);
     if (failed) process.exitCode = 1;
   }
-
   if (!dryRun && !preview && !previewVariants && !previewMai && storiesSource !== originalStoriesSource) {
     await fs.writeFile(STORIES_FILE, storiesSource, 'utf8');
     console.log('stories-data.js обновлён путями к MP3.');

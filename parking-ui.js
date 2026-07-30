@@ -191,18 +191,23 @@
         if (!stop.parking?.primary) continue;
         const cell = document.querySelector(`#${day.id} .route-row[data-stop-order="${stop.order}"] .stop-name`);
         if (!cell || cell.querySelector('[data-parking-open]')) continue;
+        const name = cell.querySelector('strong');
+        if (!name) continue;
+
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'parking-open';
         button.dataset.parkingOpen = '';
-        button.textContent = 'Парковка';
+        button.textContent = 'P';
+        button.title = 'Информация о парковке';
+        button.setAttribute('aria-label', `Парковка для ${stop.name}`);
         button.addEventListener('click', event => {
           event.preventDefault();
           event.stopPropagation();
           cell.closest('.route-row')?.click();
           setTimeout(() => appendParkingDetail(day.id, stop), 0);
         });
-        cell.appendChild(button);
+        name.insertAdjacentElement('afterend', button);
       }
     }
   }

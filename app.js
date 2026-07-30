@@ -429,9 +429,10 @@
     const meta = orderedMeta.map((item,index) => `<div class="meta-item ${index < 4 ? 'primary' : 'secondary'}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`).join('');
     const rows = day.stops.map(stop => {
       const flexible = isFlexibleStop(day, stop);
+      const stopDuration = stop.duration && stop.duration !== '—' && stop.duration !== '-' ? stop.duration : '';
       return `<tr class="route-row${flexible?' is-flexible':''}" tabindex="0" data-day-id="${day.id}" data-stop-order="${stop.order}" aria-label="Показать ${escapeHtml(stop.name)} на карте">
         <td class="stop-order">${stop.order}</td><td class="stop-name"><strong>${escapeHtml(stop.name)}</strong>${flexible?'<span class="flexible-label">Гибко</span>':''}<span class="role">${escapeHtml(stop.role)}</span></td>
-        <td data-label="Расстояние">${escapeHtml(stop.distance)}<span class="drive-time">${escapeHtml(stop.drive)}</span></td><td data-label="Время">${escapeHtml(stop.time)}</td></tr>`;
+        <td data-label="Расстояние">${escapeHtml(stop.distance)}<span class="drive-time">${escapeHtml(stop.drive)}</span></td><td data-label="Время">${escapeHtml(stop.time)}${stopDuration ? `<span class="stop-time">${escapeHtml(stopDuration)}</span>` : ''}</td></tr>`;
     }).join('');
     const sections = ['essentials','food','practical'].map(key => {
       const section = day.sections[key];
@@ -1012,11 +1013,11 @@
       }
       const row = event.target.closest('.route-row');
       if (row) {
-        // Clicks on Км (col 3) or В пути (col 4) cells with real data trigger drive selection
+        // Click on merged distance/drive column triggers drive selection.
         const cell = event.target.closest('td');
         if (cell) {
           const cellIndex = [...row.cells].indexOf(cell);
-          if ((cellIndex === 2 || cellIndex === 3) && cell.textContent.trim() !== '—') {
+          if (cellIndex === 2 && cell.textContent.trim() !== '—') {
             focusTimelineDrive(row.dataset.dayId, Number(row.dataset.stopOrder));
             return;
           }
@@ -1096,8 +1097,8 @@
       const cell = event.target.closest('td');
       if (cell) {
         const cellIndex = [...row.cells].indexOf(cell);
-        // Hovering on км (col 3) or в пути (col 4) cells highlights drive, otherwise highlights stop
-        const isDriveCell = (cellIndex === 2 || cellIndex === 3) && cell.textContent.trim() !== '—';
+        // Hover on merged distance/drive column highlights drive, otherwise highlights stop.
+        const isDriveCell = cellIndex === 2 && cell.textContent.trim() !== '—';
         const selectedType = isDriveCell ? 'drive' : 'stop';
         syncSelectionUI(dayId, selectedType, stopOrder, true);
         // Show drive highlight on map when hovering over drive columns

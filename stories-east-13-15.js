@@ -10,15 +10,15 @@
     blocks: [title, ...text]
   });
 
-  const story = ({ id, dayId, stopOrder, kind, buttonLabel, title, text, lookFor, sources }) => ({
+  const story = ({ id, dayId, stopOrder, kind, buttonLabel, title, audio = null, durationSeconds = null, text, lookFor, sources }) => ({
     id,
     dayId,
     stopOrder,
     kind,
     buttonLabel,
     title,
-    audio: null,
-    durationSeconds: null,
+    audio,
+    durationSeconds,
     text,
     narration: livelyNarration(title, text),
     lookFor,
@@ -30,6 +30,8 @@
     story({
       id: 'road-sitia-ziros', dayId: 'day13', stopOrder: 1, kind: 'road', buttonLabel: 'О дороге',
       title: 'Из Ситии в Зирос: от моря к высокому плато восточного Крита',
+      audio: 'audio/platanes.mp3',
+      durationSeconds: 107,
       text: [
         'Дорога из Ситии в Зирос постепенно уходит от моря и поднимается во внутреннюю часть восточного Крита. За городской окраиной быстро исчезает ощущение побережья: вокруг становятся заметнее каменистые холмы, редкие деревни, оливковые рощи и участки почти без высокой растительности.',
         'Чем выше дорога, тем суше и строже выглядит ландшафт. Здесь особенно хорошо видно, что восточный Крит устроен не как единая прибрежная полоса, а как система небольших плато и долин, разделённых складками гор. Несколько километров по карте легко превращаются в длинную последовательность поворотов, потому что рельеф, в отличие от туриста, не обязан уважать кратчайший путь.',

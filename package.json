@@ -1,0 +1,13 @@
+{
+  "name": "crete-2026-audio-guide",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "audio:dry-run": "node scripts/generate-audio.mjs --dry-run",
+    "audio:preview": "node scripts/generate-audio.mjs --preview --story mochlos",
+    "audio:generate": "node scripts/generate-audio.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

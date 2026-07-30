@@ -431,7 +431,7 @@
       const flexible = isFlexibleStop(day, stop);
       return `<tr class="route-row${flexible?' is-flexible':''}" tabindex="0" data-day-id="${day.id}" data-stop-order="${stop.order}" aria-label="Показать ${escapeHtml(stop.name)} на карте">
         <td class="stop-order">${stop.order}</td><td class="stop-name"><strong>${escapeHtml(stop.name)}</strong>${flexible?'<span class="flexible-label">Гибко</span>':''}<span class="role">${escapeHtml(stop.role)}</span></td>
-        <td data-label="Расстояние">${escapeHtml(stop.distance)}</td><td data-label="В пути">${escapeHtml(stop.drive)}</td><td data-label="Время">${escapeHtml(stop.time)}</td></tr>`;
+        <td data-label="Расстояние">${escapeHtml(stop.distance)}<span class="drive-time">${escapeHtml(stop.drive)}</span></td><td data-label="Время">${escapeHtml(stop.time)}</td></tr>`;
     }).join('');
     const sections = ['essentials','food','practical'].map(key => {
       const section = day.sections[key];
@@ -452,7 +452,7 @@
             ${timelineData.ruler}
             ${timelineData.timeline}
           </div>
-          <table class="route-table"><thead><tr><th>№</th><th>Точка</th><th>Км</th><th>В пути</th><th>Время</th></tr></thead><tbody>${rows}</tbody></table>
+          <table class="route-table"><thead><tr><th>№</th><th>Точка</th><th>Км / В пути</th><th>Время</th></tr></thead><tbody>${rows}</tbody></table>
         </aside>
         <div class="map-wrap">
           <div id="map-${day.id}" class="map"></div>

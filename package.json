@@ -5,9 +5,7 @@
   "scripts": {
     "audio:dry-run": "node scripts/generate-audio.mjs --dry-run",
     "audio:preview": "node scripts/generate-audio.mjs --preview --story mochlos",
-    "audio:generate": "node scripts/generate-audio.mjs",
-    "audio:dry-run:extra": "node scripts/generate-extra-audio.mjs --dry-run",
-    "audio:generate:extra": "node scripts/generate-extra-audio.mjs"
+    "audio:generate": "node scripts/generate-audio.mjs"
   },
   "engines": {
     "node": ">=18"

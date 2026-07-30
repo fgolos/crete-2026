@@ -7,7 +7,6 @@ import process from 'node:process';
 const ROOT = process.cwd();
 const STORIES_FILE = path.join(ROOT, 'stories-data.js');
 const PRONUNCIATIONS_FILE = path.join(ROOT, 'pronunciations-data.js');
-const NARRATIONS_FILE = path.join(ROOT, 'narration-data.js');
 const AUDIO_DIR = path.join(ROOT, 'audio');
 const PREVIEW_DIR = path.join(AUDIO_DIR, 'previews');
 
@@ -42,21 +41,14 @@ async function loadLocalEnv() {
   }
 }
 
-async function loadWindowData(file, property, { optional = false } = {}) {
-  try {
-    const source = await fs.readFile(file, 'utf8');
-    const sandbox = { window: {} };
-    vm.createContext(sandbox);
-    vm.runInContext(source, sandbox, { filename: file });
-    const value = sandbox.window[property];
-    if (!value && !optional) {
-      throw new Error(`В ${path.basename(file)} не найден window.${property}`);
-    }
-    return { source, value: value || {} };
-  } catch (error) {
-    if (optional && error.code === 'ENOENT') return { source: '', value: {} };
-    throw error;
-  }
+async function loadWindowData(file, property) {
+  const source = await fs.readFile(file, 'utf8');
+  const sandbox = { window: {} };
+  vm.createContext(sandbox);
+  vm.runInContext(source, sandbox, { filename: file });
+  const value = sandbox.window[property];
+  if (!value) throw new Error(`В ${path.basename(file)} не найден window.${property}`);
+  return { source, value };
 }
 
 function applyPronunciations(text, dictionary) {
@@ -77,15 +69,14 @@ function escapeXml(value) {
 function storySpeechText(story, dictionary) {
   const blocks = [story.title, ...(story.text || [])];
   if (story.lookFor?.length) {
-    blocks.push(`Когда будем на месте, обратите внимание. ${story.lookFor.join('. ')}.`);
+    blocks.push(`Во время посещения стоит обратить внимание. ${story.lookFor.join('. ')}.`);
   }
   return blocks.map(block => applyPronunciations(block, dictionary));
 }
 
-function narrationSpeechText(story, narrations, dictionary) {
-  const narration = narrations[story.id];
-  if (!narration?.blocks?.length) return null;
-  return narration.blocks.map(block => applyPronunciations(block, dictionary));
+function narrationSpeechText(story, dictionary) {
+  if (!story.narration?.blocks?.length) return null;
+  return story.narration.blocks.map(block => applyPronunciations(block, dictionary));
 }
 
 function buildSsmlFromBlocks(blocks, {
@@ -115,10 +106,9 @@ function buildSsmlFromBlocks(blocks, {
   return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="http://www.w3.org/2001/mstts" xml:lang="ru-RU"><voice name="${escapeXml(voice)}">${content}</voice></speak>`;
 }
 
-function buildStorySsml(story, narrations, dictionary, defaults) {
-  const narration = narrations[story.id];
-  const blocks = narrationSpeechText(story, narrations, dictionary)
-    || storySpeechText(story, dictionary);
+function buildStorySsml(story, dictionary, defaults) {
+  const narration = story.narration;
+  const blocks = narrationSpeechText(story, dictionary) || storySpeechText(story, dictionary);
   return {
     blocks,
     options: {
@@ -170,29 +160,24 @@ const NARRATION_PREVIEWS = {
       label: 'разговорная подача',
       blocks: () => [
         'Mochlos: маленькая деревня напротив очень большого прошлого',
-        'Перед нами Mochlos. Сегодня это спокойная приморская деревня: несколько домов, таверны у воды и маленький остров совсем рядом. Но остров здесь не просто красивый фон для обеда. На нём находится археологический комплекс, и именно он объясняет, почему Mochlos гораздо важнее, чем кажется с первого взгляда.',
+        'Mochlos сегодня кажется спокойной приморской деревней: несколько домов, таверны у воды и маленький остров совсем рядом. Но остров здесь не просто красивый фон для обеда. На нём находится археологический комплекс, и именно он объясняет, почему Mochlos гораздо важнее, чем кажется с первого взгляда.',
         'В раннем бронзовом веке здесь было поселение, связанное с морской торговлей. Археологи нашли каменные сосуды, печати и золотые украшения. То есть жители Mochlos не сидели на краю мира. Они были частью большой сети обмена, которая связывала Крит с восточным Средиземноморьем задолго до паспортов, аэропортов и очередей на досмотр.',
-        'И ещё одна деталь находится буквально под ногами. В районе Mochlos встречаются фиолетовые, красноватые и зеленоватые сланцы возрастом около 260–270 миллионов лет. Остров рассказывает историю людей, а берег напоминает о временах, когда до появления людей оставалось ещё очень и очень долго.'
+        'В районе Mochlos встречаются фиолетовые, красноватые и зеленоватые сланцы возрастом около 260–270 миллионов лет. Остров рассказывает историю людей, а местная геология напоминает о временах, когда до появления людей оставалось ещё очень и очень долго.'
       ]
     },
     {
       id: '03-lively',
       label: 'более живая подача',
-      blocks: () => [
-        'Mochlos: маленькая деревня напротив очень большого прошлого',
-        'Посмотрите на остров прямо перед нами. Он маленький, почти игрушечный, и до него всего несколько сотен метров. Но именно там скрывается главное прошлое Mochlos: древнее поселение, гавань и археологический комплекс, из-за которого эта тихая деревня занимает на карте истории куда больше места, чем на обычной карте Крита.',
-        'Несколько тысяч лет назад сюда заходили корабли, шли товары, а местные жители явно не бедствовали. Среди находок есть каменные сосуды, печати и золотые украшения. Mochlos был включён в морскую торговую сеть восточного Средиземноморья. И всё это происходило задолго до того, как путешествие начали измерять временем ожидания багажа.',
-        'Теперь посмотрим ближе, буквально себе под ноги. Местные фиолетовые, красноватые и зеленоватые сланцы появились примерно 260–270 миллионов лет назад. Получается редкая многослойная экскурсия: перед глазами история цивилизаций, а под ногами геология настолько древняя, что человеческая история рядом с ней выглядит короткой заметкой.'
-      ]
+      blocks: story => story.narration?.blocks?.slice(0, 3) || []
     },
     {
       id: '04-light-humor',
       label: 'лёгкий юмор',
       blocks: () => [
         'Mochlos: маленькая деревня напротив очень большого прошлого',
-        'Mochlos выглядит скромно: дома, таверны, вода и маленький остров напротив. Ничто особенно не кричит: здесь проходила большая история. Крит вообще редко кричит о таких вещах. Он обычно кладёт древнее поселение рядом с рыбной таверной и считает, что дальше вы как-нибудь разберётесь сами.',
+        'Mochlos выглядит скромно: дома, таверны, вода и маленький остров напротив берега. Ничто особенно не кричит: здесь проходила большая история. Крит вообще редко кричит о таких вещах. Он обычно кладёт древнее поселение рядом с рыбной таверной и считает, что дальше вы как-нибудь разберётесь сами.',
         'В раннем бронзовом веке Mochlos был связан с морской торговлей. Здесь нашли каменные сосуды, печати и золотые украшения. Это значит, что местные жители участвовали в серьёзной сети обмена по восточному Средиземноморью. Ни паспортов, ни навигаторов, ни отзывов о портах у них не было, но торговля почему-то всё равно работала.',
-        'А теперь геология решила окончательно испортить нам чувство масштаба. Фиолетовым, красноватым и зеленоватым сланцам в районе Mochlos около 260–270 миллионов лет. На их фоне минойская цивилизация выглядит почти свежей новостью. Так что остров напротив хранит очень большое прошлое, а берег под ногами хранит прошлое, которому уже просто неприлично быть таким старым.'
+        'Фиолетовым, красноватым и зеленоватым сланцам в районе Mochlos около 260–270 миллионов лет. На их фоне минойская цивилизация выглядит почти свежей новостью. Так что остров хранит очень большое прошлое, а местная геология хранит прошлое, которому уже просто неприлично быть таким старым.'
       ]
     }
   ]
@@ -218,6 +203,7 @@ async function generateVariantSet({ story, variants, dictionary, dryRun, key, re
       results.push({ variant, ok: true });
       continue;
     }
+
     try {
       const ssml = buildSsmlFromBlocks(blocks, variant);
       await synthesize({ ssml, outputFile, key, region });
@@ -235,7 +221,6 @@ async function main() {
   await loadLocalEnv();
   const { source: originalStoriesSource, value: stories } = await loadWindowData(STORIES_FILE, 'CRETE_STORIES');
   const { value: pronunciations } = await loadWindowData(PRONUNCIATIONS_FILE, 'CRETE_PRONUNCIATIONS');
-  const { value: narrations } = await loadWindowData(NARRATIONS_FILE, 'CRETE_NARRATIONS', { optional: true });
 
   const requestedStory = argValue('--story');
   const force = hasFlag('--force');
@@ -273,7 +258,7 @@ async function main() {
   const previewResults = [];
 
   for (const story of selected) {
-    const fullNarration = buildStorySsml(story, narrations, pronunciations, { voice: defaultVoice, rate });
+    const fullNarration = buildStorySsml(story, pronunciations, { voice: defaultVoice, rate });
     totalCharacters += fullNarration.blocks.join('\n').length;
 
     if (previewVariants || previewMai) {
@@ -291,7 +276,7 @@ async function main() {
     }
 
     if (preview) {
-      const excerptStory = { ...story, text: (story.text || []).slice(0, 2), lookFor: [] };
+      const excerptStory = { ...story, text: (story.text || []).slice(0, 2), lookFor: [], narration: null };
       for (const voice of previewVoices) {
         const filename = `${story.id}-${voice.replace(/^ru-RU-/, '').replace(/Neural$/, '').toLowerCase()}.mp3`;
         const outputFile = path.join(PREVIEW_DIR, filename);
@@ -307,7 +292,10 @@ async function main() {
     const audioPath = `audio/${story.id}.mp3`;
     const outputFile = path.join(ROOT, audioPath);
     let exists = false;
-    try { await fs.access(outputFile); exists = true; } catch {}
+    try {
+      await fs.access(outputFile);
+      exists = true;
+    } catch {}
 
     if (exists && !force) {
       console.log(`${story.id}: уже существует, пропуск. Для замены добавьте --force.`);
@@ -315,7 +303,7 @@ async function main() {
       continue;
     }
 
-    const sourceLabel = narrations[story.id] ? `narration ${narrations[story.id].style || 'custom'}` : 'story text';
+    const sourceLabel = story.narration ? `narration ${story.narration.style || 'custom'}` : 'story text';
     console.log(`${dryRun ? '[dry-run] ' : ''}${story.id}: ${fullNarration.options.voice}, ${sourceLabel} -> ${audioPath}`);
     if (!dryRun) {
       const ssml = buildSsmlFromBlocks(fullNarration.blocks, fullNarration.options);

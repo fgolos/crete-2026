@@ -97,10 +97,7 @@
     const zoom = Math.max(map.getZoom(), 16);
 
     map.setView([parking.lat, parking.lon], zoom, { animate: true });
-
-    // On mobile the detail is presented as part of the map view, so a desktop-style
-    // lateral offset would usually make the selected point harder, not easier, to see.
-    if (mobileViewport.matches || !detail || detail.hidden) return;
+    if (!detail || detail.hidden) return;
 
     requestAnimationFrame(() => requestAnimationFrame(() => {
       map.invalidateSize({ pan: false });
@@ -108,14 +105,21 @@
       const mapSize = map.getSize();
       const cardRect = detail.getBoundingClientRect();
       const mapRect = map.getContainer().getBoundingClientRect();
-      const cardRightInsideMap = Math.max(0, Math.min(mapSize.x, cardRect.right - mapRect.left));
-
-      // Put the selected parking in the visual centre of the unobstructed area,
-      // with a slight upward bias so the marker remains clear of a tall card.
-      const freeLeft = Math.min(mapSize.x - 48, cardRightInsideMap + 32);
-      const desiredX = freeLeft + Math.max(0, mapSize.x - freeLeft) * 0.52;
-      const desiredY = Math.max(72, mapSize.y * 0.34);
       const currentPoint = map.latLngToContainerPoint([parking.lat, parking.lon]);
+      let desiredX;
+      let desiredY;
+
+      if (mobileViewport.matches) {
+        const cardTopInsideMap = Math.max(0, Math.min(mapSize.y, cardRect.top - mapRect.top));
+        const freeBottom = Math.max(96, cardTopInsideMap - 20);
+        desiredX = mapSize.x * 0.5;
+        desiredY = Math.max(72, freeBottom * 0.48);
+      } else {
+        const cardRightInsideMap = Math.max(0, Math.min(mapSize.x, cardRect.right - mapRect.left));
+        const freeLeft = Math.min(mapSize.x - 48, cardRightInsideMap + 32);
+        desiredX = freeLeft + Math.max(0, mapSize.x - freeLeft) * 0.52;
+        desiredY = Math.max(72, mapSize.y * 0.34);
+      }
 
       map.panBy([
         Math.round(currentPoint.x - desiredX),
@@ -134,9 +138,7 @@
   }
 
   function scheduleParkingFocus(dayId, stop) {
-    // The core mobile row handler changes views and refocuses after 100 ms.
-    // Waiting slightly longer ensures the parking, not the POI, is the final focus.
-    const delay = mobileViewport.matches ? 160 : 0;
+    const delay = mobileViewport.matches ? 180 : 0;
     setTimeout(() => focusParkingAfterSelection(dayId, stop), delay);
   }
 

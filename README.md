@@ -8,7 +8,7 @@ Static GitHub Pages site for the family itinerary.
 - `styles.css` — presentation and responsive/print rules for the core itinerary interface.
 - `app.js` — rendering, tabs, maps, route links, and list-to-marker interaction.
 - `itinerary-data.js` — the single source of truth for itinerary content, stops, coordinates, timings, notes, bookings, and route order.
-- `stories-data.js` — audio-guide stories attached to itinerary stops, including optional narration text and generated MP3 paths.
+- `stories-data.js` — audio-guide stories attached to itinerary stops, including optional narration settings, generated MP3 paths, and measured audio duration.
 - `pronunciations-data.js` — replacements used only when generating Russian speech; display names remain unchanged.
 - `scripts/generate-audio.mjs` — Azure Speech MP3 generator.
 - `service-worker.js` — versioned offline caching and update lifecycle.
@@ -24,6 +24,8 @@ Edit only `itinerary-data.js` whenever possible. This preserves the current look
 ### Audio-guide content
 
 Edit `stories-data.js`. Keep the visible Google Maps spelling in story text; pronunciation substitutions belong in `pronunciations-data.js`.
+
+The spoken version uses the story title, main text, and the complete `lookFor` section. A custom `narration.blocks` array may control phrasing and voice settings, but the visible main text should remain identical to the spoken main text so listeners can follow along.
 
 ### Visual changes
 
@@ -74,7 +76,9 @@ node scripts/generate-audio.mjs --story mochlos --force
 node scripts/generate-audio.mjs --story mochlos --voice ru-RU-SvetlanaNeural
 ```
 
-The generator sends SSML to Azure Speech, writes `audio/<story-id>.mp3`, and updates that story's `audio` field in `stories-data.js`. Existing MP3 files are skipped unless `--force` is used.
+The generator sends SSML to Azure Speech, writes `audio/<story-id>.mp3`, measures the resulting MP3, and updates both `audio` and `durationSeconds` in `stories-data.js`. Existing MP3 files are skipped unless `--force` is used, but their duration is still measured and synchronized when the generator encounters them.
+
+Before an MP3 exists, the interface estimates listening time from the title, story text, and `lookFor` content and marks the value with `≈`. Once an MP3 has been generated, the compact button still shows rounded minutes while the player shows the exact `m:ss` duration.
 
 ## Offline support
 

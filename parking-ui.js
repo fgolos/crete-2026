@@ -101,6 +101,8 @@
   }
 
   function scheduleParkingFocus(dayId, stop) {
+    // The core mobile row handler changes views and refocuses after 100 ms.
+    // Waiting slightly longer ensures the parking, not the POI, is the final focus.
     const delay = mobileViewport.matches ? 160 : 0;
     setTimeout(() => focusParkingAfterSelection(dayId, stop), delay);
   }

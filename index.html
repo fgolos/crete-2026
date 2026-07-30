@@ -110,7 +110,7 @@
       }
 
       function compactDuration(story) {
-        return `≈${Math.max(1, Math.round(effectiveDurationSeconds(story) / 60))} мин`;
+        return `${Math.max(1, Math.round(effectiveDurationSeconds(story) / 60))} мин`;
       }
 
       function exactDuration(seconds) {

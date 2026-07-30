@@ -4,8 +4,7 @@
   const stories = Array.isArray(window.CRETE_STORIES) ? window.CRETE_STORIES : [];
   if (!stories.length) return;
 
-  let activeUtterance = null;
-  let activeStoryId = null;
+  let activeAudio = null;
 
   function escapeHtml(value) {
     return String(value ?? '')
@@ -16,52 +15,11 @@
       .replace(/'/g, '&#039;');
   }
 
-  function buildSpeechText(story) {
-    const lookFor = story.lookFor?.length
-      ? `Когда будем на месте, обратите внимание: ${story.lookFor.join('. ')}.`
-      : '';
-    return [story.title, ...(story.text || []), lookFor].filter(Boolean).join('\n\n');
-  }
-
-  function stopSpeech() {
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    activeUtterance = null;
-    activeStoryId = null;
-    updateSpeechButtons();
-  }
-
-  function updateSpeechButtons() {
-    document.querySelectorAll('[data-story-speak]').forEach(button => {
-      const isActive = button.dataset.storySpeak === activeStoryId && window.speechSynthesis?.speaking;
-      button.textContent = isActive ? 'Пауза' : 'Слушать';
-      button.setAttribute('aria-pressed', String(isActive));
-    });
-  }
-
-  function speakStory(story) {
-    if (!('speechSynthesis' in window)) return;
-
-    if (activeStoryId === story.id && window.speechSynthesis.speaking) {
-      if (window.speechSynthesis.paused) {
-        window.speechSynthesis.resume();
-      } else {
-        window.speechSynthesis.pause();
-      }
-      updateSpeechButtons();
-      return;
-    }
-
-    stopSpeech();
-    const utterance = new SpeechSynthesisUtterance(buildSpeechText(story));
-    utterance.lang = 'ru-RU';
-    utterance.rate = 0.94;
-    utterance.pitch = 1;
-    utterance.onend = stopSpeech;
-    utterance.onerror = stopSpeech;
-    activeUtterance = utterance;
-    activeStoryId = story.id;
-    window.speechSynthesis.speak(utterance);
-    updateSpeechButtons();
+  function stopAudio() {
+    if (!activeAudio) return;
+    activeAudio.pause();
+    activeAudio.currentTime = 0;
+    activeAudio = null;
   }
 
   function createDialog() {
@@ -75,14 +33,26 @@
     dialog.addEventListener('click', event => {
       if (event.target === dialog) dialog.close();
     });
-    dialog.addEventListener('close', stopSpeech);
+    dialog.addEventListener('close', stopAudio);
     return dialog;
   }
 
   const dialog = createDialog();
   const content = dialog.querySelector('.story-content');
 
+  function renderAudio(story) {
+    if (!story.audio) {
+      return '<div class="story-audio-pending"><strong>Аудиоверсия готовится</strong><span>Текст уже можно читать. MP3 появится здесь после генерации.</span></div>';
+    }
+
+    return `<div class="story-audio-player">
+      <div class="story-audio-heading"><strong>Аудиогид</strong><span>${escapeHtml(story.durationMinutes)} мин</span></div>
+      <audio controls preload="metadata" src="${escapeHtml(story.audio)}">Ваш браузер не поддерживает воспроизведение MP3.</audio>
+    </div>`;
+  }
+
   function renderStory(story) {
+    stopAudio();
     const paragraphs = (story.text || []).map(paragraph => `<p>${escapeHtml(paragraph)}</p>`).join('');
     const lookFor = story.lookFor?.length
       ? `<section class="story-look-for"><h3>На что посмотреть</h3><ul>${story.lookFor.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul></section>`
@@ -90,32 +60,20 @@
     const sources = story.sources?.length
       ? `<details class="story-sources"><summary>Источники</summary><ul>${story.sources.map(source => `<li><a href="${escapeHtml(source.url)}" target="_blank" rel="noopener">${escapeHtml(source.title)}</a></li>`).join('')}</ul></details>`
       : '';
-    const speechControls = 'speechSynthesis' in window
-      ? `<div class="story-audio-controls"><button type="button" data-story-speak="${escapeHtml(story.id)}">Слушать</button><button type="button" data-story-stop>Стоп</button><span>Озвучивание устройством</span></div>`
-      : '<p class="story-audio-unavailable">На этом устройстве браузерное озвучивание недоступно.</p>';
 
     content.innerHTML = `
       <div class="story-eyebrow">${escapeHtml(story.kind === 'road' ? 'Рассказ о дороге' : 'Рассказ о месте')} · ${escapeHtml(story.durationMinutes)} мин</div>
       <h2 id="story-title">${escapeHtml(story.title)}</h2>
-      ${speechControls}
+      ${renderAudio(story)}
       <div class="story-text">${paragraphs}</div>
       ${lookFor}
       ${sources}
     `;
 
-    content.querySelector('[data-story-speak]')?.addEventListener('click', event => {
-      event.stopPropagation();
-      speakStory(story);
-    });
-    content.querySelector('[data-story-stop]')?.addEventListener('click', event => {
-      event.stopPropagation();
-      stopSpeech();
-    });
-    updateSpeechButtons();
+    activeAudio = content.querySelector('audio');
   }
 
   function openStory(story) {
-    stopSpeech();
     renderStory(story);
     if (typeof dialog.showModal === 'function') dialog.showModal();
     else dialog.setAttribute('open', '');

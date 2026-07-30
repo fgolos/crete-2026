@@ -87,17 +87,50 @@
       ?.classList.add('is-active');
   }
 
+  function positionParkingBesideDetail(dayId, stop) {
+    const parking = stop?.parking?.primary;
+    const map = mapRegistry.get(`map-${dayId}`);
+    if (!parking || !map || !Number.isFinite(parking.lat) || !Number.isFinite(parking.lon)) return;
+
+    const panel = document.getElementById(dayId);
+    const detail = panel?.querySelector('.stop-detail');
+    const zoom = Math.max(map.getZoom(), 16);
+
+    map.setView([parking.lat, parking.lon], zoom, { animate: true });
+
+    // On mobile the detail is presented as part of the map view, so a desktop-style
+    // lateral offset would usually make the selected point harder, not easier, to see.
+    if (mobileViewport.matches || !detail || detail.hidden) return;
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      map.invalidateSize({ pan: false });
+
+      const mapSize = map.getSize();
+      const cardRect = detail.getBoundingClientRect();
+      const mapRect = map.getContainer().getBoundingClientRect();
+      const cardRightInsideMap = Math.max(0, Math.min(mapSize.x, cardRect.right - mapRect.left));
+
+      // Put the selected parking in the visual centre of the unobstructed area,
+      // with a slight upward bias so the marker remains clear of a tall card.
+      const freeLeft = Math.min(mapSize.x - 48, cardRightInsideMap + 32);
+      const desiredX = freeLeft + Math.max(0, mapSize.x - freeLeft) * 0.52;
+      const desiredY = Math.max(72, mapSize.y * 0.34);
+      const currentPoint = map.latLngToContainerPoint([parking.lat, parking.lon]);
+
+      map.panBy([
+        Math.round(currentPoint.x - desiredX),
+        Math.round(currentPoint.y - desiredY)
+      ], { animate: true, duration: 0.35 });
+    }));
+  }
+
   function focusParkingAfterSelection(dayId, stop) {
     const parking = stop?.parking?.primary;
     if (!parking) return;
 
     appendParkingDetail(dayId, stop);
     setActiveParking(dayId, stop.order);
-
-    const map = mapRegistry.get(`map-${dayId}`);
-    if (map && Number.isFinite(parking.lat) && Number.isFinite(parking.lon)) {
-      map.setView([parking.lat, parking.lon], Math.max(map.getZoom(), 16), { animate: true });
-    }
+    positionParkingBesideDetail(dayId, stop);
   }
 
   function scheduleParkingFocus(dayId, stop) {
@@ -181,22 +214,27 @@
   function parkingCardHtml(stop) {
     const parking = stop?.parking?.primary;
     if (!parking) return '';
+
     const facts = [
       paymentLabel(parking),
       Number.isFinite(parking.walkMinutes) ? `${parking.walkMinutes} мин пешком` : '',
       reliabilityLabel(parking.reliability)
     ].filter(Boolean);
+
     const notes = parking.notes?.length
       ? `<ul>${parking.notes.map(note => `<li>${escapeHtml(note)}</li>`).join('')}</ul>`
       : '';
     const details = [parking.priceNote, parking.crowding].filter(Boolean)
       .map(item => `<p>${escapeHtml(item)}</p>`).join('');
+    const hasPracticalDetails = Boolean(details || notes);
+    const practicalDetails = hasPracticalDetails
+      ? `<details class="parking-more"><summary>Практические детали</summary><div class="parking-more-content">${details}${notes}</div></details>`
+      : '';
 
     return `<section class="parking-detail" data-parking-detail>
       <div class="parking-detail-heading"><span class="parking-badge">P</span><div><strong>${escapeHtml(parking.name || 'Парковка')}</strong><span>${escapeHtml(facts.join(' · '))}</span></div></div>
       <p class="parking-summary">${escapeHtml(parking.summary || '')}</p>
-      ${details}
-      ${notes}
+      ${practicalDetails}
       <div class="parking-actions">
         <a href="${escapeHtml(googleMapsUrl(parking))}" target="_blank" rel="noopener">Google Maps</a>
         <a href="${escapeHtml(wazeUrl(parking))}" target="_blank" rel="noopener">Waze</a>

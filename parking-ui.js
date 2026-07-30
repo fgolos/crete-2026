@@ -6,8 +6,11 @@
 
   const mapRegistry = new Map();
   const parkingLayerRegistry = new Map();
+  const parkingMarkerRegistry = new Map();
   const originalMapFactory = L.map.bind(L);
   const originalRoutingControl = L.Routing?.control?.bind(L.Routing);
+
+  const parkingKey = (dayId, order) => `${dayId}:${order}`;
 
   function getParkingStopByCoordinates(lat, lon) {
     const epsilon = 0.00002;
@@ -67,6 +70,39 @@
     return Math.abs(primary.lat - stop.lat) > 0.00005 || Math.abs(primary.lon - stop.lon) > 0.00005;
   }
 
+  function clearActiveParking(dayId) {
+    for (const [key, marker] of parkingMarkerRegistry) {
+      if (!key.startsWith(`${dayId}:`)) continue;
+      marker.getElement()?.querySelector('.parking-marker')?.classList.remove('is-active');
+    }
+  }
+
+  function setActiveParking(dayId, stopOrder) {
+    clearActiveParking(dayId);
+    parkingMarkerRegistry
+      .get(parkingKey(dayId, stopOrder))
+      ?.getElement()
+      ?.querySelector('.parking-marker')
+      ?.classList.add('is-active');
+  }
+
+  function focusParking(dayId, stop) {
+    const parking = stop?.parking?.primary;
+    if (!parking) return;
+
+    const row = document.querySelector(`#${dayId} .route-row[data-stop-order="${stop.order}"]`);
+    row?.click();
+
+    setTimeout(() => {
+      appendParkingDetail(dayId, stop);
+      setActiveParking(dayId, stop.order);
+      const map = mapRegistry.get(`map-${dayId}`);
+      if (map && Number.isFinite(parking.lat) && Number.isFinite(parking.lon)) {
+        map.setView([parking.lat, parking.lon], Math.max(map.getZoom(), 16), { animate: true });
+      }
+    }, 0);
+  }
+
   function addParkingMarkers(mapId, map) {
     if (!mapId.startsWith('map-') || parkingLayerRegistry.has(mapId)) return;
     const dayId = mapId.slice(4);
@@ -84,6 +120,7 @@
         keyboard: true,
         title: parking.name || 'Парковка'
       }).addTo(group);
+      parkingMarkerRegistry.set(parkingKey(dayId, stop.order), marker);
 
       L.polyline([[stop.lat, stop.lon], [parking.lat, parking.lon]], {
         color: '#5d6f73',
@@ -93,11 +130,7 @@
         interactive: false
       }).addTo(group);
 
-      marker.on('click', () => {
-        const row = document.querySelector(`#${dayId} .route-row[data-stop-order="${stop.order}"]`);
-        row?.click();
-        setTimeout(() => appendParkingDetail(dayId, stop), 0);
-      });
+      marker.on('click', () => focusParking(dayId, stop));
     }
   }
 
@@ -199,18 +232,23 @@
         button.className = 'parking-open';
         button.dataset.parkingOpen = '';
         button.textContent = 'P';
-        button.title = 'Информация о парковке';
-        button.setAttribute('aria-label', `Парковка для ${stop.name}`);
+        button.title = 'Показать парковку';
+        button.setAttribute('aria-label', `Показать парковку для ${stop.name}`);
         button.addEventListener('click', event => {
           event.preventDefault();
           event.stopPropagation();
-          cell.closest('.route-row')?.click();
-          setTimeout(() => appendParkingDetail(day.id, stop), 0);
+          focusParking(day.id, stop);
         });
         name.insertAdjacentElement('afterend', button);
       }
     }
   }
+
+  document.addEventListener('click', event => {
+    const row = event.target.closest?.('.route-row');
+    if (!row || event.target.closest?.('[data-parking-open]')) return;
+    clearActiveParking(row.dataset.dayId);
+  });
 
   function init() {
     requestAnimationFrame(() => requestAnimationFrame(() => {

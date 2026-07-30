@@ -126,15 +126,61 @@ async function synthesize({ ssml, outputFile, key, region }) {
 }
 
 function replaceStoryAudio(source, storyId, audioPath) {
-  const idPattern = new RegExp(`(id:\\s*['"]${storyId.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}['"][\\s\\S]*?audio:\\s*)(null|['"][^'"]*['"])`);
+  const escapedStoryId = storyId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const idPattern = new RegExp(`(id:\\s*['"]${escapedStoryId}['"][\\s\\S]*?audio:\\s*)(null|['"][^'"]*['"])`);
   if (!idPattern.test(source)) throw new Error(`Не удалось найти поле audio для истории ${storyId}`);
   return source.replace(idPattern, `$1'${audioPath}'`);
 }
 
+const NARRATION_PREVIEWS = {
+  mochlos: [
+    {
+      id: '01-original',
+      label: 'исходный текст',
+      blocks: story => [
+        story.title,
+        story.text?.[0] || '',
+        story.text?.[1] || '',
+        story.text?.[4] || ''
+      ]
+    },
+    {
+      id: '02-conversational',
+      label: 'разговорная подача',
+      blocks: () => [
+        'Mochlos: маленькая деревня напротив очень большого прошлого',
+        'Перед нами Mochlos. Сегодня это спокойная приморская деревня: несколько домов, таверны у воды и маленький остров совсем рядом. Но остров здесь не просто красивый фон для обеда. На нём находится археологический комплекс, и именно он объясняет, почему Mochlos гораздо важнее, чем кажется с первого взгляда.',
+        'В раннем бронзовом веке здесь было поселение, связанное с морской торговлей. Археологи нашли каменные сосуды, печати и золотые украшения. То есть жители Mochlos не сидели на краю мира. Они были частью большой сети обмена, которая связывала Крит с восточным Средиземноморьем задолго до паспортов, аэропортов и очередей на досмотр.',
+        'И ещё одна деталь находится буквально под ногами. В районе Mochlos встречаются фиолетовые, красноватые и зеленоватые сланцы возрастом около 260–270 миллионов лет. Остров рассказывает историю людей, а берег напоминает о временах, когда до появления людей оставалось ещё очень и очень долго.'
+      ]
+    },
+    {
+      id: '03-lively',
+      label: 'более живая подача',
+      blocks: () => [
+        'Mochlos: маленькая деревня напротив очень большого прошлого',
+        'Посмотрите на остров прямо перед нами. Он маленький, почти игрушечный, и до него всего несколько сотен метров. Но именно там скрывается главное прошлое Mochlos: древнее поселение, гавань и археологический комплекс, из-за которого эта тихая деревня занимает на карте истории куда больше места, чем на обычной карте Крита.',
+        'Несколько тысяч лет назад сюда заходили корабли, шли товары, а местные жители явно не бедствовали. Среди находок есть каменные сосуды, печати и золотые украшения. Mochlos был включён в морскую торговую сеть восточного Средиземноморья. И всё это происходило задолго до того, как путешествие начали измерять временем ожидания багажа.',
+        'Теперь посмотрим ближе, буквально себе под ноги. Местные фиолетовые, красноватые и зеленоватые сланцы появились примерно 260–270 миллионов лет назад. Получается редкая многослойная экскурсия: перед глазами история цивилизаций, а под ногами геология настолько древняя, что человеческая история рядом с ней выглядит короткой заметкой.'
+      ]
+    },
+    {
+      id: '04-light-humor',
+      label: 'лёгкий юмор',
+      blocks: () => [
+        'Mochlos: маленькая деревня напротив очень большого прошлого',
+        'Mochlos выглядит скромно: дома, таверны, вода и маленький остров напротив. Ничто особенно не кричит: здесь проходила большая история. Крит вообще редко кричит о таких вещах. Он обычно кладёт древнее поселение рядом с рыбной таверной и считает, что дальше вы как-нибудь разберётесь сами.',
+        'В раннем бронзовом веке Mochlos был связан с морской торговлей. Здесь нашли каменные сосуды, печати и золотые украшения. Это значит, что местные жители участвовали в серьёзной сети обмена по восточному Средиземноморью. Ни паспортов, ни навигаторов, ни отзывов о портах у них не было, но торговля почему-то всё равно работала.',
+        'А теперь геология решила окончательно испортить нам чувство масштаба. Фиолетовым, красноватым и зеленоватым сланцам в районе Mochlos около 260–270 миллионов лет. На их фоне минойская цивилизация выглядит почти свежей новостью. Так что остров напротив хранит очень большое прошлое, а берег под ногами хранит прошлое, которому уже просто неприлично быть таким старым.'
+      ]
+    }
+  ]
+};
+
 async function generateVariantSet({
   story,
-  previewBlocks,
   variants,
+  dictionary,
   dryRun,
   key,
   region
@@ -144,10 +190,17 @@ async function generateVariantSet({
   for (const variant of variants) {
     const filename = `${story.id}-${variant.id}.mp3`;
     const outputFile = path.join(PREVIEW_DIR, filename);
+    const rawBlocks = typeof variant.blocks === 'function'
+      ? variant.blocks(story)
+      : variant.blocks;
+    const blocks = rawBlocks
+      .filter(Boolean)
+      .map(block => applyPronunciations(block, dictionary));
     const detailLabel = [
-      `rate ${variant.rate}`,
+      variant.label,
+      `rate ${variant.rate || '0%'}`,
       `pitch ${variant.pitch || '0%'}`,
-      `pause ${variant.breakMs ?? 650}ms`,
+      `pause ${variant.breakMs ?? 500}ms`,
       variant.style ? `${variant.style} ${variant.styleDegree}` : null
     ].filter(Boolean).join(', ');
 
@@ -159,7 +212,7 @@ async function generateVariantSet({
     }
 
     try {
-      const ssml = buildSsmlFromBlocks(previewBlocks, variant);
+      const ssml = buildSsmlFromBlocks(blocks, variant);
       await synthesize({ ssml, outputFile, key, region });
       console.log(`✓ ${filename}`);
       results.push({ variant, ok: true });
@@ -193,7 +246,7 @@ async function main() {
   const key = process.env.AZURE_SPEECH_KEY;
   const region = process.env.AZURE_SPEECH_REGION;
   const defaultVoice = voiceOverride || process.env.AZURE_SPEECH_VOICE || 'ru-RU-DmitryNeural';
-  const rate = process.env.AZURE_SPEECH_RATE || '-5%';
+  const rate = process.env.AZURE_SPEECH_RATE || '0%';
 
   if (!dryRun && (!key || !region)) {
     throw new Error('Создайте локальный .env с AZURE_SPEECH_KEY и AZURE_SPEECH_REGION. Ключ в GitHub не коммитим, потому что мы всё-таки стремимся не кормить интернет секретами.');
@@ -208,68 +261,41 @@ async function main() {
     'ru-RU-DariyaNeural'
   ];
 
-  const dmitryPreviewVariants = [
-    {
-      id: '01-dmitry-neutral',
-      voice: 'ru-RU-DmitryNeural',
-      rate: '0%',
-      pitch: '0%',
-      breakMs: 650
-    },
-    {
-      id: '02-dmitry-warmer',
-      voice: 'ru-RU-DmitryNeural',
-      rate: '+2%',
-      pitch: '+1%',
-      breakMs: 500
-    },
-    {
-      id: '03-dmitry-conversational',
-      voice: 'ru-RU-DmitryNeural',
-      rate: '+4%',
-      pitch: '+2%',
-      breakMs: 400
-    },
-    {
-      id: '04-dmitry-relaxed',
-      voice: 'ru-RU-DmitryNeural',
-      rate: '-2%',
-      pitch: '+1%',
-      breakMs: 500
-    }
-  ];
-
   const maiPreviewVariants = [
     {
       id: 'mai-01-lev-friendly',
+      label: 'MAI friendly',
       voice: 'ru-RU-Lev:MAI-Voice-2',
       rate: '0%',
       pitch: '0%',
       breakMs: 500,
       style: 'friendly',
-      styleDegree: 0.8
+      styleDegree: 0.8,
+      blocks: story => [story.title, story.text?.[0] || '']
     },
     {
       id: 'mai-02-lev-curious',
+      label: 'MAI curious',
       voice: 'ru-RU-Lev:MAI-Voice-2',
       rate: '0%',
       pitch: '0%',
       breakMs: 500,
       style: 'curious',
-      styleDegree: 0.8
+      styleDegree: 0.8,
+      blocks: story => [story.title, story.text?.[0] || '']
     },
     {
       id: 'mai-03-lev-adventurous',
+      label: 'MAI adventurous',
       voice: 'ru-RU-Lev:MAI-Voice-2',
       rate: '0%',
       pitch: '0%',
       breakMs: 500,
       style: 'adventurous',
-      styleDegree: 0.6
+      styleDegree: 0.6,
+      blocks: story => [story.title, story.text?.[0] || '']
     }
   ];
-
-  const pronunciationTestText = 'Сегодня проверяем, как рассказчик произносит Mochlos, Sitia, Mirabello и Gournia, а также диапазон 260–270 миллионов лет.';
 
   let storiesSource = originalStoriesSource;
   let totalCharacters = 0;
@@ -280,17 +306,27 @@ async function main() {
     totalCharacters += speechBlocks.join('\n').length;
 
     if (previewVariants || previewMai) {
-      const previewBlocks = [
-        applyPronunciations(story.title, pronunciations),
-        applyPronunciations((story.text || [])[0] || '', pronunciations),
-        applyPronunciations(pronunciationTestText, pronunciations)
-      ].filter(Boolean);
+      let variants;
+      if (previewMai) {
+        variants = maiPreviewVariants;
+      } else {
+        const narrationVariants = NARRATION_PREVIEWS[story.id];
+        if (!narrationVariants) {
+          throw new Error(`Для истории ${story.id} ещё не подготовлены текстовые preview-варианты.`);
+        }
+        variants = narrationVariants.map(variant => ({
+          ...variant,
+          voice: 'ru-RU-DmitryNeural',
+          rate: '0%',
+          pitch: '0%',
+          breakMs: 500
+        }));
+      }
 
-      const variants = previewMai ? maiPreviewVariants : dmitryPreviewVariants;
       const results = await generateVariantSet({
         story,
-        previewBlocks,
         variants,
+        dictionary: pronunciations,
         dryRun,
         key,
         region

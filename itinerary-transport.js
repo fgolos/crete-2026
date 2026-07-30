@@ -12,6 +12,12 @@
     });
   });
 
+  if (document.readyState === 'loading') {
+    document.write('<link rel="stylesheet" href="parking-ui.css">');
+    document.write('<script src="parking-data.js"><\/script>');
+    document.write('<script src="parking-ui.js"><\/script>');
+  }
+
   const day = itinerary.days?.find(item => item.id === 'day11');
   const arrival = day?.stops?.find(stop => stop.order === 1);
   if (!arrival) return;

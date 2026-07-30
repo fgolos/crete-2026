@@ -261,7 +261,7 @@ h1 { margin:6px 0 8px; font-family:"PT Serif",serif; font-size:clamp(28px,3.2vw,
   .stop-detail-facts { gap:7px; }
   .mobile-plan-view .map-wrap { display:none; }
   .mobile-plan-view .itinerary { padding-bottom:0; }
-  .mobile-plan-view .day-notes { padding-top:10px; }
+  .mobile-plan-view .day-notes { display:none; }
   .mobile-map-view .itinerary,.mobile-map-view .day-notes { display:none; }
   .mobile-map-view .map-wrap { height:calc(100dvh - 117px); min-height:520px; }
   .mobile-notes-view .itinerary,.mobile-notes-view .map-wrap { display:none; }

@@ -9,6 +9,7 @@
   const parkingMarkerRegistry = new Map();
   const originalMapFactory = L.map.bind(L);
   const originalRoutingControl = L.Routing?.control?.bind(L.Routing);
+  const mobileViewport = window.matchMedia('(max-width: 800px)');
 
   const parkingKey = (dayId, order) => `${dayId}:${order}`;
 
@@ -86,21 +87,29 @@
       ?.classList.add('is-active');
   }
 
-  function focusParking(dayId, stop) {
+  function focusParkingAfterSelection(dayId, stop) {
     const parking = stop?.parking?.primary;
     if (!parking) return;
 
-    const row = document.querySelector(`#${dayId} .route-row[data-stop-order="${stop.order}"]`);
-    row?.click();
+    appendParkingDetail(dayId, stop);
+    setActiveParking(dayId, stop.order);
 
-    setTimeout(() => {
-      appendParkingDetail(dayId, stop);
-      setActiveParking(dayId, stop.order);
-      const map = mapRegistry.get(`map-${dayId}`);
-      if (map && Number.isFinite(parking.lat) && Number.isFinite(parking.lon)) {
-        map.setView([parking.lat, parking.lon], Math.max(map.getZoom(), 16), { animate: true });
-      }
-    }, 0);
+    const map = mapRegistry.get(`map-${dayId}`);
+    if (map && Number.isFinite(parking.lat) && Number.isFinite(parking.lon)) {
+      map.setView([parking.lat, parking.lon], Math.max(map.getZoom(), 16), { animate: true });
+    }
+  }
+
+  function focusParking(dayId, stop, selectRow = true) {
+    if (!stop?.parking?.primary) return;
+
+    if (selectRow) {
+      const row = document.querySelector(`#${dayId} .route-row[data-stop-order="${stop.order}"]`);
+      row?.click();
+    }
+
+    const delay = mobileViewport.matches ? 160 : 0;
+    setTimeout(() => focusParkingAfterSelection(dayId, stop), delay);
   }
 
   function addParkingMarkers(mapId, map) {
@@ -130,7 +139,7 @@
         interactive: false
       }).addTo(group);
 
-      marker.on('click', () => focusParking(dayId, stop));
+      marker.on('click', () => focusParking(dayId, stop, true));
     }
   }
 
@@ -218,42 +227,22 @@
     }
   }
 
-  function addParkingButtons() {
+  function installRowParkingFocus() {
     for (const day of itinerary.days) {
       for (const stop of day.stops || []) {
         if (!stop.parking?.primary) continue;
-        const cell = document.querySelector(`#${day.id} .route-row[data-stop-order="${stop.order}"] .stop-name`);
-        if (!cell || cell.querySelector('[data-parking-open]')) continue;
-        const name = cell.querySelector('strong');
-        if (!name) continue;
-
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'parking-open';
-        button.dataset.parkingOpen = '';
-        button.textContent = 'P';
-        button.title = 'Показать парковку';
-        button.setAttribute('aria-label', `Показать парковку для ${stop.name}`);
-        button.addEventListener('click', event => {
-          event.preventDefault();
-          event.stopPropagation();
-          focusParking(day.id, stop);
-        });
-        name.insertAdjacentElement('afterend', button);
+        const row = document.querySelector(`#${day.id} .route-row[data-stop-order="${stop.order}"]`);
+        if (!row || row.dataset.parkingFocusInstalled === 'true') continue;
+        row.dataset.parkingFocusInstalled = 'true';
+        row.addEventListener('click', () => focusParking(day.id, stop, false));
       }
     }
   }
 
-  document.addEventListener('click', event => {
-    const row = event.target.closest?.('.route-row');
-    if (!row || event.target.closest?.('[data-parking-open]')) return;
-    clearActiveParking(row.dataset.dayId);
-  });
-
   function init() {
     requestAnimationFrame(() => requestAnimationFrame(() => {
       installDetailObservers();
-      addParkingButtons();
+      installRowParkingFocus();
       for (const [id, map] of mapRegistry) addParkingMarkers(id, map);
     }));
   }

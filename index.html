@@ -14,7 +14,46 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css">
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="story-ui.css">
+  <style>
+    /* Stories and audio guide */
+    .story-actions { display:flex; flex-wrap:wrap; gap:5px; margin-top:7px; }
+    .story-open { border:1px solid #8eb7b3; border-radius:5px; padding:4px 7px; background:#f4fbf9; color:#086574; font-size:10px; font-weight:700; cursor:pointer; }
+    .story-open:hover { background:#d9f1f1; }
+    .story-open-road { border-color:#c9ad76; background:#fff8e8; color:#765817; }
+    .story-open-road:hover { background:#f7e8c8; }
+    .story-dialog { width:min(760px,calc(100vw - 24px)); max-height:min(88vh,900px); padding:0; border:0; border-radius:10px; background:#fffdf8; color:#183238; box-shadow:0 20px 70px rgba(13,42,47,.35); }
+    .story-dialog::backdrop { background:rgba(12,35,40,.55); backdrop-filter:blur(2px); }
+    .story-dialog-shell { position:relative; padding:22px 24px 26px; }
+    .story-close { position:sticky; float:right; top:0; z-index:2; width:34px; height:34px; border:1px solid #d9d7ca; border-radius:50%; background:#fffdf8; color:#183238; font-size:24px; line-height:1; cursor:pointer; }
+    .story-eyebrow { padding-right:42px; color:#078b9d; font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
+    .story-content h2 { margin:7px 38px 12px 0; font-family:"PT Serif",serif; font-size:clamp(24px,4vw,34px); line-height:1.1; }
+    .story-audio-player,.story-audio-pending { margin:0 0 16px; padding:10px 11px; border:1px solid #c9ddda; border-radius:7px; background:#edf7f4; }
+    .story-audio-heading { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:7px; font-size:12px; }
+    .story-audio-heading span,.story-audio-pending span { color:#617477; font-size:11px; }
+    .story-audio-player audio { display:block; width:100%; height:40px; }
+    .story-audio-pending { display:grid; gap:3px; }
+    .story-audio-pending strong { font-size:12px; }
+    .story-text { font-size:15px; line-height:1.62; }
+    .story-text p { margin:0 0 14px; }
+    .story-look-for { margin-top:18px; padding:13px 15px; border:1px solid #d6ddbd; border-radius:7px; background:#edf1dd; }
+    .story-look-for h3 { margin:0 0 7px; font-size:14px; }
+    .story-look-for ul { margin:0; padding-left:20px; font-size:13px; line-height:1.45; }
+    .story-look-for li + li { margin-top:4px; }
+    .story-sources { margin-top:14px; color:#617477; font-size:11px; }
+    .story-sources summary { cursor:pointer; font-weight:700; }
+    .story-sources ul { margin:6px 0 0; padding-left:18px; }
+    .story-sources a { color:#086574; }
+    .story-dialog[open] { animation:story-open .18s ease-out; }
+    @keyframes story-open { from { opacity:0; transform:translateY(8px) scale(.99); } to { opacity:1; transform:none; } }
+    @media (max-width:640px) {
+      .story-dialog { width:100vw; max-width:none; height:100dvh; max-height:none; border-radius:0; }
+      .story-dialog-shell { padding:17px 16px 24px; }
+      .story-content h2 { font-size:25px; }
+      .story-text { font-size:15px; line-height:1.55; }
+      .story-open { font-size:10px; padding:4px 6px; }
+    }
+    @media print { .story-actions,.story-dialog { display:none!important; } }
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -38,6 +77,126 @@
   <script src="itinerary-transport.js"></script>
   <script src="stories-data.js"></script>
   <script src="app.js"></script>
-  <script src="story-ui.js"></script>
+  <script>
+    (() => {
+      'use strict';
+
+      const stories = Array.isArray(window.CRETE_STORIES) ? window.CRETE_STORIES : [];
+      if (!stories.length) return;
+
+      let activeAudio = null;
+
+      function escapeHtml(value) {
+        return String(value ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function stopAudio() {
+        if (!activeAudio) return;
+        activeAudio.pause();
+        activeAudio.currentTime = 0;
+        activeAudio = null;
+      }
+
+      function createDialog() {
+        const dialog = document.createElement('dialog');
+        dialog.className = 'story-dialog';
+        dialog.setAttribute('aria-labelledby', 'story-title');
+        dialog.innerHTML = '<div class="story-dialog-shell"><button class="story-close" type="button" aria-label="Закрыть рассказ">×</button><div class="story-content"></div></div>';
+        document.body.appendChild(dialog);
+
+        dialog.querySelector('.story-close').addEventListener('click', () => dialog.close());
+        dialog.addEventListener('keydown', event => {
+          if (event.key === 'Escape') dialog.close();
+        });
+        dialog.addEventListener('click', event => {
+          if (event.target === dialog) dialog.close();
+        });
+        dialog.addEventListener('close', stopAudio);
+        return dialog;
+      }
+
+      const dialog = createDialog();
+      const content = dialog.querySelector('.story-content');
+
+      function renderAudio(story) {
+        if (!story.audio) {
+          return '<div class="story-audio-pending"><strong>Аудиоверсия готовится</strong><span>Текст уже можно читать. MP3 появится здесь после генерации.</span></div>';
+        }
+
+        return `<div class="story-audio-player">
+          <div class="story-audio-heading"><strong>Аудиогид</strong><span>${escapeHtml(story.durationMinutes)} мин</span></div>
+          <audio controls preload="metadata" src="${escapeHtml(story.audio)}">Ваш браузер не поддерживает воспроизведение MP3.</audio>
+        </div>`;
+      }
+
+      function renderStory(story) {
+        stopAudio();
+        const paragraphs = (story.text || []).map(paragraph => `<p>${escapeHtml(paragraph)}</p>`).join('');
+        const lookFor = story.lookFor?.length
+          ? `<section class="story-look-for"><h3>На что посмотреть</h3><ul>${story.lookFor.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul></section>`
+          : '';
+        const sources = story.sources?.length
+          ? `<details class="story-sources"><summary>Источники</summary><ul>${story.sources.map(source => `<li><a href="${escapeHtml(source.url)}" target="_blank" rel="noopener">${escapeHtml(source.title)}</a></li>`).join('')}</ul></details>`
+          : '';
+
+        content.innerHTML = `
+          <div class="story-eyebrow">${escapeHtml(story.kind === 'road' ? 'Рассказ о дороге' : 'Рассказ о месте')} · ${escapeHtml(story.durationMinutes)} мин</div>
+          <h2 id="story-title">${escapeHtml(story.title)}</h2>
+          ${renderAudio(story)}
+          <div class="story-text">${paragraphs}</div>
+          ${lookFor}
+          ${sources}
+        `;
+
+        activeAudio = content.querySelector('audio');
+      }
+
+      function openStory(story) {
+        renderStory(story);
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+        else dialog.setAttribute('open', '');
+      }
+
+      function attachStoryButtons() {
+        for (const story of stories) {
+          const panel = document.getElementById(story.dayId);
+          const row = panel?.querySelector(`.route-row[data-stop-order="${story.stopOrder}"]`);
+          const cell = row?.querySelector('.stop-name');
+          if (!cell || cell.querySelector(`[data-story-id="${story.id}"]`)) continue;
+
+          let actions = cell.querySelector('.story-actions');
+          if (!actions) {
+            actions = document.createElement('div');
+            actions.className = 'story-actions';
+            cell.appendChild(actions);
+          }
+
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = `story-open story-open-${story.kind}`;
+          button.dataset.storyId = story.id;
+          button.textContent = `${story.buttonLabel} · ${story.durationMinutes} мин`;
+          button.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            openStory(story);
+          });
+          actions.appendChild(button);
+        }
+      }
+
+      function init() {
+        requestAnimationFrame(() => requestAnimationFrame(attachStoryButtons));
+      }
+
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once:true });
+      else init();
+    })();
+  </script>
 </body>
 </html>

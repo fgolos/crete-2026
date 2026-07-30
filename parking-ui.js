@@ -232,13 +232,20 @@
       : '';
 
     return `<section class="parking-detail" data-parking-detail>
-      <div class="parking-detail-heading"><span class="parking-badge">P</span><div><strong>${escapeHtml(parking.name || 'Парковка')}</strong><span>${escapeHtml(facts.join(' · '))}</span></div></div>
+      <div class="parking-detail-heading">
+        <span class="parking-badge">P</span>
+        <div class="parking-detail-heading-main"><strong>${escapeHtml(parking.name || 'Парковка')}</strong><span>${escapeHtml(facts.join(' · '))}</span></div>
+        <div class="parking-actions" aria-label="Навигация">
+          <a class="parking-action parking-action-google" href="${escapeHtml(googleMapsUrl(parking))}" target="_blank" rel="noopener" aria-label="Открыть маршрут в Google Maps" title="Google Maps">
+            <span class="parking-action-dot" aria-hidden="true">G</span>
+          </a>
+          <a class="parking-action parking-action-waze" href="${escapeHtml(wazeUrl(parking))}" target="_blank" rel="noopener" aria-label="Открыть маршрут в Waze" title="Waze">
+            <span class="parking-action-dot" aria-hidden="true">W</span>
+          </a>
+        </div>
+      </div>
       <p class="parking-summary">${escapeHtml(parking.summary || '')}</p>
       ${practicalDetails}
-      <div class="parking-actions">
-        <a href="${escapeHtml(googleMapsUrl(parking))}" target="_blank" rel="noopener">Google Maps</a>
-        <a href="${escapeHtml(wazeUrl(parking))}" target="_blank" rel="noopener">Waze</a>
-      </div>
     </section>`;
   }
 

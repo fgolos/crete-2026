@@ -100,14 +100,7 @@
     }
   }
 
-  function focusParking(dayId, stop, selectRow = true) {
-    if (!stop?.parking?.primary) return;
-
-    if (selectRow) {
-      const row = document.querySelector(`#${dayId} .route-row[data-stop-order="${stop.order}"]`);
-      row?.click();
-    }
-
+  function scheduleParkingFocus(dayId, stop) {
     const delay = mobileViewport.matches ? 160 : 0;
     setTimeout(() => focusParkingAfterSelection(dayId, stop), delay);
   }
@@ -139,7 +132,10 @@
         interactive: false
       }).addTo(group);
 
-      marker.on('click', () => focusParking(dayId, stop, true));
+      marker.on('click', () => {
+        const row = document.querySelector(`#${dayId} .route-row[data-stop-order="${stop.order}"]`);
+        row?.click();
+      });
     }
   }
 
@@ -234,7 +230,7 @@
         const row = document.querySelector(`#${day.id} .route-row[data-stop-order="${stop.order}"]`);
         if (!row || row.dataset.parkingFocusInstalled === 'true') continue;
         row.dataset.parkingFocusInstalled = 'true';
-        row.addEventListener('click', () => focusParking(day.id, stop, false));
+        row.addEventListener('click', () => scheduleParkingFocus(day.id, stop));
       }
     }
   }

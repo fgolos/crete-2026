@@ -1,13 +1,16 @@
 'use strict';
 
-const CACHE_VERSION = 'crete-2026-v6';
+const CACHE_VERSION = 'crete-2026-v7';
 const SHELL_URL = new URL('./index.html', self.registration.scope).href;
 const CORE_ASSETS = [
   './',
   './index.html',
   './styles.css',
+  './parking-ui.css',
   './itinerary-data.js',
   './itinerary-transport.js',
+  './parking-data.js',
+  './parking-ui.js',
   './stories-data.js',
   './app.js',
   './manifest.webmanifest',

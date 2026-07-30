@@ -95,6 +95,30 @@
           .replace(/'/g, '&#039;');
       }
 
+      function estimateDurationSeconds(story) {
+        const blocks = [story.title, ...(story.text || []), 'На что посмотреть', ...(story.lookFor || [])];
+        const words = blocks.join(' ').trim().split(/\s+/).filter(Boolean).length;
+        const speechSeconds = words / 145 * 60;
+        const pauseSeconds = Math.max(0, blocks.length - 1) * 0.5;
+        return Math.max(60, Math.round(speechSeconds + pauseSeconds));
+      }
+
+      function effectiveDurationSeconds(story) {
+        return Number.isFinite(story.durationSeconds) && story.durationSeconds > 0
+          ? story.durationSeconds
+          : estimateDurationSeconds(story);
+      }
+
+      function compactDuration(story) {
+        return `≈${Math.max(1, Math.round(effectiveDurationSeconds(story) / 60))} мин`;
+      }
+
+      function exactDuration(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainder = Math.round(seconds % 60);
+        return `${minutes}:${String(remainder).padStart(2, '0')}`;
+      }
+
       function stopAudio() {
         if (!activeAudio) return;
         activeAudio.pause();
@@ -125,11 +149,14 @@
 
       function renderAudio(story) {
         if (!story.audio) {
-          return '<div class="story-audio-pending"><strong>Аудиоверсия готовится</strong><span>Текст уже можно читать. MP3 появится здесь после генерации.</span></div>';
+          return `<div class="story-audio-pending"><strong>Аудиоверсия готовится</strong><span>Ориентировочная длительность: ${escapeHtml(compactDuration(story))}. Точная появится после генерации MP3.</span></div>`;
         }
 
+        const duration = Number.isFinite(story.durationSeconds) && story.durationSeconds > 0
+          ? exactDuration(story.durationSeconds)
+          : compactDuration(story);
         return `<div class="story-audio-player">
-          <div class="story-audio-heading"><strong>Аудиогид</strong><span>${escapeHtml(story.durationMinutes)} мин</span></div>
+          <div class="story-audio-heading"><strong>Аудиогид</strong><span data-audio-duration>${escapeHtml(duration)}</span></div>
           <audio controls preload="metadata" src="${escapeHtml(story.audio)}">Ваш браузер не поддерживает воспроизведение MP3.</audio>
         </div>`;
       }
@@ -145,7 +172,7 @@
           : '';
 
         content.innerHTML = `
-          <div class="story-eyebrow">${escapeHtml(story.kind === 'road' ? 'Рассказ о дороге' : 'Рассказ о месте')} · ${escapeHtml(story.durationMinutes)} мин</div>
+          <div class="story-eyebrow">${escapeHtml(story.kind === 'road' ? 'Рассказ о дороге' : 'Рассказ о месте')} · ${escapeHtml(compactDuration(story))}</div>
           <h2 id="story-title">${escapeHtml(story.title)}</h2>
           ${renderAudio(story)}
           <div class="story-text">${paragraphs}</div>
@@ -154,6 +181,13 @@
         `;
 
         activeAudio = content.querySelector('audio');
+        if (activeAudio) {
+          activeAudio.addEventListener('loadedmetadata', () => {
+            if (!Number.isFinite(activeAudio.duration) || activeAudio.duration <= 0) return;
+            const label = content.querySelector('[data-audio-duration]');
+            if (label) label.textContent = exactDuration(activeAudio.duration);
+          }, { once:true });
+        }
       }
 
       function openStory(story) {
@@ -180,7 +214,7 @@
           button.type = 'button';
           button.className = `story-open story-open-${story.kind}`;
           button.dataset.storyId = story.id;
-          button.textContent = `${story.buttonLabel} · ${story.durationMinutes} мин`;
+          button.textContent = `${story.buttonLabel} · ${compactDuration(story)}`;
           button.addEventListener('click', event => {
             event.preventDefault();
             event.stopPropagation();

@@ -52,7 +52,7 @@ window.CRETE_STORIES = [
     buttonLabel: 'О Mochlos',
     title: MOCHLOS_TITLE,
     audio: 'audio/mochlos.mp3',
-    durationSeconds: 169,
+    durationSeconds: 184,
     text: MOCHLOS_TEXT,
     narration: {
       style: 'lively',

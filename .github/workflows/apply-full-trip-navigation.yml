@@ -29,6 +29,9 @@ jobs:
         with:
           node-version: 20
 
+      - name: Fix migration source
+        run: node scripts/fix-full-trip-navigation-script.mjs
+
       - name: Apply and validate navigation migration
         run: node scripts/apply-full-trip-navigation.mjs
 

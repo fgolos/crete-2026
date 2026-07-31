@@ -1,9 +1,11 @@
 window.CRETE_ITINERARY = {
   "project": {
-    "title": "Crete 2026 — East Crete MASTER | 11–15 August",
-    "part": "PART 1 — EAST CRETE",
+    "title": "Crete 2026 — Full Trip MASTER | 11–22 August",
+    "part": "FULL TRIP",
     "heading": "Crete 2026",
-    "lead": "11–15 августа · база Sitia · спокойный семейный маршрут с пляжами, деревнями, локальной едой и реалистичным вождением."
+    "lead": "11–22 августа · базы Sitia и Platanes · спокойный семейный маршрут с пляжами, деревнями, локальной едой и реалистичным вождением.",
+    "dateRange": "11–22 августа 2026",
+    "overviewEyebrow": "Крит · семейный маршрут"
   },
   "parts": [
     {
@@ -17,7 +19,9 @@ window.CRETE_ITINERARY = {
         "day13",
         "day14",
         "day15"
-      ]
+      ],
+      "kicker": "PART 1",
+      "description": "Готовая восточная часть маршрута с базой в Sitia."
     },
     {
       "id": "west",
@@ -33,7 +37,9 @@ window.CRETE_ITINERARY = {
         "day20",
         "day21",
         "day22"
-      ]
+      ],
+      "kicker": "PART 2",
+      "description": "Переезд 15 августа уже готов; дни 16–22 будут добавляться после согласования."
     }
   ],
   "overview": {

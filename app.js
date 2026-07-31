@@ -5,6 +5,7 @@
   if (!data) throw new Error('CRETE_ITINERARY is not loaded');
 
   const app = document.getElementById('app');
+  const partTabs = document.getElementById('part-tabs');
   const tabs = document.getElementById('tabs');
   const projectTitle = document.getElementById('project-title');
   const appStatus = document.getElementById('app-status');
@@ -16,6 +17,7 @@
   const routingIndex = new Map();
   const mobileViewport = window.matchMedia('(max-width: 800px)');
   let activePanel = 'overview';
+  let activePartId = 'overview';
   let isOffline = !navigator.onLine;
   let waitingWorker = null;
   let reloadingForUpdate = false;
@@ -240,15 +242,78 @@
     return `https://www.google.com/maps/dir/?${params.toString()}`;
   }
 
-  function renderTabs() {
+  function dayNumber(dayId) {
+    return Number(String(dayId).replace(/^day/, ''));
+  }
+
+  function getPart(partId) {
+    return data.parts?.find(part => part.id === partId) || null;
+  }
+
+  function getDay(dayId) {
+    return data.days.find(day => day.id === dayId) || null;
+  }
+
+  function defaultPartForDay(dayId) {
+    return data.parts?.find(part => part.dayIds.includes(dayId))?.id || 'east';
+  }
+
+  function firstAvailableDay(part) {
+    return part?.dayIds.find(dayId => Boolean(getDay(dayId))) || null;
+  }
+
+  function partProgress(part) {
+    const ready = part.dayIds.filter(dayId => Boolean(getDay(dayId))).length;
+    return { ready, total: part.dayIds.length, complete: ready === part.dayIds.length };
+  }
+
+  function renderPartTabs() {
     const items = [
-      { id:'overview', label:'Обзор', subtitle:'11–15 августа' },
-      ...data.days.map(day => ({ id:day.id, label:`${day.short.split(' ')[0]} авг`, subtitle:day.title }))
+      { id:'overview', target:'overview', label:'Обзор', subtitle:data.project.dateRange },
+      ...(data.parts || []).map(part => ({
+        id:part.id,
+        target:`part-${part.id}`,
+        label:part.title,
+        subtitle:`${part.dates} · ${part.base}`
+      }))
     ];
-    tabs.innerHTML = items.map((item,index) => `
-      <button id="tab-${item.id}" class="tab-button${index===0?' active':''}" data-target="${item.id}" type="button" role="tab" aria-controls="${item.id}" aria-selected="${index===0?'true':'false'}" tabindex="${index===0?'0':'-1'}">
+
+    partTabs.innerHTML = items.map((item, index) => `
+      <button id="part-tab-${item.id}" class="part-button${index === 0 ? ' active' : ''}" data-part-id="${item.id}" data-target="${item.target}" type="button" role="tab" aria-controls="${item.target}" aria-selected="${index === 0 ? 'true' : 'false'}" tabindex="${index === 0 ? '0' : '-1'}">
         <span>${escapeHtml(item.label)}</span><small>${escapeHtml(item.subtitle)}</small>
       </button>`).join('');
+  }
+
+  function renderDayTabs(partId) {
+    if (partId === 'overview') {
+      tabs.innerHTML = '';
+      tabs.hidden = true;
+      return;
+    }
+
+    const part = getPart(partId);
+    if (!part) return;
+    tabs.hidden = false;
+    tabs.innerHTML = part.dayIds.map(dayId => {
+      const day = getDay(dayId);
+      const number = dayNumber(dayId);
+      const disabled = !day;
+      const active = dayId === activePanel;
+      return `<button id="tab-${dayId}" class="tab-button${active ? ' active' : ''}${disabled ? ' is-planned' : ''}" data-target="${dayId}" type="button" role="tab" aria-controls="${dayId}" aria-selected="${active ? 'true' : 'false'}" tabindex="${active ? '0' : '-1'}" ${disabled ? 'disabled aria-disabled="true"' : ''}>
+        <span>${number} авг</span><small>${escapeHtml(day?.title || 'Планируется')}</small>
+      </button>`;
+    }).join('');
+  }
+
+  function setActivePart(partId) {
+    activePartId = partId === 'overview' || getPart(partId) ? partId : 'overview';
+    partTabs.querySelectorAll('.part-button').forEach(button => {
+      const active = button.dataset.partId === activePartId;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-selected', String(active));
+      button.tabIndex = active ? 0 : -1;
+    });
+    renderDayTabs(activePartId);
   }
 
   function bookingStatus(item) {
@@ -261,18 +326,32 @@
     return note.match(/^.*?[.!?](?:\s|$)/)?.[0].trim() || note;
   }
 
+  function renderPartCards() {
+    return `<div class="trip-parts-grid">${data.parts.map(part => {
+      const progress = partProgress(part);
+      const status = progress.complete ? 'Маршрут готов' : `Готово дней: ${progress.ready} из ${progress.total}`;
+      return `<button class="part-card" type="button" data-part-id="${part.id}" aria-label="Открыть ${escapeHtml(part.title)}">
+        <span class="part-card-kicker">${escapeHtml(part.kicker || '')}</span>
+        <strong>${escapeHtml(part.title)}</strong>
+        <span>${escapeHtml(part.dates)} · база ${escapeHtml(part.base)}</span>
+        <small>${escapeHtml(status)}</small>
+      </button>`;
+    }).join('')}</div>`;
+  }
+
   function renderOverview() {
     const overview = data.overview;
-    return `<section id="overview" class="panel active" role="tabpanel" aria-labelledby="tab-overview">
+    return `<section id="overview" class="panel active" role="tabpanel" aria-labelledby="part-tab-overview">
       <div class="overview-shell">
         <div class="overview-hero">
           <div class="overview-hero-content">
-            <div class="eyebrow">Восточный Крит</div>
-            <h1>Крит 2026</h1>
+            <div class="eyebrow">${escapeHtml(data.project.overviewEyebrow || 'Крит')}</div>
+            <h1>${escapeHtml(data.project.heading)}</h1>
             <p class="lead">${escapeHtml(data.project.lead)}</p>
           </div>
           <div class="photo-credit">Фото: <a href="https://commons.wikimedia.org/wiki/File:Vai_R01.jpg" target="_blank" rel="noopener">Marc Ryckaert</a> · <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a></div>
         </div>
+        ${renderPartCards()}
         <div class="overview-grid">
           <article class="overview-card">
             <h2>Логистика</h2>
@@ -287,10 +366,11 @@
           </article>
         </div>
         <article class="overview-card">
-          <h2>Дни маршрута</h2>
-          <table class="days-summary"><tbody>${data.days.map((day, index) => {
+          <h2>Готовые дни маршрута</h2>
+          <table class="days-summary"><tbody>${data.days.map(day => {
             const metaValues = day.meta.slice(0, 4).map(item => `<td>${escapeHtml(item.value)}</td>`).join('');
-            return `<tr class="summary-day" data-day-id="${day.id}" tabindex="0" role="button" aria-label="Перейти к ${escapeHtml(day.title)}"><td class="summary-day-label"><strong>${escapeHtml(day.short)}</strong><span>${escapeHtml(day.title)}</span></td>${metaValues}</tr>`;
+            const partId = defaultPartForDay(day.id);
+            return `<tr class="summary-day" data-day-id="${day.id}" data-part-id="${partId}" tabindex="0" role="button" aria-label="Перейти к ${escapeHtml(day.title)}"><td class="summary-day-label"><strong>${escapeHtml(day.short)}</strong><span>${escapeHtml(day.title)}</span></td>${metaValues}</tr>`;
           }).join('')}</tbody></table>
         </article>
         <article class="overview-card">
@@ -298,6 +378,45 @@
           <ul class="rules-list">${overview.rules.map(rule => `<li>${escapeHtml(rule)}</li>`).join('')}</ul>
         </article>
         <div class="privacy-note">${escapeHtml(overview.privacyNote)}</div>
+      </div>
+    </section>`;
+  }
+
+  function renderPartOverview(part) {
+    const progress = partProgress(part);
+    const status = progress.complete
+      ? 'Все дни этой части готовы.'
+      : `Готово дней: ${progress.ready} из ${progress.total}. Остальные дни пока планируются.`;
+
+    const dayItems = part.dayIds.map(dayId => {
+      const day = getDay(dayId);
+      const number = dayNumber(dayId);
+      if (!day) {
+        return `<div class="part-day-item is-planned" aria-disabled="true">
+          <span class="part-day-date">${number} августа</span>
+          <strong>Планируется</strong>
+          <small>Маршрут дня ещё не согласован.</small>
+        </div>`;
+      }
+      return `<button class="part-day-item" type="button" data-day-id="${day.id}" data-part-id="${part.id}">
+        <span class="part-day-date">${escapeHtml(day.date)}</span>
+        <strong>${escapeHtml(day.title)}</strong>
+        <small>${escapeHtml(day.meta.slice(0, 4).map(item => item.value).join(' · '))}</small>
+      </button>`;
+    }).join('');
+
+    return `<section id="part-${part.id}" class="panel part-panel" role="tabpanel" aria-labelledby="part-tab-${part.id}">
+      <div class="part-overview-shell">
+        <header class="part-overview-hero part-overview-${part.id}">
+          <div class="part-card-kicker">${escapeHtml(part.kicker || '')}</div>
+          <h1>${escapeHtml(part.title)}</h1>
+          <p>${escapeHtml(part.dates)} · база ${escapeHtml(part.base)}</p>
+          <span class="part-progress">${escapeHtml(status)}</span>
+        </header>
+        <article class="overview-card part-description">
+          <p>${escapeHtml(part.description || '')}</p>
+        </article>
+        <div class="part-day-list">${dayItems}</div>
       </div>
     </section>`;
   }
@@ -711,9 +830,10 @@
 
   function render() {
     validateParkingReferences();
-    projectTitle.textContent = 'Крит · 11–15 августа';
-    renderTabs();
-    app.innerHTML = renderOverview() + data.days.map(renderDay).join('');
+    projectTitle.textContent = 'Крит · 11–22 августа';
+    renderPartTabs();
+    app.innerHTML = renderOverview() + data.parts.map(renderPartOverview).join('') + data.days.map(renderDay).join('');
+    setActivePart('overview');
     setupTimelineListeners();
     adjustTimelineSegmentDisplay();
   }
@@ -1163,29 +1283,68 @@
     setTimeout(() => map.invalidateSize(), 150);
   }
 
-  function activatePanel(panelId, updateHash = true) {
-    if (activePanel !== panelId && activePanel !== 'overview') closeStopDetail(activePanel,false,false);
-    activePanel = panelId;
-    document.querySelectorAll('.panel').forEach(panel => panel.classList.toggle('active',panel.id===panelId));
-    document.querySelectorAll('.tab-button').forEach(button => {
-      const isActive = button.dataset.target === panelId;
-      button.classList.toggle('active',isActive);
-      button.setAttribute('aria-selected', String(isActive));
-      button.tabIndex = isActive ? 0 : -1;
-    });
-    initializeMap(panelId);
-    adjustTimelineSegmentDisplay();
-    if (mobileViewport.matches && panelId !== 'overview') {
-      delete document.getElementById(panelId).dataset.focusStop;
-      setMobileView(panelId, 'plan', false);
+  function hashForNavigation(panelId, partId) {
+    if (panelId === 'overview') return '#overview';
+    if (panelId === `part-${partId}`) return `#${partId}`;
+    return `#${partId}/${panelId}`;
+  }
+
+  function activatePanel(panelId, updateHash = true, requestedPartId = null) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+
+    let partId = requestedPartId;
+    if (panelId === 'overview') partId = 'overview';
+    else if (panelId.startsWith('part-')) partId = panelId.slice(5);
+    else if (!getPart(partId)?.dayIds.includes(panelId)) {
+      const currentPart = getPart(activePartId);
+      partId = currentPart?.dayIds.includes(panelId) ? activePartId : defaultPartForDay(panelId);
     }
-    if (updateHash) history.replaceState(null,'',`#${panelId}`);
+
+    if (activePanel !== panelId && getDay(activePanel)) closeStopDetail(activePanel, false, false);
+    activePanel = panelId;
+    setActivePart(partId);
+
+    document.querySelectorAll('.panel').forEach(item => item.classList.toggle('active', item.id === panelId));
+    document.querySelectorAll('.tab-button').forEach(button => {
+      const active = button.dataset.target === panelId;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-selected', String(active));
+      button.tabIndex = active ? 0 : -1;
+    });
+
+    if (getDay(panelId)) {
+      initializeMap(panelId);
+      adjustTimelineSegmentDisplay();
+      if (mobileViewport.matches) {
+        delete document.getElementById(panelId).dataset.focusStop;
+        setMobileView(panelId, 'plan', false);
+      }
+    }
+
+    if (updateHash) history.replaceState(null, '', hashForNavigation(panelId, partId));
     window.scrollTo({ top:0, behavior:'instant' });
-    const activeButton = document.querySelector(`.tab-button[data-target="${panelId}"]`);
+
+    const activeButton = tabs.querySelector(`.tab-button[data-target="${panelId}"]`);
     if (activeButton) tabs.scrollLeft = activeButton.offsetLeft - (tabs.clientWidth - activeButton.offsetWidth) / 2;
   }
 
   function bindEvents() {
+    partTabs.addEventListener('click', event => {
+      const button = event.target.closest('.part-button');
+      if (button) activatePanel(button.dataset.target, true, button.dataset.partId);
+    });
+    partTabs.addEventListener('keydown', event => {
+      if (!event.target.matches('.part-button')) return;
+      const buttons = [...partTabs.querySelectorAll('.part-button')];
+      const current = buttons.indexOf(event.target);
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : event.key === 'ArrowRight' ? (current + 1) % buttons.length : event.key === 'ArrowLeft' ? (current - 1 + buttons.length) % buttons.length : -1;
+      if (next >= 0) {
+        event.preventDefault();
+        buttons[next].focus();
+        activatePanel(buttons[next].dataset.target, true, buttons[next].dataset.partId);
+      }
+    });
     tabs.addEventListener('click', event => {
       const button = event.target.closest('.tab-button');
       if (button) activatePanel(button.dataset.target);
@@ -1230,14 +1389,21 @@
         }
         return;
       }
+      const partCard = event.target.closest('.part-card');
+      if (partCard) {
+        const partId = partCard.dataset.partId;
+        activatePanel(`part-${partId}`, true, partId);
+        return;
+      }
+      const partDay = event.target.closest('.part-day-item[data-day-id]');
+      if (partDay) {
+        activatePanel(partDay.dataset.dayId, true, partDay.dataset.partId);
+        return;
+      }
       const summaryDay = event.target.closest('.summary-day');
       if (summaryDay) {
-        const dayId = summaryDay.dataset.dayId;
-        const dayTab = document.getElementById(`tab-${dayId}`);
-        if (dayTab) {
-          dayTab.click();
-          return;
-        }
+        activatePanel(summaryDay.dataset.dayId, true, summaryDay.dataset.partId || defaultPartForDay(summaryDay.dataset.dayId));
+        return;
       }
       const row = event.target.closest('.route-row');
       if (row) {
@@ -1357,10 +1523,35 @@
     return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : new Date();
   }
 
-  function panelForDate(date) {
-    if (date.getFullYear() !== 2026 || date.getMonth() !== 7) return 'overview';
-    const panelId = `day${date.getDate()}`;
-    return data.days.some(day => day.id === panelId) ? panelId : 'overview';
+  function navigationForDate(date) {
+    if (date.getFullYear() !== 2026 || date.getMonth() !== 7) {
+      return { panelId:'overview', partId:'overview' };
+    }
+    const dayId = `day${date.getDate()}`;
+    if (getDay(dayId)) {
+      return { panelId:dayId, partId:date.getDate() <= 15 ? 'east' : 'west' };
+    }
+    if (date.getDate() >= 15 && date.getDate() <= 22) {
+      return { panelId:'part-west', partId:'west' };
+    }
+    return { panelId:'overview', partId:'overview' };
+  }
+
+  function navigationFromHash() {
+    const hash = location.hash.slice(1);
+    if (!hash || hash === 'overview') return null;
+    if (getPart(hash)) return { panelId:`part-${hash}`, partId:hash };
+
+    const scoped = hash.match(/^(east|west)\/(day\d+)$/);
+    if (scoped) {
+      const [, partId, dayId] = scoped;
+      return getDay(dayId) && getPart(partId)?.dayIds.includes(dayId)
+        ? { panelId:dayId, partId }
+        : { panelId:`part-${partId}`, partId };
+    }
+
+    if (getDay(hash)) return { panelId:hash, partId:defaultPartForDay(hash) };
+    return null;
   }
 
   function registerServiceWorker() {
@@ -1427,8 +1618,7 @@
 
   render();
   bindEvents();
-  const hash = location.hash.slice(1);
-  const hashPanel = hash && (hash === 'overview' || data.days.some(day => day.id === hash)) ? hash : null;
-  activatePanel(hashPanel || panelForDate(openingDate()), false);
+  const initialNavigation = navigationFromHash() || navigationForDate(openingDate());
+  activatePanel(initialNavigation.panelId, false, initialNavigation.partId);
   registerServiceWorker();
 })();

@@ -6,7 +6,7 @@ Static GitHub Pages site for the family itinerary.
 
 - `index.html` — semantic shell, external library loading, and the integrated story dialog/audio-guide UI.
 - `styles.css` — presentation and responsive/print rules for the core itinerary interface.
-- `app.js` — rendering, tabs, maps, route links, and list-to-marker interaction.
+- `app.js` — rendering, trip-part and day navigation, maps, route links, parking UI, and list-to-marker interaction.
 - `itinerary-data.js` — the single source of truth for itinerary content, trip parts, stops, coordinates, timings, notes, bookings, route order, and reusable parking locations.
 - `stories-data.js` — audio-guide stories attached to itinerary stops, including optional narration settings, generated MP3 paths, and measured audio duration.
 - `pronunciations-data.js` — replacements used only when generating Russian speech; display names remain unchanged.
@@ -90,7 +90,7 @@ Increment `CACHE_VERSION` in `service-worker.js` when changing the offline asset
 
 ## Previewing date-aware opening
 
-Without a day in the URL hash, the site opens the matching itinerary day from 11–15 August 2026 and opens Overview on other dates. Use `?date=2026-08-12` to preview a trip date without changing the system clock. An explicit hash still wins, for example `?date=2026-08-12#day14` opens 14 August.
+Without an explicit hash, the site opens the matching ready itinerary day during 11–22 August 2026. Dates whose days are not added yet open the relevant trip-part overview. Use `?date=2026-08-12` to preview a trip date without changing the system clock. Part-aware hashes use forms such as `#east/day14`, `#west/day15`, `#east`, and `#west`; legacy `#day14` links remain supported.
 
 ## Data notes
 

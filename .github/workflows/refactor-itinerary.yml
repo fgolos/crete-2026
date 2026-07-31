@@ -1,0 +1,37 @@
+name: One-off itinerary refactor
+
+on:
+  push:
+    branches:
+      - refactor-itinerary-parking
+    paths:
+      - .github/workflows/refactor-itinerary.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refactor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: refactor-itinerary-parking
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run refactor
+        run: node scripts/refactor-itinerary.mjs
+
+      - name: Commit refactor
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Refactor itinerary parking and transport data"
+          git push origin HEAD:refactor-itinerary-parking

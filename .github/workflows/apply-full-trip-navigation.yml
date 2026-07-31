@@ -1,11 +1,13 @@
 name: Apply full trip navigation
 
 on:
-  push:
+  pull_request:
     branches:
       - feature-full-trip-navigation
-    paths:
-      - .github/workflows/apply-full-trip-navigation.yml
+    types:
+      - opened
+      - synchronize
+      - reopened
   workflow_dispatch:
 
 permissions:
@@ -13,9 +15,10 @@ permissions:
 
 jobs:
   migrate:
+    if: github.head_ref == 'trigger-full-trip-navigation'
     runs-on: ubuntu-latest
     steps:
-      - name: Check out branch
+      - name: Check out target branch
         uses: actions/checkout@v4
         with:
           ref: feature-full-trip-navigation

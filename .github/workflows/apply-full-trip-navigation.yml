@@ -6,6 +6,7 @@ on:
       - feature-full-trip-navigation
     paths:
       - .github/workflows/apply-full-trip-navigation.yml
+  workflow_dispatch:
 
 permissions:
   contents: write

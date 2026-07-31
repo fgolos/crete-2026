@@ -1,2 +1,3 @@
 Temporary trigger for the one-off full trip navigation migration.
 Retry after fixing the generated hash-navigation regex.
+Run final follow-up fixes for overview hash and disabled day tabs.

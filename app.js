@@ -5,6 +5,7 @@
   if (!data) throw new Error('CRETE_ITINERARY is not loaded');
 
   const app = document.getElementById('app');
+  const partTabs = document.getElementById('part-tabs');
   const tabs = document.getElementById('tabs');
   const projectTitle = document.getElementById('project-title');
   const appStatus = document.getElementById('app-status');
@@ -12,9 +13,11 @@
   const appStatusAction = document.getElementById('app-status-action');
   const maps = new Map();
   const markerIndex = new Map();
+  const parkingMarkerIndex = new Map();
   const routingIndex = new Map();
   const mobileViewport = window.matchMedia('(max-width: 800px)');
   let activePanel = 'overview';
+  let activePartId = 'overview';
   let isOffline = !navigator.onLine;
   let waitingWorker = null;
   let reloadingForUpdate = false;
@@ -23,39 +26,294 @@
     .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
     .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
+  function resolveParkingLink(link) {
+    if (!link?.ref) return null;
+    const base = data.parkingLocations?.[link.ref];
+    if (!base) {
+      console.warn(`Unknown parking reference: ${link.ref}`);
+      return null;
+    }
+    return {
+      ...base,
+      ...link,
+      notes: [...(base.notes || []), ...(link.notes || [])]
+    };
+  }
+
+  function getPrimaryParking(stop) {
+    return resolveParkingLink(stop?.parking?.primary);
+  }
+
+  function getAlternativeParkings(stop) {
+    return (stop?.parking?.alternatives || []).map(resolveParkingLink).filter(Boolean);
+  }
+
+  function parkingMarkerKey(dayId, order) {
+    return `${dayId}:${order}`;
+  }
+
+  function getDrivingCoordinates(stop) {
+    const parking = getPrimaryParking(stop);
+    if (parking && Number.isFinite(parking.lat) && Number.isFinite(parking.lon)) {
+      return [parking.lat, parking.lon];
+    }
+    return [stop.lat, stop.lon];
+  }
+
+  function getNavigationQuery(stop) {
+    const parking = getPrimaryParking(stop);
+    return parking?.navigationQuery || stop.navigationQuery || `${stop.lat},${stop.lon}`;
+  }
+
+  function isSeparateParking(stop) {
+    const parking = getPrimaryParking(stop);
+    if (!parking || stop.parking?.primary?.status === 'on-site') return false;
+    if (!Number.isFinite(parking.lat) || !Number.isFinite(parking.lon)) return false;
+    return Math.abs(parking.lat - stop.lat) > 0.00005 || Math.abs(parking.lon - stop.lon) > 0.00005;
+  }
+
+  function googleMapsParkingUrl(parking) {
+    const params = new URLSearchParams({
+      api: '1',
+      destination: parking.navigationQuery || `${parking.lat},${parking.lon}`,
+      travelmode: 'driving',
+      dir_action: 'navigate'
+    });
+    return `https://www.google.com/maps/dir/?${params.toString()}`;
+  }
+
+  function wazeParkingUrl(parking) {
+    const params = new URLSearchParams({
+      ll: `${parking.lat},${parking.lon}`,
+      navigate: 'yes'
+    });
+    return `https://www.waze.com/ul?${params.toString()}`;
+  }
+
+  function reliabilityLabel(value) {
+    return ({ high: 'Надёжная точка', medium: 'Вероятный вариант', low: 'Проверить на месте' })[value] || '';
+  }
+
+  function paymentLabel(parking) {
+    if (parking.paid === true) return 'Платная';
+    if (parking.paid === false) return 'Бесплатная';
+    return 'Оплата неизвестна';
+  }
+
+  function parkingEntryHtml(parking, heading = '') {
+    if (!parking) return '';
+    const facts = [
+      paymentLabel(parking),
+      Number.isFinite(parking.walkMinutes) ? `${parking.walkMinutes} мин пешком` : '',
+      reliabilityLabel(parking.reliability)
+    ].filter(Boolean);
+    const notes = parking.notes?.length
+      ? `<ul>${parking.notes.map(note => `<li>${escapeHtml(note)}</li>`).join('')}</ul>`
+      : '';
+    const details = [parking.priceNote, parking.crowding].filter(Boolean)
+      .map(item => `<p>${escapeHtml(item)}</p>`).join('');
+    const practicalDetails = details || notes
+      ? `<details class="parking-more"><summary>Практические детали</summary><div class="parking-more-content">${details}${notes}</div></details>`
+      : '';
+    return `<div class="parking-entry">
+      ${heading ? `<div class="parking-entry-label">${escapeHtml(heading)}</div>` : ''}
+      <div class="parking-detail-heading">
+        <span class="parking-badge">P</span>
+        <div class="parking-detail-heading-main"><strong>${escapeHtml(parking.name || 'Парковка')}</strong><span>${escapeHtml(facts.join(' · '))}</span></div>
+        <div class="parking-actions" aria-label="Навигация">
+          <a class="parking-action parking-action-google" href="${escapeHtml(googleMapsParkingUrl(parking))}" target="_blank" rel="noopener" aria-label="Открыть маршрут в Google Maps" title="Google Maps"><span class="parking-action-dot" aria-hidden="true">G</span></a>
+          <a class="parking-action parking-action-waze" href="${escapeHtml(wazeParkingUrl(parking))}" target="_blank" rel="noopener" aria-label="Открыть маршрут в Waze" title="Waze"><span class="parking-action-dot" aria-hidden="true">W</span></a>
+        </div>
+      </div>
+      <p class="parking-summary">${escapeHtml(parking.summary || '')}</p>
+      ${practicalDetails}
+    </div>`;
+  }
+
+  function parkingCardHtml(stop) {
+    const primary = getPrimaryParking(stop);
+    if (!primary) return '';
+    const alternatives = getAlternativeParkings(stop);
+    return `<section class="parking-detail" data-parking-detail>
+      ${parkingEntryHtml(primary)}
+      ${alternatives.map((parking, index) => parkingEntryHtml(parking, `Альтернатива ${index + 1}`)).join('')}
+    </section>`;
+  }
+
+  function parkingMarkerIcon() {
+    return L.divIcon({
+      className: '',
+      html: '<div class="parking-marker" aria-label="Парковка">P</div>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
+    });
+  }
+
+  function positionParkingBesideDetail(dayId, stop) {
+    const parking = getPrimaryParking(stop);
+    const map = maps.get(dayId);
+    if (!parking || !map) return;
+
+    const panel = document.getElementById(dayId);
+    const detail = panel?.querySelector('.stop-detail');
+    const coordinates = isSeparateParking(stop) ? [parking.lat, parking.lon] : [stop.lat, stop.lon];
+    const zoom = Math.max(map.getZoom(), 16);
+    map.setView(coordinates, zoom, { animate:true });
+    if (!detail || detail.hidden) return;
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      map.invalidateSize({ pan:false });
+      const mapSize = map.getSize();
+      const cardRect = detail.getBoundingClientRect();
+      const mapRect = map.getContainer().getBoundingClientRect();
+      const currentPoint = map.latLngToContainerPoint(coordinates);
+      let desiredX;
+      let desiredY;
+
+      if (mobileViewport.matches) {
+        const cardTopInsideMap = Math.max(0, Math.min(mapSize.y, cardRect.top - mapRect.top));
+        const freeBottom = Math.max(96, cardTopInsideMap - 20);
+        desiredX = mapSize.x * 0.5;
+        desiredY = Math.max(72, freeBottom * 0.48);
+      } else {
+        const cardRightInsideMap = Math.max(0, Math.min(mapSize.x, cardRect.right - mapRect.left));
+        const freeLeft = Math.min(mapSize.x - 48, cardRightInsideMap + 32);
+        desiredX = freeLeft + Math.max(0, mapSize.x - freeLeft) * 0.52;
+        desiredY = Math.max(72, mapSize.y * 0.34);
+      }
+
+      map.panBy([
+        Math.round(currentPoint.x - desiredX),
+        Math.round(currentPoint.y - desiredY)
+      ], { animate:true, duration:.35 });
+    }));
+  }
+
+  function scheduleParkingFocus(dayId, stop) {
+    const delay = mobileViewport.matches ? 180 : 0;
+    setTimeout(() => positionParkingBesideDetail(dayId, stop), delay);
+  }
+
+  function clearParkingMarkerState(dayId, className) {
+    parkingMarkerIndex.forEach(({ element }, key) => {
+      if (key.startsWith(`${dayId}:`) && element) element.classList.remove(className);
+    });
+  }
+
+  function setParkingMarkerState(dayId, stopOrder, className) {
+    clearParkingMarkerState(dayId, className);
+    parkingMarkerIndex.get(parkingMarkerKey(dayId, stopOrder))?.element?.classList.add(className);
+  }
+
+  function validateParkingReferences() {
+    for (const day of data.days || []) {
+      for (const stop of day.stops || []) {
+        const links = [stop.parking?.primary, ...(stop.parking?.alternatives || [])].filter(Boolean);
+        for (const link of links) {
+          if (!data.parkingLocations?.[link.ref]) {
+            console.error(`Missing parking "${link.ref}" for ${day.id}: ${stop.name}`);
+          }
+        }
+      }
+    }
+  }
+
   function buildGoogleMapsUrl(day) {
     const routeStops = day.routeStopOrders.map(order => day.stops.find(stop => stop.order === order));
     const [origin, ...rest] = routeStops;
     const destination = rest.pop();
     const params = new URLSearchParams({
       api: '1',
-      origin: origin.navigationQuery,
-      destination: destination.navigationQuery,
+      origin: getNavigationQuery(origin),
+      destination: getNavigationQuery(destination),
       travelmode: 'driving'
     });
-    if (rest.length) params.set('waypoints', rest.map(stop => stop.navigationQuery).join('|'));
+    if (rest.length) params.set('waypoints', rest.map(getNavigationQuery).join('|'));
     return `https://www.google.com/maps/dir/?${params.toString()}`;
   }
 
   function buildStopNavigationUrl(stop) {
     const params = new URLSearchParams({
       api:'1',
-      destination:stop.navigationQuery,
+      destination:getNavigationQuery(stop),
       travelmode:'driving',
       dir_action:'navigate'
     });
     return `https://www.google.com/maps/dir/?${params.toString()}`;
   }
 
-  function renderTabs() {
+  function dayNumber(dayId) {
+    return Number(String(dayId).replace(/^day/, ''));
+  }
+
+  function getPart(partId) {
+    return data.parts?.find(part => part.id === partId) || null;
+  }
+
+  function getDay(dayId) {
+    return data.days.find(day => day.id === dayId) || null;
+  }
+
+  function defaultPartForDay(dayId) {
+    return data.parts?.find(part => part.dayIds.includes(dayId))?.id || 'east';
+  }
+
+  function firstAvailableDay(part) {
+    return part?.dayIds.find(dayId => Boolean(getDay(dayId))) || null;
+  }
+
+  function partProgress(part) {
+    const ready = part.dayIds.filter(dayId => Boolean(getDay(dayId))).length;
+    return { ready, total: part.dayIds.length, complete: ready === part.dayIds.length };
+  }
+
+  function renderPartTabs() {
     const items = [
-      { id:'overview', label:'Обзор', subtitle:'11–15 августа' },
-      ...data.days.map(day => ({ id:day.id, label:`${day.short.split(' ')[0]} авг`, subtitle:day.title }))
+      { id:'overview', target:'overview', label:'Обзор', subtitle:data.project.dateRange },
+      ...(data.parts || []).map(part => ({
+        id:part.id,
+        target:`part-${part.id}`,
+        label:part.title,
+        subtitle:`${part.dates} · ${part.base}`
+      }))
     ];
-    tabs.innerHTML = items.map((item,index) => `
-      <button id="tab-${item.id}" class="tab-button${index===0?' active':''}" data-target="${item.id}" type="button" role="tab" aria-controls="${item.id}" aria-selected="${index===0?'true':'false'}" tabindex="${index===0?'0':'-1'}">
+
+    partTabs.innerHTML = items.map((item, index) => `
+      <button id="part-tab-${item.id}" class="part-button${index === 0 ? ' active' : ''}" data-part-id="${item.id}" data-target="${item.target}" type="button" role="tab" aria-controls="${item.target}" aria-selected="${index === 0 ? 'true' : 'false'}" tabindex="${index === 0 ? '0' : '-1'}">
         <span>${escapeHtml(item.label)}</span><small>${escapeHtml(item.subtitle)}</small>
       </button>`).join('');
+  }
+
+  function renderDayTabs(partId) {
+    if (partId === 'overview') {
+      tabs.innerHTML = '';
+      tabs.hidden = true;
+      return;
+    }
+
+    const part = getPart(partId);
+    if (!part) return;
+    tabs.hidden = false;
+    tabs.innerHTML = part.dayIds.map(dayId => {
+      const day = getDay(dayId);
+      const number = dayNumber(dayId);
+      const disabled = !day;
+      const active = dayId === activePanel;
+      return `<button id="tab-${dayId}" class="tab-button${active ? ' active' : ''}${disabled ? ' is-planned' : ''}" data-target="${dayId}" type="button" role="tab" aria-controls="${dayId}" aria-selected="${active ? 'true' : 'false'}" tabindex="${active ? '0' : '-1'}" ${disabled ? 'disabled aria-disabled="true"' : ''}>
+        <span>${number} авг</span><small>${escapeHtml(day?.title || 'Планируется')}</small>
+      </button>`;
+    }).join('');
+  }
+
+  function setActivePart(partId) {
+    activePartId = partId === 'overview' || getPart(partId) ? partId : 'overview';
+    partTabs.querySelectorAll('.part-button').forEach(button => {
+      const active = button.dataset.partId === activePartId;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-selected', String(active));
+      button.tabIndex = active ? 0 : -1;
+    });
+    renderDayTabs(activePartId);
   }
 
   function bookingStatus(item) {
@@ -68,18 +326,32 @@
     return note.match(/^.*?[.!?](?:\s|$)/)?.[0].trim() || note;
   }
 
+  function renderPartCards() {
+    return `<div class="trip-parts-grid">${data.parts.map(part => {
+      const progress = partProgress(part);
+      const status = progress.complete ? 'Маршрут готов' : `Готово дней: ${progress.ready} из ${progress.total}`;
+      return `<button class="part-card" type="button" data-part-id="${part.id}" aria-label="Открыть ${escapeHtml(part.title)}">
+        <span class="part-card-kicker">${escapeHtml(part.kicker || '')}</span>
+        <strong>${escapeHtml(part.title)}</strong>
+        <span>${escapeHtml(part.dates)} · база ${escapeHtml(part.base)}</span>
+        <small>${escapeHtml(status)}</small>
+      </button>`;
+    }).join('')}</div>`;
+  }
+
   function renderOverview() {
     const overview = data.overview;
-    return `<section id="overview" class="panel active" role="tabpanel" aria-labelledby="tab-overview">
+    return `<section id="overview" class="panel active" role="tabpanel" aria-labelledby="part-tab-overview">
       <div class="overview-shell">
         <div class="overview-hero">
           <div class="overview-hero-content">
-            <div class="eyebrow">Восточный Крит</div>
-            <h1>Крит 2026</h1>
+            <div class="eyebrow">${escapeHtml(data.project.overviewEyebrow || 'Крит')}</div>
+            <h1>${escapeHtml(data.project.heading)}</h1>
             <p class="lead">${escapeHtml(data.project.lead)}</p>
           </div>
           <div class="photo-credit">Фото: <a href="https://commons.wikimedia.org/wiki/File:Vai_R01.jpg" target="_blank" rel="noopener">Marc Ryckaert</a> · <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a></div>
         </div>
+        ${renderPartCards()}
         <div class="overview-grid">
           <article class="overview-card">
             <h2>Логистика</h2>
@@ -94,10 +366,11 @@
           </article>
         </div>
         <article class="overview-card">
-          <h2>Дни маршрута</h2>
-          <table class="days-summary"><tbody>${data.days.map((day, index) => {
+          <h2>Готовые дни маршрута</h2>
+          <table class="days-summary"><tbody>${data.days.map(day => {
             const metaValues = day.meta.slice(0, 4).map(item => `<td>${escapeHtml(item.value)}</td>`).join('');
-            return `<tr class="summary-day" data-day-id="${day.id}" tabindex="0" role="button" aria-label="Перейти к ${escapeHtml(day.title)}"><td class="summary-day-label"><strong>${escapeHtml(day.short)}</strong><span>${escapeHtml(day.title)}</span></td>${metaValues}</tr>`;
+            const partId = defaultPartForDay(day.id);
+            return `<tr class="summary-day" data-day-id="${day.id}" data-part-id="${partId}" tabindex="0" role="button" aria-label="Перейти к ${escapeHtml(day.title)}"><td class="summary-day-label"><strong>${escapeHtml(day.short)}</strong><span>${escapeHtml(day.title)}</span></td>${metaValues}</tr>`;
           }).join('')}</tbody></table>
         </article>
         <article class="overview-card">
@@ -105,6 +378,45 @@
           <ul class="rules-list">${overview.rules.map(rule => `<li>${escapeHtml(rule)}</li>`).join('')}</ul>
         </article>
         <div class="privacy-note">${escapeHtml(overview.privacyNote)}</div>
+      </div>
+    </section>`;
+  }
+
+  function renderPartOverview(part) {
+    const progress = partProgress(part);
+    const status = progress.complete
+      ? 'Все дни этой части готовы.'
+      : `Готово дней: ${progress.ready} из ${progress.total}. Остальные дни пока планируются.`;
+
+    const dayItems = part.dayIds.map(dayId => {
+      const day = getDay(dayId);
+      const number = dayNumber(dayId);
+      if (!day) {
+        return `<div class="part-day-item is-planned" aria-disabled="true">
+          <span class="part-day-date">${number} августа</span>
+          <strong>Планируется</strong>
+          <small>Маршрут дня ещё не согласован.</small>
+        </div>`;
+      }
+      return `<button class="part-day-item" type="button" data-day-id="${day.id}" data-part-id="${part.id}">
+        <span class="part-day-date">${escapeHtml(day.date)}</span>
+        <strong>${escapeHtml(day.title)}</strong>
+        <small>${escapeHtml(day.meta.slice(0, 4).map(item => item.value).join(' · '))}</small>
+      </button>`;
+    }).join('');
+
+    return `<section id="part-${part.id}" class="panel part-panel" role="tabpanel" aria-labelledby="part-tab-${part.id}">
+      <div class="part-overview-shell">
+        <header class="part-overview-hero part-overview-${part.id}">
+          <div class="part-card-kicker">${escapeHtml(part.kicker || '')}</div>
+          <h1>${escapeHtml(part.title)}</h1>
+          <p>${escapeHtml(part.dates)} · база ${escapeHtml(part.base)}</p>
+          <span class="part-progress">${escapeHtml(status)}</span>
+        </header>
+        <article class="overview-card part-description">
+          <p>${escapeHtml(part.description || '')}</p>
+        </article>
+        <div class="part-day-list">${dayItems}</div>
       </div>
     </section>`;
   }
@@ -305,7 +617,7 @@
             : formatTimeShort(driveMinutes);
           
           segments.push({
-            type: 'drive',
+            type: nextStop.mode === 'flight' ? 'flight' : 'drive',
             minutes: driveMinutes,
             fullLabel: driveLabel,
             shortLabel: abbreviateTime(driveLabel),
@@ -396,7 +708,7 @@
       const width = offsetEnd - offsetStart;
       
       const fullTooltip = `${seg.description} (${escapeHtml(seg.fullLabel)})`;
-      return `<div class="timeline-segment timeline-${seg.type}" data-stop-order="${seg.stopOrder}" data-segment-type="${seg.type}" data-width-percent="${width}" tabindex="0" role="button" aria-label="${seg.type === 'drive' ? 'Вождение' : 'Остановка'}: ${fullTooltip}" title="${fullTooltip}" style="left:${offsetStart}%; width:${width}%;"><span class="timeline-time">${escapeHtml(seg.shortLabel)}</span></div>`;
+      return `<div class="timeline-segment timeline-${seg.type}" data-stop-order="${seg.stopOrder}" data-segment-type="${seg.type}" data-width-percent="${width}" tabindex="0" role="button" aria-label="${seg.type === 'flight' ? 'Перелёт' : seg.type === 'drive' ? 'Вождение' : 'Остановка'}: ${fullTooltip}" title="${fullTooltip}" style="left:${offsetStart}%; width:${width}%;"><span class="timeline-time">${escapeHtml(seg.shortLabel)}</span></div>`;
     }).join('');
     
     const timelineHtml = `<div class="timeline-container" data-timeline="day-${data.days.findIndex(d => d === day)}" aria-label="Визуальный обзор дня: вождение и остановки">${segmentHtml}</div>`;
@@ -430,7 +742,7 @@
     const rows = day.stops.map(stop => {
       const flexible = isFlexibleStop(day, stop);
       const stopDuration = stop.duration && stop.duration !== '—' && stop.duration !== '-' ? stop.duration : '';
-      return `<tr class="route-row${flexible?' is-flexible':''}" tabindex="0" data-day-id="${day.id}" data-stop-order="${stop.order}" aria-label="Показать ${escapeHtml(stop.name)} на карте">
+      return `<tr class="route-row${flexible?' is-flexible':''}" tabindex="0" data-day-id="${day.id}" data-stop-order="${stop.order}" data-mode="${escapeHtml(stop.mode || 'stop')}" aria-label="Показать ${escapeHtml(stop.name)} на карте">
         <td class="stop-order">${stop.order}</td><td class="stop-name"><strong>${escapeHtml(stop.name)}</strong>${flexible?'<span class="flexible-label">Гибко</span>':''}<span class="role">${escapeHtml(stop.role)}</span></td>
         <td data-label="Расстояние">${escapeHtml(stop.distance)}<span class="drive-time">${escapeHtml(stop.drive)}</span></td><td data-label="Время">${escapeHtml(stop.time)}${stopDuration ? `<span class="stop-time">${escapeHtml(stopDuration)}</span>` : ''}</td></tr>`;
     }).join('');
@@ -517,9 +829,11 @@
   }
 
   function render() {
-    projectTitle.textContent = 'Крит · 11–15 августа';
-    renderTabs();
-    app.innerHTML = renderOverview() + data.days.map(renderDay).join('');
+    validateParkingReferences();
+    projectTitle.textContent = 'Крит · 11–22 августа';
+    renderPartTabs();
+    app.innerHTML = renderOverview() + data.parts.map(renderPartOverview).join('') + data.days.map(renderDay).join('');
+    setActivePart('overview');
     setupTimelineListeners();
     adjustTimelineSegmentDisplay();
   }
@@ -530,10 +844,15 @@
     const day = data.days.find(item => item.id === dayId);
     const map = maps.get(dayId);
     if (!day || !map) return;
-    const bounds = L.latLngBounds(day.routeStopOrders.map(order => {
+    const points = [];
+    for (const order of day.routeStopOrders) {
       const stop = day.stops.find(item => item.order === order);
-      return [stop.lat,stop.lon];
-    }));
+      if (stop) points.push(getDrivingCoordinates(stop));
+    }
+    for (const stop of day.stops.filter(item => item.mapVisible)) {
+      points.push([stop.lat, stop.lon]);
+    }
+    const bounds = L.latLngBounds(points);
     map.invalidateSize({ pan:false });
     if (bounds.isValid()) map.fitBounds(bounds,{ padding:[30,30],animate:false });
   }
@@ -553,7 +872,8 @@
         <div><dt>Остановка</dt><dd>${escapeHtml(stop.duration)}</dd></div>
         <div><dt>От предыдущей</dt><dd>${escapeHtml(stop.drive)}, ${escapeHtml(stop.distance)}</dd></div>
       </dl>
-      <p class="stop-detail-note"><strong>Примечание:</strong> ${escapeHtml(stop.note)}</p>`;
+      <p class="stop-detail-note"><strong>Примечание:</strong> ${escapeHtml(stop.note)}</p>
+      ${parkingCardHtml(stop)}`;
     detail.hidden = false;
     detail.closest('.map-wrap').classList.add('has-stop-detail');
   }
@@ -578,6 +898,7 @@
       markerIndex.forEach(({ element }, key) => {
         if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-hovered');
       });
+      clearParkingMarkerState(dayId, 'is-hovered');
     } else {
       // Clear all previous selections
       panel.querySelectorAll('.route-row').forEach(row => {
@@ -589,6 +910,7 @@
       markerIndex.forEach(({ element }, key) => {
         if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-active');
       });
+      clearParkingMarkerState(dayId, 'is-active');
     }
     
     if (!selectedType || selectedOrder === null) return; // Cleared but no new selection/hover
@@ -610,6 +932,7 @@
       // Highlight the map marker
       const marker = markerIndex.get(markerKey(dayId, selectedOrder));
       marker?.element?.classList.add(isHover ? 'is-hovered' : 'is-active');
+      setParkingMarkerState(dayId, selectedOrder, isHover ? 'is-hovered' : 'is-active');
       
     } else if (selectedType === 'drive') {
       // Highlight the destination stop's row with drive column styling (Км + В пути)
@@ -692,17 +1015,29 @@
     markerIndex.forEach(({ element }, key) => {
       if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-active');
     });
+    clearParkingMarkerState(dayId, 'is-active');
     if (record.element) record.element.classList.add('is-active');
+    setParkingMarkerState(dayId, order, 'is-active');
     if (focusMap) {
-      record.map.setView(record.marker.getLatLng(), Math.max(record.map.getZoom(), 13), { animate:true });
+      const day = data.days.find(item => item.id === dayId);
+      const stop = day?.stops.find(item => item.order === Number(order));
+      const parking = getPrimaryParking(stop);
+      if (stop && isSeparateParking(stop) && parking) {
+        record.map.fitBounds([[stop.lat, stop.lon], [parking.lat, parking.lon]], { padding:[70,70], maxZoom:17, animate:true });
+      } else {
+        record.map.setView(record.marker.getLatLng(), Math.max(record.map.getZoom(), 13), { animate:true });
+      }
     }
   }
 
   function selectStop(dayId,order,focusMap = false) {
+    const day = data.days.find(item => item.id === dayId);
+    const stop = day?.stops.find(item => item.order === Number(order));
     clearActiveDrive(dayId);
     setActiveStop(dayId,order,focusMap);
     renderStopDetail(dayId,order);
     syncSelectionUI(dayId, 'stop', order);
+    if (stop) scheduleParkingFocus(dayId, stop);
   }
 
   function clearMapDriveHighlight(dayId) {
@@ -823,8 +1158,8 @@
       return;
     }
     map.fitBounds([
-      [previousStop.lat, previousStop.lon],
-      [currentStop.lat, currentStop.lon]
+      getDrivingCoordinates(previousStop),
+      getDrivingCoordinates(currentStop)
     ], { padding:[60,60], maxZoom:13, animate:true });
   }
 
@@ -848,8 +1183,9 @@
 
     const routeStops = day.routeStopOrders.map(order => day.stops.find(stop => stop.order === order));
     const bounds = day.stops.filter(stop => stop.mapVisible).map(stop => [stop.lat,stop.lon]);
+    routeStops.forEach(stop => bounds.push(getDrivingCoordinates(stop)));
     const routing = L.Routing.control({
-      waypoints: routeStops.map(stop => L.latLng(stop.lat,stop.lon)),
+      waypoints: routeStops.map(stop => L.latLng(...getDrivingCoordinates(stop))),
       router:L.Routing.osrmv1({ serviceUrl:'https://router.project-osrm.org/route/v1' }),
       addWaypoints:false, draggableWaypoints:false, routeWhileDragging:false,
       showAlternatives:false, fitSelectedRoutes:true, createMarker:() => null,
@@ -908,7 +1244,6 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap contributors' }).addTo(map);
 
     const visibleStops = day.stops.filter(stop => stop.mapVisible);
-    const bounds = [];
     visibleStops.forEach(stop => {
       const icon = L.divIcon({ className:'', html:`<div class="numbered-marker" data-marker-order="${stop.order}">${stop.order}</div>`, iconSize:[36,36], iconAnchor:[18,18] });
       const marker = L.marker([stop.lat,stop.lon], { icon });
@@ -916,11 +1251,8 @@
       marker.on('add', () => {
         const element = marker.getElement()?.querySelector('.numbered-marker');
         markerIndex.set(markerKey(dayId,stop.order), { marker,map,element });
-        // Add hover listeners to marker
         if (element) {
-          element.addEventListener('mouseover', () => {
-            syncSelectionUI(dayId, 'stop', stop.order, true);
-          });
+          element.addEventListener('mouseover', () => syncSelectionUI(dayId, 'stop', stop.order, true));
           element.addEventListener('mouseout', () => {
             syncSelectionUI(dayId, null, null, true);
             clearHoverDrive(dayId);
@@ -928,43 +1260,98 @@
         }
       });
       marker.addTo(map);
-      bounds.push([stop.lat,stop.lon]);
+
+      const parking = getPrimaryParking(stop);
+      if (!isSeparateParking(stop) || !parking) return;
+      const parkingMarker = L.marker([parking.lat, parking.lon], {
+        icon: parkingMarkerIcon(),
+        keyboard: true,
+        title: parking.name || 'Парковка'
+      });
+      parkingMarker.on('click', () => selectStop(dayId, stop.order, true));
+      parkingMarker.on('add', () => {
+        const element = parkingMarker.getElement()?.querySelector('.parking-marker');
+        parkingMarkerIndex.set(parkingMarkerKey(dayId, stop.order), { marker:parkingMarker, map, element });
+      });
+      parkingMarker.addTo(map);
+      L.polyline([[stop.lat, stop.lon], [parking.lat, parking.lon]], {
+        color:'#5d6f73', weight:2, opacity:.65, dashArray:'4,5', interactive:false
+      }).addTo(map);
     });
 
     initializeRoute(dayId);
     setTimeout(() => map.invalidateSize(), 150);
   }
 
-  function activatePanel(panelId, updateHash = true) {
-    if (activePanel !== panelId && activePanel !== 'overview') closeStopDetail(activePanel,false,false);
-    activePanel = panelId;
-    document.querySelectorAll('.panel').forEach(panel => panel.classList.toggle('active',panel.id===panelId));
-    document.querySelectorAll('.tab-button').forEach(button => {
-      const isActive = button.dataset.target === panelId;
-      button.classList.toggle('active',isActive);
-      button.setAttribute('aria-selected', String(isActive));
-      button.tabIndex = isActive ? 0 : -1;
-    });
-    initializeMap(panelId);
-    adjustTimelineSegmentDisplay();
-    if (mobileViewport.matches && panelId !== 'overview') {
-      delete document.getElementById(panelId).dataset.focusStop;
-      setMobileView(panelId, 'plan', false);
+  function hashForNavigation(panelId, partId) {
+    if (panelId === 'overview') return '#overview';
+    if (panelId === `part-${partId}`) return `#${partId}`;
+    return `#${partId}/${panelId}`;
+  }
+
+  function activatePanel(panelId, updateHash = true, requestedPartId = null) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+
+    let partId = requestedPartId;
+    if (panelId === 'overview') partId = 'overview';
+    else if (panelId.startsWith('part-')) partId = panelId.slice(5);
+    else if (!getPart(partId)?.dayIds.includes(panelId)) {
+      const currentPart = getPart(activePartId);
+      partId = currentPart?.dayIds.includes(panelId) ? activePartId : defaultPartForDay(panelId);
     }
-    if (updateHash) history.replaceState(null,'',`#${panelId}`);
+
+    if (activePanel !== panelId && getDay(activePanel)) closeStopDetail(activePanel, false, false);
+    activePanel = panelId;
+    setActivePart(partId);
+
+    document.querySelectorAll('.panel').forEach(item => item.classList.toggle('active', item.id === panelId));
+    document.querySelectorAll('.tab-button').forEach(button => {
+      const active = button.dataset.target === panelId;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-selected', String(active));
+      button.tabIndex = active ? 0 : -1;
+    });
+
+    if (getDay(panelId)) {
+      initializeMap(panelId);
+      adjustTimelineSegmentDisplay();
+      if (mobileViewport.matches) {
+        delete document.getElementById(panelId).dataset.focusStop;
+        setMobileView(panelId, 'plan', false);
+      }
+    }
+
+    if (updateHash) history.replaceState(null, '', hashForNavigation(panelId, partId));
     window.scrollTo({ top:0, behavior:'instant' });
-    const activeButton = document.querySelector(`.tab-button[data-target="${panelId}"]`);
+
+    const activeButton = tabs.querySelector(`.tab-button[data-target="${panelId}"]`);
     if (activeButton) tabs.scrollLeft = activeButton.offsetLeft - (tabs.clientWidth - activeButton.offsetWidth) / 2;
   }
 
   function bindEvents() {
+    partTabs.addEventListener('click', event => {
+      const button = event.target.closest('.part-button');
+      if (button) activatePanel(button.dataset.target, true, button.dataset.partId);
+    });
+    partTabs.addEventListener('keydown', event => {
+      if (!event.target.matches('.part-button')) return;
+      const buttons = [...partTabs.querySelectorAll('.part-button')];
+      const current = buttons.indexOf(event.target);
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : event.key === 'ArrowRight' ? (current + 1) % buttons.length : event.key === 'ArrowLeft' ? (current - 1 + buttons.length) % buttons.length : -1;
+      if (next >= 0) {
+        event.preventDefault();
+        buttons[next].focus();
+        activatePanel(buttons[next].dataset.target, true, buttons[next].dataset.partId);
+      }
+    });
     tabs.addEventListener('click', event => {
       const button = event.target.closest('.tab-button');
       if (button) activatePanel(button.dataset.target);
     });
     tabs.addEventListener('keydown', event => {
       if (!event.target.matches('.tab-button')) return;
-      const buttons = [...tabs.querySelectorAll('.tab-button')];
+      const buttons = [...tabs.querySelectorAll('.tab-button:not(:disabled)')];
       const current = buttons.indexOf(event.target);
       const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : event.key === 'ArrowRight' ? (current + 1) % buttons.length : event.key === 'ArrowLeft' ? (current - 1 + buttons.length) % buttons.length : -1;
       if (next >= 0) { event.preventDefault(); buttons[next].focus(); activatePanel(buttons[next].dataset.target); }
@@ -1002,14 +1389,21 @@
         }
         return;
       }
+      const partCard = event.target.closest('.part-card');
+      if (partCard) {
+        const partId = partCard.dataset.partId;
+        activatePanel(`part-${partId}`, true, partId);
+        return;
+      }
+      const partDay = event.target.closest('.part-day-item[data-day-id]');
+      if (partDay) {
+        activatePanel(partDay.dataset.dayId, true, partDay.dataset.partId);
+        return;
+      }
       const summaryDay = event.target.closest('.summary-day');
       if (summaryDay) {
-        const dayId = summaryDay.dataset.dayId;
-        const dayTab = document.getElementById(`tab-${dayId}`);
-        if (dayTab) {
-          dayTab.click();
-          return;
-        }
+        activatePanel(summaryDay.dataset.dayId, true, summaryDay.dataset.partId || defaultPartForDay(summaryDay.dataset.dayId));
+        return;
       }
       const row = event.target.closest('.route-row');
       if (row) {
@@ -1017,7 +1411,7 @@
         const cell = event.target.closest('td');
         if (cell) {
           const cellIndex = [...row.cells].indexOf(cell);
-          if (cellIndex === 2 && cell.textContent.trim() !== '—') {
+          if (row.dataset.mode !== 'flight' && cellIndex === 2 && cell.textContent.trim() !== '—') {
             focusTimelineDrive(row.dataset.dayId, Number(row.dataset.stopOrder));
             return;
           }
@@ -1098,7 +1492,7 @@
       if (cell) {
         const cellIndex = [...row.cells].indexOf(cell);
         // Hover on merged distance/drive column highlights drive, otherwise highlights stop.
-        const isDriveCell = cellIndex === 2 && cell.textContent.trim() !== '—';
+        const isDriveCell = row.dataset.mode !== 'flight' && cellIndex === 2 && cell.textContent.trim() !== '—';
         const selectedType = isDriveCell ? 'drive' : 'stop';
         syncSelectionUI(dayId, selectedType, stopOrder, true);
         // Show drive highlight on map when hovering over drive columns
@@ -1129,10 +1523,36 @@
     return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : new Date();
   }
 
-  function panelForDate(date) {
-    if (date.getFullYear() !== 2026 || date.getMonth() !== 7) return 'overview';
-    const panelId = `day${date.getDate()}`;
-    return data.days.some(day => day.id === panelId) ? panelId : 'overview';
+  function navigationForDate(date) {
+    if (date.getFullYear() !== 2026 || date.getMonth() !== 7) {
+      return { panelId:'overview', partId:'overview' };
+    }
+    const dayId = `day${date.getDate()}`;
+    if (getDay(dayId)) {
+      return { panelId:dayId, partId:date.getDate() <= 15 ? 'east' : 'west' };
+    }
+    if (date.getDate() >= 15 && date.getDate() <= 22) {
+      return { panelId:'part-west', partId:'west' };
+    }
+    return { panelId:'overview', partId:'overview' };
+  }
+
+  function navigationFromHash() {
+    const hash = location.hash.slice(1);
+    if (!hash) return null;
+    if (hash === 'overview') return { panelId:'overview', partId:'overview' };
+    if (getPart(hash)) return { panelId:`part-${hash}`, partId:hash };
+
+    const scoped = hash.match(/^(east|west)\/(day\d+)$/);
+    if (scoped) {
+      const [, partId, dayId] = scoped;
+      return getDay(dayId) && getPart(partId)?.dayIds.includes(dayId)
+        ? { panelId:dayId, partId }
+        : { panelId:`part-${partId}`, partId };
+    }
+
+    if (getDay(hash)) return { panelId:hash, partId:defaultPartForDay(hash) };
+    return null;
   }
 
   function registerServiceWorker() {
@@ -1199,8 +1619,7 @@
 
   render();
   bindEvents();
-  const hash = location.hash.slice(1);
-  const hashPanel = hash && (hash === 'overview' || data.days.some(day => day.id === hash)) ? hash : null;
-  activatePanel(hashPanel || panelForDate(openingDate()), false);
+  const initialNavigation = navigationFromHash() || navigationForDate(openingDate());
+  activatePanel(initialNavigation.panelId, false, initialNavigation.partId);
   registerServiceWorker();
 })();

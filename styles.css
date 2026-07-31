@@ -24,8 +24,14 @@ button:focus-visible,a:focus-visible,.route-row:focus-visible { outline:3px soli
   box-shadow:inset 0 0 0 3px rgba(243,177,31,.8) !important;
   z-index:12;
 }
-.topbar { position:sticky; top:0; z-index:1000; display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:18px; background:rgba(255,253,248,.96); border-bottom:1px solid var(--line); padding:9px 18px; backdrop-filter:blur(12px); }
+.topbar { position:sticky; top:0; z-index:1000; display:grid; grid-template-columns:auto auto minmax(0,1fr); align-items:center; gap:12px; background:rgba(255,253,248,.96); border-bottom:1px solid var(--line); padding:8px 14px; backdrop-filter:blur(12px); }
 .project-title { margin:0; font-size:15px; font-weight:700; white-space:nowrap; }
+.part-tabs { display:flex; gap:5px; min-width:0; }
+.part-button { flex:0 0 auto; min-width:112px; padding:6px 9px 7px; border:1px solid #c6d2cf; border-radius:7px; background:var(--paper); color:var(--ink); cursor:pointer; text-align:left; }
+.part-button span { display:block; font-size:12px; font-weight:700; }
+.part-button small { display:block; margin-top:1px; max-width:150px; overflow:hidden; color:var(--muted); font-size:9px; line-height:1.2; text-overflow:ellipsis; white-space:nowrap; }
+.part-button.active { border-color:var(--accent-dark); background:var(--accent-dark); color:#fff; box-shadow:0 2px 8px rgba(8,101,116,.2); }
+.part-button.active small { color:#d7efec; }
 .tabs { display:flex; gap:6px; min-width:0; overflow-x:auto; padding:1px 0 3px; scrollbar-width:none; }
 .tabs::-webkit-scrollbar { display:none; }
 .tab-button { position:relative; flex:0 0 auto; min-width:116px; padding:7px 10px 8px; border:1px solid #b9ccc8; border-radius:7px; background:var(--paper); color:var(--ink); cursor:pointer; text-align:left; }
@@ -33,9 +39,36 @@ button:focus-visible,a:focus-visible,.route-row:focus-visible { outline:3px soli
 .tab-button small { display:block; margin-top:2px; color:var(--muted); font-size:11px; line-height:1.2; max-width:145px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .tab-button.active { border-color:var(--accent); background:var(--accent-soft); color:var(--accent-dark); box-shadow:inset 0 -3px 0 var(--accent); }
 .tab-button.active small { color:#3f747a; }
+.tab-button:disabled { cursor:default; opacity:.58; }
+.tab-button.is-planned { border-style:dashed; background:#f3f4ef; }
+.tabs[hidden] { display:none; }
 .panel { display:none; max-width:1680px; margin:0 auto; background:var(--paper); min-height:calc(100vh - 96px); }
 .panel.active { display:block; }
 .overview-shell { padding:12px; }
+.trip-parts-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+.part-card { display:grid; grid-template-columns:1fr auto; gap:2px 12px; align-items:start; padding:11px 12px; border:1px solid var(--line); border-radius:7px; background:var(--paper); color:var(--ink); text-align:left; cursor:pointer; box-shadow:0 1px 5px rgba(24,62,67,.05); }
+.part-card:hover,.part-card:focus-visible { border-color:#79bec4; background:var(--accent-soft); }
+.part-card-kicker { grid-column:1; color:var(--accent); font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.part-card strong { grid-column:1; font-size:16px; }
+.part-card > span:not(.part-card-kicker) { grid-column:1; color:var(--muted); font-size:11px; }
+.part-card small { grid-column:2; grid-row:1/4; align-self:center; padding:4px 7px; border-radius:999px; background:var(--olive-soft); color:#566136; font-size:10px; font-weight:700; white-space:nowrap; }
+.part-overview-shell { max-width:1000px; margin:0 auto; padding:16px; }
+.part-overview-hero { padding:22px 24px; border-radius:9px; background:linear-gradient(135deg,#0a6f7d,#0e505c); color:#fff; box-shadow:var(--shadow); }
+.part-overview-west { background:linear-gradient(135deg,#6f7b46,#3f6158); }
+.part-overview-hero .part-card-kicker { color:#ccefed; }
+.part-overview-hero h1 { margin-bottom:5px; }
+.part-overview-hero p { margin:0; color:#e0f1ee; font-size:15px; }
+.part-progress { display:inline-block; margin-top:12px; padding:5px 9px; border-radius:999px; background:rgba(255,255,255,.16); font-size:11px; font-weight:700; }
+.part-description { margin-top:9px; }
+.part-description p { margin:0; font-size:13px; line-height:1.45; }
+.part-day-list { display:grid; gap:7px; margin-top:9px; }
+.part-day-item { display:grid; grid-template-columns:150px minmax(0,1fr); gap:2px 12px; width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:7px; background:var(--paper); color:var(--ink); text-align:left; cursor:pointer; }
+.part-day-item:hover,.part-day-item:focus-visible { border-color:#79bec4; background:var(--accent-soft); }
+.part-day-item .part-day-date { grid-row:1/3; color:var(--accent-dark); font-size:11px; font-weight:700; }
+.part-day-item strong { font-size:13px; }
+.part-day-item small { color:var(--muted); font-size:10px; }
+.part-day-item.is-planned { border-style:dashed; background:#f5f5f0; cursor:default; opacity:.72; }
+.part-day-item.is-planned:hover { border-color:var(--line); background:#f5f5f0; }
 .overview-hero { position:relative; display:flex; align-items:flex-end; min-height:182px; margin-bottom:8px; overflow:hidden; border-radius:7px; background:linear-gradient(90deg,rgba(8,52,60,.84),rgba(8,70,79,.24)),url("https://commons.wikimedia.org/wiki/Special:FilePath/Vai_R01.jpg?width=1600") center 44%/cover; color:#fff; }
 .overview-hero-content { max-width:700px; padding:13px 15px; }
 .photo-credit { position:absolute; right:8px; bottom:6px; padding:2px 4px; border-radius:3px; background:rgba(7,42,48,.64); color:#e2f4f1; font-size:7px; }
@@ -203,8 +236,13 @@ h1 { margin:6px 0 8px; font-family:"PT Serif",serif; font-size:clamp(28px,3.2vw,
 .app-status button:hover { background:var(--soft); }
 .noscript { margin:20px; padding:14px; border:1px solid #b88; background:#fff4f4; }
 @media (max-width:800px) {
-  .topbar { position:sticky; display:block; padding:7px 8px 6px; }
+  .topbar { position:sticky; display:block; padding:6px 6px 5px; }
   .project-title { display:none; }
+  .part-tabs { gap:5px; overflow-x:auto; padding:1px 8px 5px; scrollbar-width:none; }
+  .part-tabs::-webkit-scrollbar { display:none; }
+  .part-button { min-width:104px; padding:5px 8px 6px; }
+  .part-button span { font-size:11px; }
+  .part-button small { max-width:126px; font-size:8px; }
   .tabs { gap:6px; padding:1px 8px 4px; scroll-padding-inline:16px; mask-image:linear-gradient(to right,transparent,#000 14px,#000 calc(100% - 14px),transparent); }
   .tab-button { min-width:98px; min-height:48px; padding:6px 9px; }
   .tab-button span { font-size:13px; }
@@ -216,12 +254,20 @@ h1 { margin:6px 0 8px; font-family:"PT Serif",serif; font-size:clamp(28px,3.2vw,
   .overview-hero h1 { font-size:25px; }
   .overview-hero .lead { font-size:12px; line-height:1.26; }
   .overview-grid { grid-template-columns:1fr; }
+  .trip-parts-grid { grid-template-columns:1fr; }
+  .part-card { grid-template-columns:1fr; }
+  .part-card small { grid-column:1; grid-row:auto; justify-self:start; margin-top:4px; }
+  .part-overview-shell { padding:10px 8px 18px; }
+  .part-overview-hero { padding:17px 15px; }
+  .part-overview-hero h1 { font-size:29px; }
+  .part-day-item { grid-template-columns:1fr; gap:2px; }
+  .part-day-item .part-day-date { grid-row:auto; }
   .summary-day-label { width:auto; }
   .summary-day td { padding:4px 5px; }
   .rules-list { columns:1; }
   .day-shell { display:flex; flex-direction:column; }
   .timeline-container { height:28px; margin-bottom:12px; }
-  .mobile-view-switch { position:sticky; top:62px; z-index:850; order:0; display:grid; grid-template-columns:repeat(3,1fr); gap:3px; margin:0; padding:7px 15px; border-bottom:1px solid var(--line); background:rgba(255,253,248,.96); backdrop-filter:blur(12px); }
+  .mobile-view-switch { position:sticky; top:108px; z-index:850; order:0; display:grid; grid-template-columns:repeat(3,1fr); gap:3px; margin:0; padding:7px 15px; border-bottom:1px solid var(--line); background:rgba(255,253,248,.96); backdrop-filter:blur(12px); }
   .mobile-view-button { min-height:38px; border:1px solid transparent; border-radius:6px; background:transparent; color:var(--muted); font-size:13px; font-weight:700; cursor:pointer; }
   .mobile-view-button.active { border-color:#79bec4; background:var(--accent-soft); color:var(--accent-dark); box-shadow:inset 0 -2px 0 var(--accent); }
   .itinerary { order:1; padding:20px 15px 14px; }
@@ -263,7 +309,7 @@ h1 { margin:6px 0 8px; font-family:"PT Serif",serif; font-size:clamp(28px,3.2vw,
   .mobile-plan-view .itinerary { padding-bottom:0; }
   .mobile-plan-view .day-notes { display:none; }
   .mobile-map-view .itinerary,.mobile-map-view .day-notes { display:none; }
-  .mobile-map-view .map-wrap { height:calc(100dvh - 117px); min-height:520px; }
+  .mobile-map-view .map-wrap { height:calc(100dvh - 163px); min-height:520px; }
   .mobile-notes-view .itinerary,.mobile-notes-view .map-wrap { display:none; }
 }
 @media (max-width:520px) {
@@ -312,3 +358,11 @@ h1 { margin:6px 0 8px; font-family:"PT Serif",serif; font-size:clamp(28px,3.2vw,
   .map-wrap { display:block!important; position:relative; top:auto; height:184mm; min-height:0; }
   .leaflet-control-container { display:none; }
 }
+
+/* ==================================================
+   Parking
+   ================================================== */
+.parking-marker{display:grid;place-items:center;width:28px;height:28px;border:2px solid #fff;border-radius:50%;background:#38545a;color:#fff;font:700 14px/1 "IBM Plex Sans",sans-serif;box-shadow:0 2px 7px rgba(15,39,44,.32);transition:transform .15s ease,background .15s ease,box-shadow .15s ease}.parking-marker.is-active{background:#f3b11f;color:#183238;transform:scale(1.18);box-shadow:0 0 0 4px rgba(243,177,31,.25),0 3px 10px rgba(15,39,44,.38)}.parking-detail{margin-top:12px;padding-top:11px;border-top:1px solid rgba(72,103,109,.24);font-size:12px;line-height:1.4}.parking-detail-heading{display:flex;align-items:center;gap:9px;margin-bottom:6px}.parking-detail-heading-main{display:flex;flex:1;flex-direction:column;gap:1px;min-width:0}.parking-detail-heading strong{font-size:13px;line-height:1.25}.parking-detail-heading-main span{color:#617477;font-size:10px;line-height:1.3}.parking-badge{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:50%;background:#38545a;color:#fff!important;font-size:13px!important;font-weight:700}.parking-summary{margin:0 0 7px;font-weight:600}.parking-more{margin-top:4px;border-top:1px solid rgba(72,103,109,.16)}.parking-more summary{padding:6px 0 2px;color:#086574;font-weight:700;cursor:pointer;list-style-position:inside}.parking-more summary:hover{color:#078b9d}.parking-more-content{padding:2px 0 1px}.parking-detail p{margin:4px 0}.parking-detail ul{margin:5px 0 2px;padding-left:18px}.parking-detail li+li{margin-top:2px}.parking-actions{display:flex;align-items:center;gap:6px;margin-left:auto}.parking-action{display:grid;place-items:center;width:22px;height:22px;border:1px solid #078b9d;border-radius:50%;background:#fff;color:#086574;text-decoration:none;line-height:1}.parking-action:hover{background:#d9f1f1}.parking-action-dot{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:#0f6f7d;color:#fff;font-size:10px;font-weight:700}.parking-action-waze .parking-action-dot{background:#1265ab}@media(max-width:640px){.parking-more summary{padding-top:7px}}@media print{.parking-marker,.parking-detail{display:none!important}}
+
+/* Transport variants */
+.timeline-flight{background:#5f6bb8;color:#fff;cursor:default}.route-row[data-mode="flight"] td:nth-child(3),.route-row[data-mode="flight"] td:nth-child(4){cursor:default}

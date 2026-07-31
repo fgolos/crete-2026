@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Crete 2026 — East Crete master itinerary, 11–15 August">
+  <meta name="description" content="Crete 2026 — interactive family itinerary, 11–22 August">
   <meta name="theme-color" content="#086574">
   <title>Crete 2026</title>
   <link rel="manifest" href="manifest.webmanifest">
@@ -58,7 +58,8 @@
 <body>
   <header class="topbar">
     <div id="project-title" class="project-title"></div>
-    <nav id="tabs" class="tabs" aria-label="Дни маршрута"></nav>
+    <nav id="part-tabs" class="part-tabs" aria-label="Части поездки"></nav>
+    <nav id="tabs" class="tabs" aria-label="Дни выбранной части"></nav>
   </header>
 
   <noscript>
@@ -74,7 +75,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
   <script src="itinerary-data.js"></script>
-  <script src="itinerary-transport.js"></script>
   <script src="stories-data.js"></script>
   <script src="app.js"></script>
   <script>

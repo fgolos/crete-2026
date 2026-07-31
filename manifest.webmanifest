@@ -1,7 +1,7 @@
 {
   "name": "Crete 2026 itinerary",
   "short_name": "Crete 2026",
-  "description": "Read-only family itinerary for East Crete, 11-15 August 2026.",
+  "description": "Interactive family itinerary for Crete, 11-22 August 2026.",
   "id": "./",
   "start_url": "./",
   "scope": "./",

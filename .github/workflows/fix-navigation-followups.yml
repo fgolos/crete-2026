@@ -1,0 +1,39 @@
+name: Fix navigation follow-ups
+
+on:
+  pull_request:
+    branches:
+      - feature-full-trip-navigation
+    types:
+      - synchronize
+      - reopened
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.head_ref == 'trigger-full-trip-navigation'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out target branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature-full-trip-navigation
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Apply and validate follow-up fixes
+        run: node scripts/fix-navigation-followups.mjs
+
+      - name: Commit follow-up fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Fix overview hash and planned-day keyboard navigation"
+          git push origin HEAD:feature-full-trip-navigation

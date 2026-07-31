@@ -1,0 +1,51 @@
+  function initializeMap(dayId) {
+    const day = data.days.find(item => item.id === dayId);
+    if (!day) return;
+    if (maps.has(dayId)) { setTimeout(() => maps.get(dayId).invalidateSize(), 70); return; }
+
+    const map = L.map(`map-${dayId}`, { zoomControl:true });
+    maps.set(dayId, map);
+    map.createPane('routeOverlays');
+    map.getPane('routeOverlays').style.zIndex = 450;
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap contributors' }).addTo(map);
+
+    const visibleStops = day.stops.filter(stop => stop.mapVisible);
+    visibleStops.forEach(stop => {
+      const icon = L.divIcon({ className:'', html:`<div class="numbered-marker" data-marker-order="${stop.order}">${stop.order}</div>`, iconSize:[36,36], iconAnchor:[18,18] });
+      const marker = L.marker([stop.lat,stop.lon], { icon });
+      marker.on('click', () => selectStop(dayId,stop.order));
+      marker.on('add', () => {
+        const element = marker.getElement()?.querySelector('.numbered-marker');
+        markerIndex.set(markerKey(dayId,stop.order), { marker,map,element });
+        if (element) {
+          element.addEventListener('mouseover', () => syncSelectionUI(dayId, 'stop', stop.order, true));
+          element.addEventListener('mouseout', () => {
+            syncSelectionUI(dayId, null, null, true);
+            clearHoverDrive(dayId);
+          });
+        }
+      });
+      marker.addTo(map);
+
+      const parking = getPrimaryParking(stop);
+      if (!isSeparateParking(stop) || !parking) return;
+      const parkingMarker = L.marker([parking.lat, parking.lon], {
+        icon: parkingMarkerIcon(),
+        keyboard: true,
+        title: parking.name || 'Парковка'
+      });
+      parkingMarker.on('click', () => selectStop(dayId, stop.order, true));
+      parkingMarker.on('add', () => {
+        const element = parkingMarker.getElement()?.querySelector('.parking-marker');
+        parkingMarkerIndex.set(parkingMarkerKey(dayId, stop.order), { marker:parkingMarker, map, element });
+      });
+      parkingMarker.addTo(map);
+      L.polyline([[stop.lat, stop.lon], [parking.lat, parking.lon]], {
+        color:'#5d6f73', weight:2, opacity:.65, dashArray:'4,5', interactive:false
+      }).addTo(map);
+    });
+
+    initializeRoute(dayId);
+    setTimeout(() => map.invalidateSize(), 150);
+  }
+

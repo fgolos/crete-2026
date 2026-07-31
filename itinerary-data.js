@@ -127,9 +127,7 @@ window.CRETE_ITINERARY = {
       "reliability": "high",
       "crowding": "Вечером и в высокий сезон ближайшие места могут быть заняты.",
       "notes": [
-        "Cars are not allowed on Ioannou Kondylaki street.",
-        "Для навигации используем парковку у порта, а не адрес дома.",
-        "После парковки пройти к Ioannou Kondylaki 18 пешком."
+        "Следовать дорожным знакам и не блокировать проезд по территории порта."
       ],
       "lastVerified": "2026-07-31"
     },
@@ -447,7 +445,12 @@ window.CRETE_ITINERARY = {
               "ref": "sitia-port",
               "status": "recommended",
               "walkMinutes": 1,
-              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома."
+              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.",
+              "notes": [
+                "Cars are not allowed on Ioannou Kondylaki street.",
+                "Для навигации используем парковку у порта, а не адрес дома.",
+                "После парковки пройти к Ioannou Kondylaki 18 пешком."
+              ]
             },
             "alternatives": []
           },
@@ -533,7 +536,12 @@ window.CRETE_ITINERARY = {
               "ref": "sitia-port",
               "status": "recommended",
               "walkMinutes": 1,
-              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома."
+              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.",
+              "notes": [
+                "Cars are not allowed on Ioannou Kondylaki street.",
+                "Для навигации используем парковку у порта, а не адрес дома.",
+                "После парковки пройти к Ioannou Kondylaki 18 пешком."
+              ]
             },
             "alternatives": []
           },
@@ -653,7 +661,12 @@ window.CRETE_ITINERARY = {
               "ref": "sitia-port",
               "status": "recommended",
               "walkMinutes": 1,
-              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома."
+              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.",
+              "notes": [
+                "Cars are not allowed on Ioannou Kondylaki street.",
+                "Для навигации используем парковку у порта, а не адрес дома.",
+                "После парковки пройти к Ioannou Kondylaki 18 пешком."
+              ]
             },
             "alternatives": []
           },
@@ -743,7 +756,12 @@ window.CRETE_ITINERARY = {
               "ref": "sitia-port",
               "status": "recommended",
               "walkMinutes": 1,
-              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома."
+              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.",
+              "notes": [
+                "Cars are not allowed on Ioannou Kondylaki street.",
+                "Для навигации используем парковку у порта, а не адрес дома.",
+                "После парковки пройти к Ioannou Kondylaki 18 пешком."
+              ]
             },
             "alternatives": []
           },
@@ -839,7 +857,12 @@ window.CRETE_ITINERARY = {
               "ref": "sitia-port",
               "status": "recommended",
               "walkMinutes": 1,
-              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома."
+              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.",
+              "notes": [
+                "Cars are not allowed on Ioannou Kondylaki street.",
+                "Для навигации используем парковку у порта, а не адрес дома.",
+                "После парковки пройти к Ioannou Kondylaki 18 пешком."
+              ]
             },
             "alternatives": []
           },
@@ -928,7 +951,12 @@ window.CRETE_ITINERARY = {
               "ref": "sitia-port",
               "status": "recommended",
               "walkMinutes": 1,
-              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома."
+              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.",
+              "notes": [
+                "Cars are not allowed on Ioannou Kondylaki street.",
+                "Для навигации используем парковку у порта, а не адрес дома.",
+                "После парковки пройти к Ioannou Kondylaki 18 пешком."
+              ]
             },
             "alternatives": []
           },
@@ -1024,7 +1052,12 @@ window.CRETE_ITINERARY = {
               "ref": "sitia-port",
               "status": "recommended",
               "walkMinutes": 1,
-              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома."
+              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.",
+              "notes": [
+                "Cars are not allowed on Ioannou Kondylaki street.",
+                "Для навигации используем парковку у порта, а не адрес дома.",
+                "После парковки пройти к Ioannou Kondylaki 18 пешком."
+              ]
             },
             "alternatives": []
           },
@@ -1112,7 +1145,12 @@ window.CRETE_ITINERARY = {
               "ref": "sitia-port",
               "status": "recommended",
               "walkMinutes": 1,
-              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома."
+              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.",
+              "notes": [
+                "Cars are not allowed on Ioannou Kondylaki street.",
+                "Для навигации используем парковку у порта, а не адрес дома.",
+                "После парковки пройти к Ioannou Kondylaki 18 пешком."
+              ]
             },
             "alternatives": []
           },
@@ -1160,7 +1198,12 @@ window.CRETE_ITINERARY = {
               "ref": "sitia-port",
               "status": "recommended",
               "walkMinutes": 1,
-              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома."
+              "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.",
+              "notes": [
+                "Cars are not allowed on Ioannou Kondylaki street.",
+                "Для навигации используем парковку у порта, а не адрес дома.",
+                "После парковки пройти к Ioannou Kondylaki 18 пешком."
+              ]
             },
             "alternatives": []
           },

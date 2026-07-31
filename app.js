@@ -147,6 +147,51 @@
     });
   }
 
+  function positionParkingBesideDetail(dayId, stop) {
+    const parking = getPrimaryParking(stop);
+    const map = maps.get(dayId);
+    if (!parking || !map) return;
+
+    const panel = document.getElementById(dayId);
+    const detail = panel?.querySelector('.stop-detail');
+    const coordinates = isSeparateParking(stop) ? [parking.lat, parking.lon] : [stop.lat, stop.lon];
+    const zoom = Math.max(map.getZoom(), 16);
+    map.setView(coordinates, zoom, { animate:true });
+    if (!detail || detail.hidden) return;
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      map.invalidateSize({ pan:false });
+      const mapSize = map.getSize();
+      const cardRect = detail.getBoundingClientRect();
+      const mapRect = map.getContainer().getBoundingClientRect();
+      const currentPoint = map.latLngToContainerPoint(coordinates);
+      let desiredX;
+      let desiredY;
+
+      if (mobileViewport.matches) {
+        const cardTopInsideMap = Math.max(0, Math.min(mapSize.y, cardRect.top - mapRect.top));
+        const freeBottom = Math.max(96, cardTopInsideMap - 20);
+        desiredX = mapSize.x * 0.5;
+        desiredY = Math.max(72, freeBottom * 0.48);
+      } else {
+        const cardRightInsideMap = Math.max(0, Math.min(mapSize.x, cardRect.right - mapRect.left));
+        const freeLeft = Math.min(mapSize.x - 48, cardRightInsideMap + 32);
+        desiredX = freeLeft + Math.max(0, mapSize.x - freeLeft) * 0.52;
+        desiredY = Math.max(72, mapSize.y * 0.34);
+      }
+
+      map.panBy([
+        Math.round(currentPoint.x - desiredX),
+        Math.round(currentPoint.y - desiredY)
+      ], { animate:true, duration:.35 });
+    }));
+  }
+
+  function scheduleParkingFocus(dayId, stop) {
+    const delay = mobileViewport.matches ? 180 : 0;
+    setTimeout(() => positionParkingBesideDetail(dayId, stop), delay);
+  }
+
   function clearParkingMarkerState(dayId, className) {
     parkingMarkerIndex.forEach(({ element }, key) => {
       if (key.startsWith(`${dayId}:`) && element) element.classList.remove(className);
@@ -866,10 +911,13 @@
   }
 
   function selectStop(dayId,order,focusMap = false) {
+    const day = data.days.find(item => item.id === dayId);
+    const stop = day?.stops.find(item => item.order === Number(order));
     clearActiveDrive(dayId);
     setActiveStop(dayId,order,focusMap);
     renderStopDetail(dayId,order);
     syncSelectionUI(dayId, 'stop', order);
+    if (stop) scheduleParkingFocus(dayId, stop);
   }
 
   function clearMapDriveHighlight(dayId) {

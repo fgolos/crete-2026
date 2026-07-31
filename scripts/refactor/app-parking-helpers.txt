@@ -1,0 +1,147 @@
+  function resolveParkingLink(link) {
+    if (!link?.ref) return null;
+    const base = data.parkingLocations?.[link.ref];
+    if (!base) {
+      console.warn(`Unknown parking reference: ${link.ref}`);
+      return null;
+    }
+    return {
+      ...base,
+      ...link,
+      notes: [...(base.notes || []), ...(link.notes || [])]
+    };
+  }
+
+  function getPrimaryParking(stop) {
+    return resolveParkingLink(stop?.parking?.primary);
+  }
+
+  function getAlternativeParkings(stop) {
+    return (stop?.parking?.alternatives || []).map(resolveParkingLink).filter(Boolean);
+  }
+
+  function parkingMarkerKey(dayId, order) {
+    return `${dayId}:${order}`;
+  }
+
+  function getDrivingCoordinates(stop) {
+    const parking = getPrimaryParking(stop);
+    if (parking && Number.isFinite(parking.lat) && Number.isFinite(parking.lon)) {
+      return [parking.lat, parking.lon];
+    }
+    return [stop.lat, stop.lon];
+  }
+
+  function getNavigationQuery(stop) {
+    const parking = getPrimaryParking(stop);
+    return parking?.navigationQuery || stop.navigationQuery || `${stop.lat},${stop.lon}`;
+  }
+
+  function isSeparateParking(stop) {
+    const parking = getPrimaryParking(stop);
+    if (!parking || stop.parking?.primary?.status === 'on-site') return false;
+    if (!Number.isFinite(parking.lat) || !Number.isFinite(parking.lon)) return false;
+    return Math.abs(parking.lat - stop.lat) > 0.00005 || Math.abs(parking.lon - stop.lon) > 0.00005;
+  }
+
+  function googleMapsParkingUrl(parking) {
+    const params = new URLSearchParams({
+      api: '1',
+      destination: parking.navigationQuery || `${parking.lat},${parking.lon}`,
+      travelmode: 'driving',
+      dir_action: 'navigate'
+    });
+    return `https://www.google.com/maps/dir/?${params.toString()}`;
+  }
+
+  function wazeParkingUrl(parking) {
+    const params = new URLSearchParams({
+      ll: `${parking.lat},${parking.lon}`,
+      navigate: 'yes'
+    });
+    return `https://www.waze.com/ul?${params.toString()}`;
+  }
+
+  function reliabilityLabel(value) {
+    return ({ high: 'Надёжная точка', medium: 'Вероятный вариант', low: 'Проверить на месте' })[value] || '';
+  }
+
+  function paymentLabel(parking) {
+    if (parking.paid === true) return 'Платная';
+    if (parking.paid === false) return 'Бесплатная';
+    return 'Оплата неизвестна';
+  }
+
+  function parkingEntryHtml(parking, heading = '') {
+    if (!parking) return '';
+    const facts = [
+      paymentLabel(parking),
+      Number.isFinite(parking.walkMinutes) ? `${parking.walkMinutes} мин пешком` : '',
+      reliabilityLabel(parking.reliability)
+    ].filter(Boolean);
+    const notes = parking.notes?.length
+      ? `<ul>${parking.notes.map(note => `<li>${escapeHtml(note)}</li>`).join('')}</ul>`
+      : '';
+    const details = [parking.priceNote, parking.crowding].filter(Boolean)
+      .map(item => `<p>${escapeHtml(item)}</p>`).join('');
+    const practicalDetails = details || notes
+      ? `<details class="parking-more"><summary>Практические детали</summary><div class="parking-more-content">${details}${notes}</div></details>`
+      : '';
+    return `<div class="parking-entry">
+      ${heading ? `<div class="parking-entry-label">${escapeHtml(heading)}</div>` : ''}
+      <div class="parking-detail-heading">
+        <span class="parking-badge">P</span>
+        <div class="parking-detail-heading-main"><strong>${escapeHtml(parking.name || 'Парковка')}</strong><span>${escapeHtml(facts.join(' · '))}</span></div>
+        <div class="parking-actions" aria-label="Навигация">
+          <a class="parking-action parking-action-google" href="${escapeHtml(googleMapsParkingUrl(parking))}" target="_blank" rel="noopener" aria-label="Открыть маршрут в Google Maps" title="Google Maps"><span class="parking-action-dot" aria-hidden="true">G</span></a>
+          <a class="parking-action parking-action-waze" href="${escapeHtml(wazeParkingUrl(parking))}" target="_blank" rel="noopener" aria-label="Открыть маршрут в Waze" title="Waze"><span class="parking-action-dot" aria-hidden="true">W</span></a>
+        </div>
+      </div>
+      <p class="parking-summary">${escapeHtml(parking.summary || '')}</p>
+      ${practicalDetails}
+    </div>`;
+  }
+
+  function parkingCardHtml(stop) {
+    const primary = getPrimaryParking(stop);
+    if (!primary) return '';
+    const alternatives = getAlternativeParkings(stop);
+    return `<section class="parking-detail" data-parking-detail>
+      ${parkingEntryHtml(primary)}
+      ${alternatives.map((parking, index) => parkingEntryHtml(parking, `Альтернатива ${index + 1}`)).join('')}
+    </section>`;
+  }
+
+  function parkingMarkerIcon() {
+    return L.divIcon({
+      className: '',
+      html: '<div class="parking-marker" aria-label="Парковка">P</div>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
+    });
+  }
+
+  function clearParkingMarkerState(dayId, className) {
+    parkingMarkerIndex.forEach(({ element }, key) => {
+      if (key.startsWith(`${dayId}:`) && element) element.classList.remove(className);
+    });
+  }
+
+  function setParkingMarkerState(dayId, stopOrder, className) {
+    clearParkingMarkerState(dayId, className);
+    parkingMarkerIndex.get(parkingMarkerKey(dayId, stopOrder))?.element?.classList.add(className);
+  }
+
+  function validateParkingReferences() {
+    for (const day of data.days || []) {
+      for (const stop of day.stops || []) {
+        const links = [stop.parking?.primary, ...(stop.parking?.alternatives || [])].filter(Boolean);
+        for (const link of links) {
+          if (!data.parkingLocations?.[link.ref]) {
+            console.error(`Missing parking "${link.ref}" for ${day.id}: ${stop.name}`);
+          }
+        }
+      }
+    }
+  }
+

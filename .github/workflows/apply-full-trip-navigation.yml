@@ -1,0 +1,37 @@
+name: Apply full trip navigation
+
+on:
+  push:
+    branches:
+      - feature-full-trip-navigation
+    paths:
+      - .github/workflows/apply-full-trip-navigation.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature-full-trip-navigation
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Apply and validate navigation migration
+        run: node scripts/apply-full-trip-navigation.mjs
+
+      - name: Commit migration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Add full trip part and day navigation"
+          git push origin HEAD:feature-full-trip-navigation

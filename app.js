@@ -12,6 +12,7 @@
   const appStatusAction = document.getElementById('app-status-action');
   const maps = new Map();
   const markerIndex = new Map();
+  const parkingMarkerIndex = new Map();
   const routingIndex = new Map();
   const mobileViewport = window.matchMedia('(max-width: 800px)');
   let activePanel = 'overview';
@@ -23,24 +24,171 @@
     .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
     .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
+  function resolveParkingLink(link) {
+    if (!link?.ref) return null;
+    const base = data.parkingLocations?.[link.ref];
+    if (!base) {
+      console.warn(`Unknown parking reference: ${link.ref}`);
+      return null;
+    }
+    return {
+      ...base,
+      ...link,
+      notes: [...(base.notes || []), ...(link.notes || [])]
+    };
+  }
+
+  function getPrimaryParking(stop) {
+    return resolveParkingLink(stop?.parking?.primary);
+  }
+
+  function getAlternativeParkings(stop) {
+    return (stop?.parking?.alternatives || []).map(resolveParkingLink).filter(Boolean);
+  }
+
+  function parkingMarkerKey(dayId, order) {
+    return `${dayId}:${order}`;
+  }
+
+  function getDrivingCoordinates(stop) {
+    const parking = getPrimaryParking(stop);
+    if (parking && Number.isFinite(parking.lat) && Number.isFinite(parking.lon)) {
+      return [parking.lat, parking.lon];
+    }
+    return [stop.lat, stop.lon];
+  }
+
+  function getNavigationQuery(stop) {
+    const parking = getPrimaryParking(stop);
+    return parking?.navigationQuery || stop.navigationQuery || `${stop.lat},${stop.lon}`;
+  }
+
+  function isSeparateParking(stop) {
+    const parking = getPrimaryParking(stop);
+    if (!parking || stop.parking?.primary?.status === 'on-site') return false;
+    if (!Number.isFinite(parking.lat) || !Number.isFinite(parking.lon)) return false;
+    return Math.abs(parking.lat - stop.lat) > 0.00005 || Math.abs(parking.lon - stop.lon) > 0.00005;
+  }
+
+  function googleMapsParkingUrl(parking) {
+    const params = new URLSearchParams({
+      api: '1',
+      destination: parking.navigationQuery || `${parking.lat},${parking.lon}`,
+      travelmode: 'driving',
+      dir_action: 'navigate'
+    });
+    return `https://www.google.com/maps/dir/?${params.toString()}`;
+  }
+
+  function wazeParkingUrl(parking) {
+    const params = new URLSearchParams({
+      ll: `${parking.lat},${parking.lon}`,
+      navigate: 'yes'
+    });
+    return `https://www.waze.com/ul?${params.toString()}`;
+  }
+
+  function reliabilityLabel(value) {
+    return ({ high: 'Надёжная точка', medium: 'Вероятный вариант', low: 'Проверить на месте' })[value] || '';
+  }
+
+  function paymentLabel(parking) {
+    if (parking.paid === true) return 'Платная';
+    if (parking.paid === false) return 'Бесплатная';
+    return 'Оплата неизвестна';
+  }
+
+  function parkingEntryHtml(parking, heading = '') {
+    if (!parking) return '';
+    const facts = [
+      paymentLabel(parking),
+      Number.isFinite(parking.walkMinutes) ? `${parking.walkMinutes} мин пешком` : '',
+      reliabilityLabel(parking.reliability)
+    ].filter(Boolean);
+    const notes = parking.notes?.length
+      ? `<ul>${parking.notes.map(note => `<li>${escapeHtml(note)}</li>`).join('')}</ul>`
+      : '';
+    const details = [parking.priceNote, parking.crowding].filter(Boolean)
+      .map(item => `<p>${escapeHtml(item)}</p>`).join('');
+    const practicalDetails = details || notes
+      ? `<details class="parking-more"><summary>Практические детали</summary><div class="parking-more-content">${details}${notes}</div></details>`
+      : '';
+    return `<div class="parking-entry">
+      ${heading ? `<div class="parking-entry-label">${escapeHtml(heading)}</div>` : ''}
+      <div class="parking-detail-heading">
+        <span class="parking-badge">P</span>
+        <div class="parking-detail-heading-main"><strong>${escapeHtml(parking.name || 'Парковка')}</strong><span>${escapeHtml(facts.join(' · '))}</span></div>
+        <div class="parking-actions" aria-label="Навигация">
+          <a class="parking-action parking-action-google" href="${escapeHtml(googleMapsParkingUrl(parking))}" target="_blank" rel="noopener" aria-label="Открыть маршрут в Google Maps" title="Google Maps"><span class="parking-action-dot" aria-hidden="true">G</span></a>
+          <a class="parking-action parking-action-waze" href="${escapeHtml(wazeParkingUrl(parking))}" target="_blank" rel="noopener" aria-label="Открыть маршрут в Waze" title="Waze"><span class="parking-action-dot" aria-hidden="true">W</span></a>
+        </div>
+      </div>
+      <p class="parking-summary">${escapeHtml(parking.summary || '')}</p>
+      ${practicalDetails}
+    </div>`;
+  }
+
+  function parkingCardHtml(stop) {
+    const primary = getPrimaryParking(stop);
+    if (!primary) return '';
+    const alternatives = getAlternativeParkings(stop);
+    return `<section class="parking-detail" data-parking-detail>
+      ${parkingEntryHtml(primary)}
+      ${alternatives.map((parking, index) => parkingEntryHtml(parking, `Альтернатива ${index + 1}`)).join('')}
+    </section>`;
+  }
+
+  function parkingMarkerIcon() {
+    return L.divIcon({
+      className: '',
+      html: '<div class="parking-marker" aria-label="Парковка">P</div>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
+    });
+  }
+
+  function clearParkingMarkerState(dayId, className) {
+    parkingMarkerIndex.forEach(({ element }, key) => {
+      if (key.startsWith(`${dayId}:`) && element) element.classList.remove(className);
+    });
+  }
+
+  function setParkingMarkerState(dayId, stopOrder, className) {
+    clearParkingMarkerState(dayId, className);
+    parkingMarkerIndex.get(parkingMarkerKey(dayId, stopOrder))?.element?.classList.add(className);
+  }
+
+  function validateParkingReferences() {
+    for (const day of data.days || []) {
+      for (const stop of day.stops || []) {
+        const links = [stop.parking?.primary, ...(stop.parking?.alternatives || [])].filter(Boolean);
+        for (const link of links) {
+          if (!data.parkingLocations?.[link.ref]) {
+            console.error(`Missing parking "${link.ref}" for ${day.id}: ${stop.name}`);
+          }
+        }
+      }
+    }
+  }
+
   function buildGoogleMapsUrl(day) {
     const routeStops = day.routeStopOrders.map(order => day.stops.find(stop => stop.order === order));
     const [origin, ...rest] = routeStops;
     const destination = rest.pop();
     const params = new URLSearchParams({
       api: '1',
-      origin: origin.navigationQuery,
-      destination: destination.navigationQuery,
+      origin: getNavigationQuery(origin),
+      destination: getNavigationQuery(destination),
       travelmode: 'driving'
     });
-    if (rest.length) params.set('waypoints', rest.map(stop => stop.navigationQuery).join('|'));
+    if (rest.length) params.set('waypoints', rest.map(getNavigationQuery).join('|'));
     return `https://www.google.com/maps/dir/?${params.toString()}`;
   }
 
   function buildStopNavigationUrl(stop) {
     const params = new URLSearchParams({
       api:'1',
-      destination:stop.navigationQuery,
+      destination:getNavigationQuery(stop),
       travelmode:'driving',
       dir_action:'navigate'
     });
@@ -305,7 +453,7 @@
             : formatTimeShort(driveMinutes);
           
           segments.push({
-            type: 'drive',
+            type: nextStop.mode === 'flight' ? 'flight' : 'drive',
             minutes: driveMinutes,
             fullLabel: driveLabel,
             shortLabel: abbreviateTime(driveLabel),
@@ -396,7 +544,7 @@
       const width = offsetEnd - offsetStart;
       
       const fullTooltip = `${seg.description} (${escapeHtml(seg.fullLabel)})`;
-      return `<div class="timeline-segment timeline-${seg.type}" data-stop-order="${seg.stopOrder}" data-segment-type="${seg.type}" data-width-percent="${width}" tabindex="0" role="button" aria-label="${seg.type === 'drive' ? 'Вождение' : 'Остановка'}: ${fullTooltip}" title="${fullTooltip}" style="left:${offsetStart}%; width:${width}%;"><span class="timeline-time">${escapeHtml(seg.shortLabel)}</span></div>`;
+      return `<div class="timeline-segment timeline-${seg.type}" data-stop-order="${seg.stopOrder}" data-segment-type="${seg.type}" data-width-percent="${width}" tabindex="0" role="button" aria-label="${seg.type === 'flight' ? 'Перелёт' : seg.type === 'drive' ? 'Вождение' : 'Остановка'}: ${fullTooltip}" title="${fullTooltip}" style="left:${offsetStart}%; width:${width}%;"><span class="timeline-time">${escapeHtml(seg.shortLabel)}</span></div>`;
     }).join('');
     
     const timelineHtml = `<div class="timeline-container" data-timeline="day-${data.days.findIndex(d => d === day)}" aria-label="Визуальный обзор дня: вождение и остановки">${segmentHtml}</div>`;
@@ -430,7 +578,7 @@
     const rows = day.stops.map(stop => {
       const flexible = isFlexibleStop(day, stop);
       const stopDuration = stop.duration && stop.duration !== '—' && stop.duration !== '-' ? stop.duration : '';
-      return `<tr class="route-row${flexible?' is-flexible':''}" tabindex="0" data-day-id="${day.id}" data-stop-order="${stop.order}" aria-label="Показать ${escapeHtml(stop.name)} на карте">
+      return `<tr class="route-row${flexible?' is-flexible':''}" tabindex="0" data-day-id="${day.id}" data-stop-order="${stop.order}" data-mode="${escapeHtml(stop.mode || 'stop')}" aria-label="Показать ${escapeHtml(stop.name)} на карте">
         <td class="stop-order">${stop.order}</td><td class="stop-name"><strong>${escapeHtml(stop.name)}</strong>${flexible?'<span class="flexible-label">Гибко</span>':''}<span class="role">${escapeHtml(stop.role)}</span></td>
         <td data-label="Расстояние">${escapeHtml(stop.distance)}<span class="drive-time">${escapeHtml(stop.drive)}</span></td><td data-label="Время">${escapeHtml(stop.time)}${stopDuration ? `<span class="stop-time">${escapeHtml(stopDuration)}</span>` : ''}</td></tr>`;
     }).join('');
@@ -517,6 +665,7 @@
   }
 
   function render() {
+    validateParkingReferences();
     projectTitle.textContent = 'Крит · 11–15 августа';
     renderTabs();
     app.innerHTML = renderOverview() + data.days.map(renderDay).join('');
@@ -530,10 +679,15 @@
     const day = data.days.find(item => item.id === dayId);
     const map = maps.get(dayId);
     if (!day || !map) return;
-    const bounds = L.latLngBounds(day.routeStopOrders.map(order => {
+    const points = [];
+    for (const order of day.routeStopOrders) {
       const stop = day.stops.find(item => item.order === order);
-      return [stop.lat,stop.lon];
-    }));
+      if (stop) points.push(getDrivingCoordinates(stop));
+    }
+    for (const stop of day.stops.filter(item => item.mapVisible)) {
+      points.push([stop.lat, stop.lon]);
+    }
+    const bounds = L.latLngBounds(points);
     map.invalidateSize({ pan:false });
     if (bounds.isValid()) map.fitBounds(bounds,{ padding:[30,30],animate:false });
   }
@@ -553,7 +707,8 @@
         <div><dt>Остановка</dt><dd>${escapeHtml(stop.duration)}</dd></div>
         <div><dt>От предыдущей</dt><dd>${escapeHtml(stop.drive)}, ${escapeHtml(stop.distance)}</dd></div>
       </dl>
-      <p class="stop-detail-note"><strong>Примечание:</strong> ${escapeHtml(stop.note)}</p>`;
+      <p class="stop-detail-note"><strong>Примечание:</strong> ${escapeHtml(stop.note)}</p>
+      ${parkingCardHtml(stop)}`;
     detail.hidden = false;
     detail.closest('.map-wrap').classList.add('has-stop-detail');
   }
@@ -578,6 +733,7 @@
       markerIndex.forEach(({ element }, key) => {
         if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-hovered');
       });
+      clearParkingMarkerState(dayId, 'is-hovered');
     } else {
       // Clear all previous selections
       panel.querySelectorAll('.route-row').forEach(row => {
@@ -589,6 +745,7 @@
       markerIndex.forEach(({ element }, key) => {
         if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-active');
       });
+      clearParkingMarkerState(dayId, 'is-active');
     }
     
     if (!selectedType || selectedOrder === null) return; // Cleared but no new selection/hover
@@ -610,6 +767,7 @@
       // Highlight the map marker
       const marker = markerIndex.get(markerKey(dayId, selectedOrder));
       marker?.element?.classList.add(isHover ? 'is-hovered' : 'is-active');
+      setParkingMarkerState(dayId, selectedOrder, isHover ? 'is-hovered' : 'is-active');
       
     } else if (selectedType === 'drive') {
       // Highlight the destination stop's row with drive column styling (Км + В пути)
@@ -692,9 +850,18 @@
     markerIndex.forEach(({ element }, key) => {
       if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-active');
     });
+    clearParkingMarkerState(dayId, 'is-active');
     if (record.element) record.element.classList.add('is-active');
+    setParkingMarkerState(dayId, order, 'is-active');
     if (focusMap) {
-      record.map.setView(record.marker.getLatLng(), Math.max(record.map.getZoom(), 13), { animate:true });
+      const day = data.days.find(item => item.id === dayId);
+      const stop = day?.stops.find(item => item.order === Number(order));
+      const parking = getPrimaryParking(stop);
+      if (stop && isSeparateParking(stop) && parking) {
+        record.map.fitBounds([[stop.lat, stop.lon], [parking.lat, parking.lon]], { padding:[70,70], maxZoom:17, animate:true });
+      } else {
+        record.map.setView(record.marker.getLatLng(), Math.max(record.map.getZoom(), 13), { animate:true });
+      }
     }
   }
 
@@ -823,8 +990,8 @@
       return;
     }
     map.fitBounds([
-      [previousStop.lat, previousStop.lon],
-      [currentStop.lat, currentStop.lon]
+      getDrivingCoordinates(previousStop),
+      getDrivingCoordinates(currentStop)
     ], { padding:[60,60], maxZoom:13, animate:true });
   }
 
@@ -848,8 +1015,9 @@
 
     const routeStops = day.routeStopOrders.map(order => day.stops.find(stop => stop.order === order));
     const bounds = day.stops.filter(stop => stop.mapVisible).map(stop => [stop.lat,stop.lon]);
+    routeStops.forEach(stop => bounds.push(getDrivingCoordinates(stop)));
     const routing = L.Routing.control({
-      waypoints: routeStops.map(stop => L.latLng(stop.lat,stop.lon)),
+      waypoints: routeStops.map(stop => L.latLng(...getDrivingCoordinates(stop))),
       router:L.Routing.osrmv1({ serviceUrl:'https://router.project-osrm.org/route/v1' }),
       addWaypoints:false, draggableWaypoints:false, routeWhileDragging:false,
       showAlternatives:false, fitSelectedRoutes:true, createMarker:() => null,
@@ -908,7 +1076,6 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap contributors' }).addTo(map);
 
     const visibleStops = day.stops.filter(stop => stop.mapVisible);
-    const bounds = [];
     visibleStops.forEach(stop => {
       const icon = L.divIcon({ className:'', html:`<div class="numbered-marker" data-marker-order="${stop.order}">${stop.order}</div>`, iconSize:[36,36], iconAnchor:[18,18] });
       const marker = L.marker([stop.lat,stop.lon], { icon });
@@ -916,11 +1083,8 @@
       marker.on('add', () => {
         const element = marker.getElement()?.querySelector('.numbered-marker');
         markerIndex.set(markerKey(dayId,stop.order), { marker,map,element });
-        // Add hover listeners to marker
         if (element) {
-          element.addEventListener('mouseover', () => {
-            syncSelectionUI(dayId, 'stop', stop.order, true);
-          });
+          element.addEventListener('mouseover', () => syncSelectionUI(dayId, 'stop', stop.order, true));
           element.addEventListener('mouseout', () => {
             syncSelectionUI(dayId, null, null, true);
             clearHoverDrive(dayId);
@@ -928,7 +1092,23 @@
         }
       });
       marker.addTo(map);
-      bounds.push([stop.lat,stop.lon]);
+
+      const parking = getPrimaryParking(stop);
+      if (!isSeparateParking(stop) || !parking) return;
+      const parkingMarker = L.marker([parking.lat, parking.lon], {
+        icon: parkingMarkerIcon(),
+        keyboard: true,
+        title: parking.name || 'Парковка'
+      });
+      parkingMarker.on('click', () => selectStop(dayId, stop.order, true));
+      parkingMarker.on('add', () => {
+        const element = parkingMarker.getElement()?.querySelector('.parking-marker');
+        parkingMarkerIndex.set(parkingMarkerKey(dayId, stop.order), { marker:parkingMarker, map, element });
+      });
+      parkingMarker.addTo(map);
+      L.polyline([[stop.lat, stop.lon], [parking.lat, parking.lon]], {
+        color:'#5d6f73', weight:2, opacity:.65, dashArray:'4,5', interactive:false
+      }).addTo(map);
     });
 
     initializeRoute(dayId);
@@ -1017,7 +1197,7 @@
         const cell = event.target.closest('td');
         if (cell) {
           const cellIndex = [...row.cells].indexOf(cell);
-          if (cellIndex === 2 && cell.textContent.trim() !== '—') {
+          if (row.dataset.mode !== 'flight' && cellIndex === 2 && cell.textContent.trim() !== '—') {
             focusTimelineDrive(row.dataset.dayId, Number(row.dataset.stopOrder));
             return;
           }
@@ -1098,7 +1278,7 @@
       if (cell) {
         const cellIndex = [...row.cells].indexOf(cell);
         // Hover on merged distance/drive column highlights drive, otherwise highlights stop.
-        const isDriveCell = cellIndex === 2 && cell.textContent.trim() !== '—';
+        const isDriveCell = row.dataset.mode !== 'flight' && cellIndex === 2 && cell.textContent.trim() !== '—';
         const selectedType = isDriveCell ? 'drive' : 'stop';
         syncSelectionUI(dayId, selectedType, stopOrder, true);
         // Show drive highlight on map when hovering over drive columns

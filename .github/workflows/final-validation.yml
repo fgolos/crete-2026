@@ -1,0 +1,77 @@
+name: Final refactor validation
+
+on:
+  push:
+    branches:
+      - refactor-itinerary-parking
+    paths:
+      - .github/workflows/final-validation.yml
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: refactor-itinerary-parking
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check JavaScript and data model
+        shell: bash
+        run: |
+          node --check app.js
+          node --check itinerary-data.js
+          node --check stories-data.js
+          node --check service-worker.js
+          node <<'NODE'
+          const fs = require('fs');
+          const vm = require('vm');
+          const assert = (condition, message) => { if (!condition) throw new Error(message); };
+          const context = { window: {}, console };
+          vm.createContext(context);
+          vm.runInContext(fs.readFileSync('itinerary-data.js', 'utf8'), context);
+          const data = context.window.CRETE_ITINERARY;
+          const app = fs.readFileSync('app.js', 'utf8');
+          const worker = fs.readFileSync('service-worker.js', 'utf8');
+          assert(data.parts?.length === 2, 'Trip parts missing');
+          assert(data.parkingLocations?.['sitia-port'], 'sitia-port missing');
+          assert(!data.parkingLocations['sitia-port'].notes.some(note => /Ioannou Kondylaki|дома/i.test(note)), 'Sitia relation notes leaked into shared parking');
+          const sitiaStops = data.days.flatMap(day => day.stops).filter(stop => stop.name === 'Sitia Airbnb');
+          assert(sitiaStops.length >= 5, 'Repeated Sitia stops missing');
+          assert(sitiaStops.every(stop => stop.parking?.primary?.ref === 'sitia-port'), 'Sitia references are inconsistent');
+          assert(sitiaStops.every(stop => stop.parking.primary.notes?.length === 3), 'Sitia relation notes missing');
+          for (const day of data.days) {
+            for (const stop of day.stops || []) {
+              for (const link of [stop.parking?.primary, ...(stop.parking?.alternatives || [])].filter(Boolean)) {
+                assert(data.parkingLocations[link.ref], `Missing parking reference ${link.ref}`);
+              }
+            }
+          }
+          assert(app.includes('scheduleParkingFocus'), 'Parking-aware map focus missing');
+          assert(app.includes('positionParkingBesideDetail'), 'Parking card positioning missing');
+          assert(!app.includes('MutationObserver'), 'Legacy parking observer remains');
+          assert(!app.includes('L.map = function patchedMap'), 'Leaflet monkey patch remains');
+          for (const removed of ['parking-ui.css', 'parking-data.js', 'parking-ui.js', 'itinerary-transport.js']) {
+            assert(!fs.existsSync(removed), `${removed} still exists`);
+            assert(!worker.includes(removed), `${removed} still cached`);
+          }
+          console.log('Final validation passed.');
+          NODE
+
+      - name: Remove temporary validator
+        run: |
+          rm .github/workflows/final-validation.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Remove final refactor validator"
+          git push origin HEAD:refactor-itinerary-parking

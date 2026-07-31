@@ -1351,7 +1351,7 @@
     });
     tabs.addEventListener('keydown', event => {
       if (!event.target.matches('.tab-button')) return;
-      const buttons = [...tabs.querySelectorAll('.tab-button')];
+      const buttons = [...tabs.querySelectorAll('.tab-button:not(:disabled)')];
       const current = buttons.indexOf(event.target);
       const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : event.key === 'ArrowRight' ? (current + 1) % buttons.length : event.key === 'ArrowLeft' ? (current - 1 + buttons.length) % buttons.length : -1;
       if (next >= 0) { event.preventDefault(); buttons[next].focus(); activatePanel(buttons[next].dataset.target); }
@@ -1539,7 +1539,8 @@
 
   function navigationFromHash() {
     const hash = location.hash.slice(1);
-    if (!hash || hash === 'overview') return null;
+    if (!hash) return null;
+    if (hash === 'overview') return { panelId:'overview', partId:'overview' };
     if (getPart(hash)) return { panelId:`part-${hash}`, partId:hash };
 
     const scoped = hash.match(/^(east|west)\/(day\d+)$/);

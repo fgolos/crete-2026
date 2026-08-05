@@ -27,3 +27,5 @@ jobs:
           node --check service-worker.js
       - name: Validate normalized itinerary
         run: node scripts/validate-itinerary.mjs
+      - name: Check compatibility runtime contract
+        run: node scripts/check-runtime-contract.mjs

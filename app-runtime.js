@@ -450,18 +450,6 @@
     );
   }
 
-  function parseTimeToMinutes(timeStr) {
-    if (!timeStr || timeStr === '—' || timeStr === '-') return 0;
-    const compactMatch = timeStr.match(/^(\d+):(\d{2})$/);
-    if (compactMatch) return Number(compactMatch[1]) * 60 + Number(compactMatch[2]);
-    let minutes = 0;
-    const hourMatch = timeStr.match(/(\d+)\s*(?:h|ч)/i);
-    const minMatch = timeStr.match(/(\d+)\s*(?:m|мин)/i);
-    if (hourMatch) minutes += Number(hourMatch[1]) * 60;
-    if (minMatch) minutes += Number(minMatch[1]);
-    return minutes;
-  }
-
   function parseClockTime(timeStr) {
     // Parse "HH:MM" format to minutes since midnight
     if (!timeStr) return null;
@@ -470,12 +458,6 @@
     const hours = parseInt(match[1]);
     const minutes = parseInt(match[2]);
     return hours * 60 + minutes;
-  }
-
-  function formatClockTime(minutesSinceMidnight) {
-    const hours = Math.floor(minutesSinceMidnight / 60);
-    const minutes = minutesSinceMidnight % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   }
 
   function formatHourLabel(minutesSinceMidnight) {
@@ -547,8 +529,6 @@
 
   function renderTimeline(day) {
     const segments = [];
-    let timelineEvents = []; // Track events with actual clock times
-    
     // Extract start time
     let startMinutes = null;
     const startMeta = day.meta.find(m => /выезд/i.test(m.label));
@@ -588,25 +568,8 @@
         stopStartTime = parseClockTime(stopTimeStr);
       }
       
-      // Add events to timeline
       if (stopStartTime !== null) {
-        timelineEvents.push({
-          time: stopStartTime,
-          type: 'stop-start',
-          stopIndex: i,
-          stopName: stop.name
-        });
-        if (stopEndTime !== null) {
-          timelineEvents.push({
-            time: stopEndTime,
-            type: 'stop-end',
-            stopIndex: i,
-            stopName: stop.name
-          });
-          maxEndTime = Math.max(maxEndTime, stopEndTime);
-        } else {
-          maxEndTime = Math.max(maxEndTime, stopStartTime);
-        }
+        maxEndTime = Math.max(maxEndTime, stopEndTime ?? stopStartTime);
       }
       
       // Add drive segment BETWEEN consecutive stops (regardless of stop.drive property)
@@ -693,8 +656,6 @@
     const totalMinutes = maxEndTime - startMinutes;
     
     if (segments.length === 0 || totalMinutes === 0) return { ruler: '', timeline: '' };
-    
-    console.log(`DEBUG: ${day.id} - startMinutes: ${startMinutes} (${formatClockTime(startMinutes)}), endTime: ${maxEndTime} (${formatClockTime(maxEndTime)}), total: ${totalMinutes}`);
     
     // Generate hour grid based on full hours
     const hourMarks = [];
@@ -1096,10 +1057,7 @@
     const panel = document.getElementById(dayId);
     if (!panel) return;
     
-    // Determine CSS class suffix based on hover/selected
-    const suffix = isHover ? 'hovered' : 'active';
     const selectionClass = isHover ? 'is-hovered' : 'is-selected';
-    const rowActiveClass = isHover ? 'is-hovered' : 'is-active';
     
     // Clear previous hover states if this is a hover, or selection states if not
     if (isHover) {

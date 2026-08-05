@@ -18,25 +18,6 @@
 
   const projected = window.CRETE_DATA_API.projectLegacyData(data, source, window.CRETE_FORMATTERS);
 
-  // The legacy renderer still resolves parking links through `ref`. The normalized
-  // model uses `primaryId` / alternative `id`, so restore those identifiers after
-  // projection instead of allowing override objects to erase them with undefined.
-  for (const day of projected.days || []) {
-    for (const stop of day.stops || []) {
-      const visitId = data.legacyVisitIndex[`${day.id}:${stop.order}`];
-      const visit = visitId ? data.visits[visitId] : null;
-      if (!visit || !stop.parking) continue;
-
-      if (stop.parking.primary && visit.parking.primaryId) {
-        stop.parking.primary.ref = visit.parking.primaryId;
-      }
-      for (let index = 0; index < (stop.parking.alternatives || []).length; index += 1) {
-        const alternativeId = visit.parking.alternatives[index]?.id;
-        if (alternativeId) stop.parking.alternatives[index].ref = alternativeId;
-      }
-    }
-  }
-
   window.CRETE_DATA = data;
   window.CRETE_MODEL = window.CRETE_MODEL_API.createModel(data);
   window.CRETE_ITINERARY = projected;

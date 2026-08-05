@@ -55,6 +55,12 @@
     return { type: 'unknown' };
   }
 
+  function parkingOverrides(link) {
+    if (!link) return null;
+    const { ref: _ref, ...overrides } = link;
+    return overrides;
+  }
+
   function normalizeParkingLocations(source) {
     const result = {};
     for (const [id, item] of Object.entries(source || {})) {
@@ -179,8 +185,8 @@
           note: stop.note || null,
           parking: {
             primaryId: parking.primary?.ref || null,
-            primaryOverrides: parking.primary ? { ...parking.primary, ref: undefined } : null,
-            alternatives: (parking.alternatives || []).map(link => ({ id: link.ref, overrides: { ...link, ref: undefined } }))
+            primaryOverrides: parkingOverrides(parking.primary),
+            alternatives: (parking.alternatives || []).map(link => ({ id: link.ref, overrides: parkingOverrides(link) }))
           },
           map: { visible: stop.mapVisible !== false },
           legacy: { dayId: legacyDay.id, stopOrder: stop.order }

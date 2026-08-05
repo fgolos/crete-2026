@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - feature/normalized-itinerary-data
+      - refactor/native-normalized-renderer
 
 jobs:
   validate:
@@ -18,6 +19,7 @@ jobs:
         run: |
           node --check itinerary-data.js
           node --check itinerary-model.js
+          node --check itinerary-renderer-model.js
           node --check formatters.js
           node --check data-validation.js
           node --check itinerary-bootstrap.js

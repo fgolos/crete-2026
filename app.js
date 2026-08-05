@@ -12,6 +12,7 @@
   const appStatusText = document.getElementById('app-status-text');
   const appStatusAction = document.getElementById('app-status-action');
   const maps = new Map();
+  const partOverviewMaps = new Map();
   const markerIndex = new Map();
   const parkingMarkerIndex = new Map();
   const routingIndex = new Map();
@@ -21,6 +22,11 @@
   let isOffline = !navigator.onLine;
   let waitingWorker = null;
   let reloadingForUpdate = false;
+
+  const dayRoutePalette = [
+    '#0b7f91', '#c46e32', '#6a8d29', '#9f3f58', '#5e63b6', '#a07c17',
+    '#00846a', '#b64d3d', '#4a7ea5', '#7a5a36', '#8e4fb3', '#4d7f78'
+  ];
 
   const escapeHtml = value => String(value)
     .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
@@ -246,6 +252,11 @@
     return Number(String(dayId).replace(/^day/, ''));
   }
 
+  function dayRouteColor(dayId) {
+    const index = Math.max(0, dayNumber(dayId) - 11) % dayRoutePalette.length;
+    return dayRoutePalette[index];
+  }
+
   function getPart(partId) {
     return data.parts?.find(part => part.id === partId) || null;
   }
@@ -265,6 +276,54 @@
   function partProgress(part) {
     const ready = part.dayIds.filter(dayId => Boolean(getDay(dayId))).length;
     return { ready, total: part.dayIds.length, complete: ready === part.dayIds.length };
+  }
+
+  function readyPartDays(part) {
+    return (part?.dayIds || []).map(getDay).filter(Boolean);
+  }
+
+  function isTransitionDay(dayId) {
+    return dayId === 'day15';
+  }
+
+  function dayRoutePoints(day) {
+    return day.routeStopOrders
+      .map(order => day.stops.find(stop => stop.order === order))
+      .filter(Boolean)
+      .map(getDrivingCoordinates);
+  }
+
+  function visiblePartStops(day) {
+    return day.stops.filter(stop => stop.mapVisible);
+  }
+
+  async function fetchRoadRouteCoordinates(day) {
+    const routePoints = dayRoutePoints(day);
+    if (routePoints.length < 2) return routePoints;
+
+    const coordinates = routePoints
+      .map(([lat, lon]) => `${lon},${lat}`)
+      .join(';');
+    const params = new URLSearchParams({
+      overview: 'full',
+      geometries: 'geojson',
+      alternatives: 'false',
+      steps: 'false'
+    });
+
+    try {
+      const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordinates}?${params.toString()}`);
+      if (!response.ok) throw new Error(`OSRM responded with ${response.status}`);
+      const payload = await response.json();
+      const geometry = payload?.routes?.[0]?.geometry?.coordinates;
+      if (!Array.isArray(geometry) || geometry.length < 2) return routePoints;
+      return geometry
+        .map(point => Array.isArray(point) && point.length >= 2 ? [point[1], point[0]] : null)
+        .filter(Boolean);
+    } catch (error) {
+      console.warn(`Part overview route fallback for ${day.id}.`, error);
+      return routePoints;
+    }
   }
 
   function renderPartTabs() {
@@ -383,11 +442,6 @@
   }
 
   function renderPartOverview(part) {
-    const progress = partProgress(part);
-    const status = progress.complete
-      ? 'Все дни этой части готовы.'
-      : `Готово дней: ${progress.ready} из ${progress.total}. Остальные дни пока планируются.`;
-
     const dayItems = part.dayIds.map(dayId => {
       const day = getDay(dayId);
       const number = dayNumber(dayId);
@@ -398,9 +452,14 @@
           <small>Маршрут дня ещё не согласован.</small>
         </div>`;
       }
-      return `<button class="part-day-item" type="button" data-day-id="${day.id}" data-part-id="${part.id}">
+      const routeColor = dayRouteColor(day.id);
+      const transitionBadge = isTransitionDay(day.id)
+        ? '<span class="part-day-transition">Переезд между базами</span>'
+        : '';
+      return `<button class="part-day-item" type="button" data-day-id="${day.id}" data-part-id="${part.id}" style="--day-accent:${escapeHtml(routeColor)}">
         <span class="part-day-date">${escapeHtml(day.date)}</span>
-        <strong>${escapeHtml(day.title)}</strong>
+        <span class="part-day-swatch" aria-hidden="true"></span>
+        <strong>${escapeHtml(day.title)}${transitionBadge}</strong>
         <small>${escapeHtml(day.meta.slice(0, 4).map(item => item.value).join(' · '))}</small>
       </button>`;
     }).join('');
@@ -411,11 +470,9 @@
           <div class="part-card-kicker">${escapeHtml(part.kicker || '')}</div>
           <h1>${escapeHtml(part.title)}</h1>
           <p>${escapeHtml(part.dates)} · база ${escapeHtml(part.base)}</p>
-          <span class="part-progress">${escapeHtml(status)}</span>
+          <p class="part-overview-description">${escapeHtml(part.description || '')}</p>
         </header>
-        <article class="overview-card part-description">
-          <p>${escapeHtml(part.description || '')}</p>
-        </article>
+        <div id="part-map-${part.id}" class="part-overview-map" aria-label="Карта маршрутов части ${escapeHtml(part.title)}"></div>
         <div class="part-day-list">${dayItems}</div>
       </div>
     </section>`;
@@ -836,6 +893,198 @@
     setActivePart('overview');
     setupTimelineListeners();
     adjustTimelineSegmentDisplay();
+  }
+
+  function partRouteStyle(color, state = 'rest') {
+    if (state === 'active') {
+      return { color, weight:6, opacity:.95, lineCap:'round', lineJoin:'round' };
+    }
+    if (state === 'dim') {
+      return { color, weight:3, opacity:.3, lineCap:'round', lineJoin:'round' };
+    }
+    return { color, weight:4, opacity:.6, lineCap:'round', lineJoin:'round' };
+  }
+
+  function partStopStyle(color, state = 'rest') {
+    if (state === 'active') {
+      return { radius:6, color:'#fffdf8', weight:2, fillColor:color, fillOpacity:.96, opacity:1 };
+    }
+    if (state === 'dim') {
+      return { radius:4, color:'#fffdf8', weight:1.5, fillColor:color, fillOpacity:.28, opacity:.45 };
+    }
+    return { radius:4.5, color:'#fffdf8', weight:1.5, fillColor:color, fillOpacity:.72, opacity:.88 };
+  }
+
+  function routeLabelText(dayId) {
+    return String(dayNumber(dayId));
+  }
+
+  function routeLabelFraction(dayIndex) {
+    const preferredFractions = [0.18, 0.36, 0.54, 0.72, 0.84, 0.27, 0.63, 0.45];
+    return preferredFractions[dayIndex % preferredFractions.length];
+  }
+
+  function routePointAtFraction(coordinates, fraction) {
+    if (!Array.isArray(coordinates) || coordinates.length === 0) return null;
+    if (coordinates.length === 1) return coordinates[0];
+
+    const segmentLengths = [];
+    let totalLength = 0;
+    for (let index = 1; index < coordinates.length; index += 1) {
+      const [prevLat, prevLon] = coordinates[index - 1];
+      const [nextLat, nextLon] = coordinates[index];
+      const length = Math.hypot(nextLat - prevLat, nextLon - prevLon);
+      segmentLengths.push(length);
+      totalLength += length;
+    }
+    if (!totalLength) return coordinates[Math.floor((coordinates.length - 1) * fraction)];
+
+    const targetLength = totalLength * Math.max(0.08, Math.min(0.9, fraction));
+    let traversed = 0;
+    for (let index = 1; index < coordinates.length; index += 1) {
+      const segmentLength = segmentLengths[index - 1];
+      if (traversed + segmentLength >= targetLength) {
+        const segmentFraction = segmentLength ? (targetLength - traversed) / segmentLength : 0;
+        const [prevLat, prevLon] = coordinates[index - 1];
+        const [nextLat, nextLon] = coordinates[index];
+        return [
+          prevLat + (nextLat - prevLat) * segmentFraction,
+          prevLon + (nextLon - prevLon) * segmentFraction
+        ];
+      }
+      traversed += segmentLength;
+    }
+    return coordinates[coordinates.length - 1];
+  }
+
+  function createRouteLabel(dayId, color, coordinates, dayIndex) {
+    const latLng = routePointAtFraction(coordinates, routeLabelFraction(dayIndex));
+    if (!latLng) return null;
+    return L.marker(latLng, {
+      icon: L.divIcon({
+        className: '',
+        html: `<span class="part-route-label" style="--route-label-color:${escapeHtml(color)}">${escapeHtml(routeLabelText(dayId))}</span>`,
+        iconSize: [30, 20],
+        iconAnchor: [15, 10]
+      }),
+      interactive: true,
+      keyboard: false,
+      zIndexOffset: 500
+    });
+  }
+
+  function fitPartOverview(partId) {
+    const record = partOverviewMaps.get(partId);
+    if (!record?.map || !record.bounds?.isValid()) return;
+    record.map.invalidateSize({ pan:false });
+    record.map.fitBounds(record.bounds, {
+      padding: mobileViewport.matches ? [18, 18] : [28, 28],
+      animate:false
+    });
+  }
+
+  function syncPartOverviewState(partId) {
+    const record = partOverviewMaps.get(partId);
+    if (!record) return;
+    const hoveredDayId = record.hoveredDayId;
+    record.days.forEach((dayRecord, dayId) => {
+      const state = !hoveredDayId ? 'rest' : dayId === hoveredDayId ? 'active' : 'dim';
+      dayRecord.route?.setStyle(partRouteStyle(dayRecord.color, state));
+      dayRecord.stops.forEach(marker => marker.setStyle(partStopStyle(dayRecord.color, state)));
+      dayRecord.label?.setOpacity(state === 'dim' ? 0.55 : 1);
+      const labelElement = dayRecord.label?.getElement()?.querySelector('.part-route-label');
+      if (labelElement) {
+        labelElement.classList.toggle('is-active', state === 'active');
+        labelElement.classList.toggle('is-dim', state === 'dim');
+      }
+      const row = document.querySelector(`#part-${partId} .part-day-item[data-day-id="${dayId}"]`);
+      if (row) row.classList.toggle('is-map-hovered', dayId === hoveredDayId);
+    });
+  }
+
+  function setPartOverviewHover(partId, dayId) {
+    const record = partOverviewMaps.get(partId);
+    if (!record || record.hoveredDayId === dayId) return;
+    record.hoveredDayId = dayId;
+    syncPartOverviewState(partId);
+  }
+
+  function clearPartOverviewHover(partId) {
+    const record = partOverviewMaps.get(partId);
+    if (!record || !record.hoveredDayId) return;
+    record.hoveredDayId = null;
+    syncPartOverviewState(partId);
+  }
+
+  function openPartDay(partId, dayId) {
+    activatePanel(dayId, true, partId);
+  }
+
+  function initializePartOverviewMap(partId) {
+    const part = getPart(partId);
+    const container = document.getElementById(`part-map-${partId}`);
+    if (!part || !container) return;
+    if (partOverviewMaps.has(partId)) {
+      setTimeout(() => fitPartOverview(partId), 80);
+      return;
+    }
+
+    const map = L.map(`part-map-${partId}`, {
+      zoomControl:true,
+      scrollWheelZoom:true
+    });
+    map.createPane('partRouteHits');
+    map.getPane('partRouteHits').style.zIndex = 425;
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom:19,
+      attribution:'&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const days = new Map();
+    const bounds = L.latLngBounds([]);
+    readyPartDays(part).forEach((day, dayIndex) => {
+      const color = dayRouteColor(day.id);
+      const routePoints = dayRoutePoints(day);
+      routePoints.forEach(point => bounds.extend(point));
+
+      const stops = visiblePartStops(day).map(stop => {
+        bounds.extend([stop.lat, stop.lon]);
+        const marker = L.circleMarker([stop.lat, stop.lon], partStopStyle(color)).addTo(map);
+        marker.on('mouseover', () => setPartOverviewHover(partId, day.id));
+        marker.on('mouseout', () => clearPartOverviewHover(partId));
+        marker.on('click', () => openPartDay(partId, day.id));
+        return marker;
+      });
+
+      days.set(day.id, { color, route:null, routeHitArea:null, label:null, stops });
+
+      fetchRoadRouteCoordinates(day).then(roadCoordinates => {
+        const record = partOverviewMaps.get(partId)?.days.get(day.id);
+        if (!record || !Array.isArray(roadCoordinates) || roadCoordinates.length < 2) return;
+        const route = L.polyline(roadCoordinates, { ...partRouteStyle(color), interactive:false }).addTo(map);
+        const routeHitArea = L.polyline(roadCoordinates, {
+          weight:22,
+          opacity:0.001,
+          interactive:true,
+          pane:'partRouteHits'
+        }).addTo(map);
+        routeHitArea.on('mouseover', () => setPartOverviewHover(partId, day.id));
+        routeHitArea.on('mouseout', () => clearPartOverviewHover(partId));
+        routeHitArea.on('click', () => openPartDay(partId, day.id));
+        const label = createRouteLabel(day.id, color, roadCoordinates, dayIndex);
+        label?.on('mouseover', () => setPartOverviewHover(partId, day.id));
+        label?.on('mouseout', () => clearPartOverviewHover(partId));
+        label?.on('click', () => openPartDay(partId, day.id));
+        label?.addTo(map);
+        record.route = route;
+        record.routeHitArea = routeHitArea;
+        record.label = label;
+        syncPartOverviewState(partId);
+      });
+    });
+
+    partOverviewMaps.set(partId, { map, bounds, days, hoveredDayId:null });
+    fitPartOverview(partId);
   }
 
   function markerKey(dayId, order) { return `${dayId}:${order}`; }
@@ -1320,6 +1569,8 @@
         delete document.getElementById(panelId).dataset.focusStop;
         setMobileView(panelId, 'plan', false);
       }
+    } else if (panelId.startsWith('part-')) {
+      initializePartOverviewMap(partId);
     }
 
     if (updateHash) history.replaceState(null, '', hashForNavigation(panelId, partId));
@@ -1452,6 +1703,12 @@
         }
         return;
       }
+      const partDay = event.target.closest('.part-day-item[data-day-id]');
+      if (partDay && (event.key === 'Enter' || event.key === ' ')) {
+        event.preventDefault();
+        partDay.click();
+        return;
+      }
       const row = event.target.closest('.route-row');
       if (row && (event.key==='Enter' || event.key===' ')) { event.preventDefault(); activateStopRow(row); }
     });
@@ -1506,12 +1763,60 @@
     app.addEventListener('mouseout', event => {
       const row = event.target.closest('.route-row');
       if (!row) return;
+      if (row.contains(event.relatedTarget)) return;
       const dayId = row.dataset.dayId;
       syncSelectionUI(dayId, null, null, true);
       clearHoverDrive(dayId);
     });
+
+    app.addEventListener('mouseover', event => {
+      const partDay = event.target.closest('.part-day-item[data-day-id]');
+      if (!partDay) return;
+      setPartOverviewHover(partDay.dataset.partId, partDay.dataset.dayId);
+    });
+    app.addEventListener('mouseout', event => {
+      const partDay = event.target.closest('.part-day-item[data-day-id]');
+      if (!partDay) return;
+      if (partDay.contains(event.relatedTarget)) return;
+    });
+    app.addEventListener('focusin', event => {
+      const partDay = event.target.closest('.part-day-item[data-day-id]');
+      if (!partDay) return;
+      setPartOverviewHover(partDay.dataset.partId, partDay.dataset.dayId);
+    });
+    app.addEventListener('focusout', event => {
+      const partDay = event.target.closest('.part-day-item[data-day-id]');
+      if (!partDay) return;
+      if (partDay.contains(event.relatedTarget)) return;
+      clearPartOverviewHover(partDay.dataset.partId);
+    });
+    app.addEventListener('mouseleave', event => {
+      const partList = event.target instanceof Element && event.target.matches('.part-day-list')
+        ? event.target
+        : null;
+      if (!partList) return;
+      const panel = partList.closest('.part-panel');
+      if (!panel) return;
+      clearPartOverviewHover(panel.id.slice(5));
+    }, true);
+    app.addEventListener('mouseleave', event => {
+      const partMap = event.target instanceof Element && event.target.matches('.part-overview-map')
+        ? event.target
+        : null;
+      if (!partMap) return;
+      const panel = partMap.closest('.part-panel');
+      if (!panel) return;
+      clearPartOverviewHover(panel.id.slice(5));
+    }, true);
     
-    window.addEventListener('beforeprint', () => { data.days.forEach(day => initializeMap(day.id)); setTimeout(() => [...maps.values()].forEach(map => map.invalidateSize()),300); });
+    window.addEventListener('beforeprint', () => {
+      data.parts?.forEach(part => initializePartOverviewMap(part.id));
+      data.days.forEach(day => initializeMap(day.id));
+      setTimeout(() => {
+        [...partOverviewMaps.values()].forEach(record => record.map.invalidateSize());
+        [...maps.values()].forEach(map => map.invalidateSize());
+      },300);
+    });
   }
 
   function openingDate() {

@@ -1,0 +1,29 @@
+name: Validate itinerary
+
+on:
+  pull_request:
+  push:
+    branches:
+      - feature/normalized-itinerary-data
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check itinerary-data.js
+          node --check itinerary-model.js
+          node --check formatters.js
+          node --check data-validation.js
+          node --check itinerary-bootstrap.js
+          node --check app.js
+          node --check app-runtime.js
+          node --check stories-data.js
+          node --check service-worker.js
+      - name: Validate normalized itinerary
+        run: node scripts/validate-itinerary.mjs

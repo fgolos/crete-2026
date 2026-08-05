@@ -8,6 +8,7 @@
   const scripts = [
     'formatters.js',
     'itinerary-model.js',
+    'itinerary-renderer-model.js',
     'data-validation.js',
     'itinerary-source.js',
     'itinerary-bootstrap.js',

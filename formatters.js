@@ -3,9 +3,9 @@
 
   const locale = 'ru-RU';
   const dateOnly = value => new Date(`${value}T12:00:00Z`);
-  const monthOnly = new Intl.DateTimeFormat(locale, { month: 'long' });
-  const dayMonth = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long' });
-  const longDate = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', weekday: 'long' });
+  const monthOnly = new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' });
+  const dayMonth = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', timeZone: 'UTC' });
+  const weekdayOnly = new Intl.DateTimeFormat(locale, { weekday: 'long', timeZone: 'UTC' });
 
   function formatDateRange(startDate, endDate, includeYear = false) {
     if (!startDate || !endDate) return '';
@@ -18,8 +18,8 @@
   }
 
   function formatLongDate(value) {
-    const formatted = longDate.format(dateOnly(value));
-    return formatted.charAt(0).toLowerCase() + formatted.slice(1);
+    const date = dateOnly(value);
+    return `${dayMonth.format(date)}, ${weekdayOnly.format(date)}`;
   }
 
   function formatShortDateEn(value) {

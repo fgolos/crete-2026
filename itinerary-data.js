@@ -3,9 +3,20 @@ window.CRETE_ITINERARY = {
     "title": "Crete 2026 — Full Trip MASTER | 11–22 August",
     "part": "FULL TRIP",
     "heading": "Crete 2026",
-    "lead": "11–22 августа · базы Sitia и Platanes · спокойный семейный маршрут с пляжами, деревнями, локальной едой и реалистичным вождением.",
     "dateRange": "11–22 августа 2026",
-    "overviewEyebrow": "Крит · семейный маршрут"
+    "overviewEyebrow": "Крит · семейный маршрут",
+    "header": {
+      "title": "Crete 2026",
+      "chips": [
+        { "label": "Даты", "value": "11–22 августа 2026" },
+        { "label": "Базы", "value": "Sitia + Platanes" }
+      ],
+      "theme": "overview",
+      "media": {
+        "imageUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Vai_R01.jpg?width=1600",
+        "position": "center 44%"
+      }
+    }
   },
   "parts": [
     {
@@ -21,7 +32,19 @@ window.CRETE_ITINERARY = {
         "day15"
       ],
       "kicker": "PART 1",
-      "description": "Готовая восточная часть маршрута с базой в Sitia."
+      "description": "Готовая восточная часть маршрута с базой в Sitia.",
+      "header": {
+        "title": "East Crete",
+        "chips": [
+          { "label": "Даты", "value": "11–15 августа" },
+          { "label": "База", "value": "Sitia" }
+        ],
+        "theme": "east",
+        "media": {
+          "imageUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Vai_R01.jpg?width=1600",
+          "position": "center 42%"
+        }
+      }
     },
     {
       "id": "west",
@@ -39,7 +62,19 @@ window.CRETE_ITINERARY = {
         "day22"
       ],
       "kicker": "PART 2",
-      "description": "Переезд 15 августа уже готов; дни 16–22 будут добавляться после согласования."
+      "description": "Переезд 15 августа уже готов; дни 16–22 будут добавляться после согласования.",
+      "header": {
+        "title": "West & Central Crete",
+        "chips": [
+          { "label": "Даты", "value": "15–22 августа" },
+          { "label": "База", "value": "Platanes" }
+        ],
+        "theme": "west",
+        "media": {
+          "imageUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Vai_R01.jpg?width=1600",
+          "position": "center 62%"
+        }
+      }
     }
   ],
   "overview": {

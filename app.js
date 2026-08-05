@@ -7,7 +7,6 @@
   const app = document.getElementById('app');
   const partTabs = document.getElementById('part-tabs');
   const tabs = document.getElementById('tabs');
-  const projectTitle = document.getElementById('project-title');
   const appStatus = document.getElementById('app-status');
   const appStatusText = document.getElementById('app-status-text');
   const appStatusAction = document.getElementById('app-status-action');
@@ -328,7 +327,7 @@
 
   function renderPartTabs() {
     const items = [
-      { id:'overview', target:'overview', label:'Обзор', subtitle:data.project.dateRange },
+      { id:'overview', target:'overview', label:'Крит', subtitle:'11–22 августа' },
       ...(data.parts || []).map(part => ({
         id:part.id,
         target:`part-${part.id}`,
@@ -398,18 +397,73 @@
     }).join('')}</div>`;
   }
 
+  function projectHeaderModel() {
+    const header = data.project?.header || {};
+    const baseNames = [...new Set((data.parts || []).map(part => part.base).filter(Boolean))];
+    return {
+      title: header.title || data.project.heading || data.project.title || '',
+      theme: header.theme || 'overview',
+      chips: Array.isArray(header.chips) ? header.chips : [
+        { label: 'Даты', value: data.project.dateRange || '' },
+        { label: 'Базы', value: baseNames.join(' + ') }
+      ],
+      media: {
+        imageUrl: header.media?.imageUrl || 'https://commons.wikimedia.org/wiki/Special:FilePath/Vai_R01.jpg?width=1600',
+        position: header.media?.position || 'center 44%'
+      }
+    };
+  }
+
+  function partHeaderModel(part) {
+    const header = part.header || {};
+    return {
+      title: header.title || part.title || '',
+      theme: header.theme || part.id || 'part',
+      chips: Array.isArray(header.chips) ? header.chips : [
+        { label: 'Даты', value: part.dates || '' },
+        { label: 'База', value: part.base || '' }
+      ],
+      media: {
+        imageUrl: header.media?.imageUrl || '',
+        position: header.media?.position || 'center center'
+      }
+    };
+  }
+
+  function renderPageHeader(model) {
+    const hasImage = Boolean(model.media?.imageUrl);
+    const styleAttr = hasImage
+      ? ` style="--header-image:url('${escapeHtml(model.media.imageUrl)}');--header-image-position:${escapeHtml(model.media.position || 'center center')};"`
+      : '';
+    const chips = (Array.isArray(model.chips) ? model.chips.slice(0, 2) : [])
+      .map(chip => {
+        if (!chip) return null;
+        if (typeof chip === 'string') return { value: chip, tone: '' };
+        if (typeof chip === 'object') return {
+          value: chip.value || '',
+          label: chip.label || '',
+          tone: chip.tone || ''
+        };
+        return null;
+      })
+      .filter(chip => chip && chip.value);
+    const chipsHtml = chips.length
+      ? `<div class="page-header-meta">${chips.map(chip => `<span class="page-header-chip${chip.tone ? ` is-${escapeHtml(chip.tone)}` : ''}">${escapeHtml(chip.value)}</span>`).join('')}</div>`
+      : '';
+    return `<header class="page-header page-header-${escapeHtml(model.theme || 'default')}${hasImage ? ' page-header-has-image' : ''}"${styleAttr}>
+      <div class="page-header-content">
+        <h1>${escapeHtml(model.title)}</h1>
+        ${chipsHtml}
+      </div>
+    </header>`;
+  }
+
   function renderOverview() {
     const overview = data.overview;
+    const header = projectHeaderModel();
     return `<section id="overview" class="panel active" role="tabpanel" aria-labelledby="part-tab-overview">
       <div class="overview-shell">
-        <div class="overview-hero">
-          <div class="overview-hero-content">
-            <div class="eyebrow">${escapeHtml(data.project.overviewEyebrow || 'Крит')}</div>
-            <h1>${escapeHtml(data.project.heading)}</h1>
-            <p class="lead">${escapeHtml(data.project.lead)}</p>
-          </div>
-          <div class="photo-credit">Фото: <a href="https://commons.wikimedia.org/wiki/File:Vai_R01.jpg" target="_blank" rel="noopener">Marc Ryckaert</a> · <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a></div>
-        </div>
+        ${renderPageHeader(header)}
         ${renderPartCards()}
         <div class="overview-grid">
           <article class="overview-card">
@@ -442,6 +496,7 @@
   }
 
   function renderPartOverview(part) {
+    const header = partHeaderModel(part);
     const dayItems = part.dayIds.map(dayId => {
       const day = getDay(dayId);
       const number = dayNumber(dayId);
@@ -466,12 +521,7 @@
 
     return `<section id="part-${part.id}" class="panel part-panel" role="tabpanel" aria-labelledby="part-tab-${part.id}">
       <div class="part-overview-shell">
-        <header class="part-overview-hero part-overview-${part.id}">
-          <div class="part-card-kicker">${escapeHtml(part.kicker || '')}</div>
-          <h1>${escapeHtml(part.title)}</h1>
-          <p>${escapeHtml(part.dates)} · база ${escapeHtml(part.base)}</p>
-          <p class="part-overview-description">${escapeHtml(part.description || '')}</p>
-        </header>
+        ${renderPageHeader(header)}
         <div id="part-map-${part.id}" class="part-overview-map" aria-label="Карта маршрутов части ${escapeHtml(part.title)}"></div>
         <div class="part-day-list">${dayItems}</div>
       </div>
@@ -887,7 +937,6 @@
 
   function render() {
     validateParkingReferences();
-    projectTitle.textContent = 'Крит · 11–22 августа';
     renderPartTabs();
     app.innerHTML = renderOverview() + data.parts.map(renderPartOverview).join('') + data.days.map(renderDay).join('');
     setActivePart('overview');

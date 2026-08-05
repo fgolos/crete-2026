@@ -14,5 +14,5 @@
     'app-runtime.js'
   ];
 
-  document.write(scripts.map(src => `<script src="${src}"><\\/script>`).join(''));
+  document.write(scripts.map(src => `<script src="${src}"><\/script>`).join(''));
 })();

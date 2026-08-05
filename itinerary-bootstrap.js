@@ -3,7 +3,7 @@
 
   const source = window.CRETE_ITINERARY;
   if (!source) throw new Error('Itinerary source did not load');
-  if (!window.CRETE_DATA_API || !window.CRETE_FORMATTERS || !window.CRETE_MODEL_API || !window.CRETE_VALIDATION_API) {
+  if (!window.CRETE_DATA_API || !window.CRETE_FORMATTERS || !window.CRETE_MODEL_API || !window.CRETE_RENDERER_MODEL_API || !window.CRETE_VALIDATION_API) {
     throw new Error('Normalized itinerary dependencies did not load');
   }
 
@@ -17,9 +17,11 @@
   }
 
   const projected = window.CRETE_DATA_API.projectLegacyData(data, source, window.CRETE_FORMATTERS);
+  const model = window.CRETE_MODEL_API.createModel(data);
 
   window.CRETE_DATA = data;
-  window.CRETE_MODEL = window.CRETE_MODEL_API.createModel(data);
+  window.CRETE_MODEL = model;
+  window.CRETE_RENDERER_MODEL = window.CRETE_RENDERER_MODEL_API.createRendererModel(data, model, window.CRETE_FORMATTERS);
   window.CRETE_ITINERARY = projected;
 
   if (Array.isArray(window.CRETE_STORIES)) {

@@ -15,13 +15,13 @@ function update(path, transform) {
 update('app-runtime.js', content => {
   content = replaceOnce(content, `  function parseTimeToMinutes(timeStr) {\n    if (!timeStr || timeStr === '—' || timeStr === '-') return 0;\n    const compactMatch = timeStr.match(/^(\\d+):(\\d{2})$/);\n    if (compactMatch) return Number(compactMatch[1]) * 60 + Number(compactMatch[2]);\n    let minutes = 0;\n    const hourMatch = timeStr.match(/(\\d+)\\s*(?:h|ч)/i);\n    const minMatch = timeStr.match(/(\\d+)\\s*(?:m|мин)/i);\n    if (hourMatch) minutes += Number(hourMatch[1]) * 60;\n    if (minMatch) minutes += Number(minMatch[1]);\n    return minutes;\n  }\n\n`, '', 'unused parseTimeToMinutes');
 
-  content = replaceOnce(content, `  function formatClockTime(minutesSinceMidnight) {\n    const hours = Math.floor(minutesSinceMidnight / 60);\n    const minutes = minutesSinceMidnight % 60;\n    return \`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}\`;\n  }\n\n`, '', 'debug-only formatClockTime');
+  content = replaceOnce(content, `  function formatClockTime(minutesSinceMidnight) {\n    const hours = Math.floor(minutesSinceMidnight / 60);\n    const minutes = minutesSinceMidnight % 60;\n    return \`\${hours.toString().padStart(2, '0')}:\${minutes.toString().padStart(2, '0')}\`;\n  }\n\n`, '', 'debug-only formatClockTime');
 
   content = replaceOnce(content, `    let timelineEvents = []; // Track events with actual clock times\n    \n`, '', 'unused timelineEvents declaration');
 
   content = replaceOnce(content, `      // Add events to timeline\n      if (stopStartTime !== null) {\n        timelineEvents.push({\n          time: stopStartTime,\n          type: 'stop-start',\n          stopIndex: i,\n          stopName: stop.name\n        });\n        if (stopEndTime !== null) {\n          timelineEvents.push({\n            time: stopEndTime,\n            type: 'stop-end',\n            stopIndex: i,\n            stopName: stop.name\n          });\n          maxEndTime = Math.max(maxEndTime, stopEndTime);\n        } else {\n          maxEndTime = Math.max(maxEndTime, stopStartTime);\n        }\n      }\n`, `      if (stopStartTime !== null) {\n        maxEndTime = Math.max(maxEndTime, stopEndTime ?? stopStartTime);\n      }\n`, 'unused timeline event collection');
 
-  content = replaceOnce(content, `    console.log(\`DEBUG: ${day.id} - startMinutes: ${startMinutes} (${formatClockTime(startMinutes)}), endTime: ${maxEndTime} (${formatClockTime(maxEndTime)}), total: ${totalMinutes}\`);\n    \n`, '', 'timeline debug log');
+  content = replaceOnce(content, `    console.log(\`DEBUG: \${day.id} - startMinutes: \${startMinutes} (\${formatClockTime(startMinutes)}), endTime: \${maxEndTime} (\${formatClockTime(maxEndTime)}), total: \${totalMinutes}\`);\n    \n`, '', 'timeline debug log');
 
   content = replaceOnce(content, `    // Determine CSS class suffix based on hover/selected\n    const suffix = isHover ? 'hovered' : 'active';\n    const selectionClass = isHover ? 'is-hovered' : 'is-selected';\n    const rowActiveClass = isHover ? 'is-hovered' : 'is-active';\n`, `    const selectionClass = isHover ? 'is-hovered' : 'is-selected';\n`, 'unused selection variables');
 
@@ -52,7 +52,7 @@ update('scripts/validate-itinerary.mjs', content => {
   const endIndex = content.indexOf(loopEnd, startIndex);
   if (startIndex < 0 || endIndex < 0) throw new Error('Cleanup target not found: projected parking validation loop');
 
-  const replacement = `for (const day of projected.days || []) {\n  for (const stop of day.stops || []) {\n    const links = [stop.parking?.primary, ...(stop.parking?.alternatives || [])].filter(Boolean);\n    for (const link of links) {\n      if (!link.ref || !projected.parkingLocations?.[link.ref]) {\n        validation.errors.push(\`Projected parking reference is invalid for ${day.id}: ${stop.name}\`);\n      }\n    }\n  }\n}\n`;
+  const replacement = `for (const day of projected.days || []) {\n  for (const stop of day.stops || []) {\n    const links = [stop.parking?.primary, ...(stop.parking?.alternatives || [])].filter(Boolean);\n    for (const link of links) {\n      if (!link.ref || !projected.parkingLocations?.[link.ref]) {\n        validation.errors.push(\`Projected parking reference is invalid for \${day.id}: \${stop.name}\`);\n      }\n    }\n  }\n}\n`;
 
   return content.slice(0, startIndex) + replacement + content.slice(endIndex);
 });

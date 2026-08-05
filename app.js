@@ -272,11 +272,6 @@
     return part?.dayIds.find(dayId => Boolean(getDay(dayId))) || null;
   }
 
-  function partProgress(part) {
-    const ready = part.dayIds.filter(dayId => Boolean(getDay(dayId))).length;
-    return { ready, total: part.dayIds.length, complete: ready === part.dayIds.length };
-  }
-
   function readyPartDays(part) {
     return (part?.dayIds || []).map(getDay).filter(Boolean);
   }
@@ -293,7 +288,7 @@
   }
 
   function visiblePartStops(day) {
-    return day.stops.filter(stop => stop.mapVisible);
+    return day.stops.filter(stop => stop.mapVisible !== false);
   }
 
   async function fetchRoadRouteCoordinates(day) {
@@ -384,87 +379,10 @@
     return note.match(/^.*?[.!?](?:\s|$)/)?.[0].trim() || note;
   }
 
-  function renderPartCards() {
-    return `<div class="trip-parts-grid">${data.parts.map(part => {
-      const progress = partProgress(part);
-      const status = progress.complete ? 'Маршрут готов' : `Готово дней: ${progress.ready} из ${progress.total}`;
-      return `<button class="part-card" type="button" data-part-id="${part.id}" aria-label="Открыть ${escapeHtml(part.title)}">
-        <span class="part-card-kicker">${escapeHtml(part.kicker || '')}</span>
-        <strong>${escapeHtml(part.title)}</strong>
-        <span>${escapeHtml(part.dates)} · база ${escapeHtml(part.base)}</span>
-        <small>${escapeHtml(status)}</small>
-      </button>`;
-    }).join('')}</div>`;
-  }
-
-  function projectHeaderModel() {
-    const header = data.project?.header || {};
-    const baseNames = [...new Set((data.parts || []).map(part => part.base).filter(Boolean))];
-    return {
-      title: header.title || data.project.heading || data.project.title || '',
-      theme: header.theme || 'overview',
-      chips: Array.isArray(header.chips) ? header.chips : [
-        { label: 'Даты', value: data.project.dateRange || '' },
-        { label: 'Базы', value: baseNames.join(' + ') }
-      ],
-      media: {
-        imageUrl: header.media?.imageUrl || 'https://commons.wikimedia.org/wiki/Special:FilePath/Vai_R01.jpg?width=1600',
-        position: header.media?.position || 'center 44%'
-      }
-    };
-  }
-
-  function partHeaderModel(part) {
-    const header = part.header || {};
-    return {
-      title: header.title || part.title || '',
-      theme: header.theme || part.id || 'part',
-      chips: Array.isArray(header.chips) ? header.chips : [
-        { label: 'Даты', value: part.dates || '' },
-        { label: 'База', value: part.base || '' }
-      ],
-      media: {
-        imageUrl: header.media?.imageUrl || '',
-        position: header.media?.position || 'center center'
-      }
-    };
-  }
-
-  function renderPageHeader(model) {
-    const hasImage = Boolean(model.media?.imageUrl);
-    const styleAttr = hasImage
-      ? ` style="--header-image:url('${escapeHtml(model.media.imageUrl)}');--header-image-position:${escapeHtml(model.media.position || 'center center')};"`
-      : '';
-    const chips = (Array.isArray(model.chips) ? model.chips.slice(0, 2) : [])
-      .map(chip => {
-        if (!chip) return null;
-        if (typeof chip === 'string') return { value: chip, tone: '' };
-        if (typeof chip === 'object') return {
-          value: chip.value || '',
-          label: chip.label || '',
-          tone: chip.tone || ''
-        };
-        return null;
-      })
-      .filter(chip => chip && chip.value);
-    const chipsHtml = chips.length
-      ? `<div class="page-header-meta">${chips.map(chip => `<span class="page-header-chip${chip.tone ? ` is-${escapeHtml(chip.tone)}` : ''}">${escapeHtml(chip.value)}</span>`).join('')}</div>`
-      : '';
-    return `<header class="page-header page-header-${escapeHtml(model.theme || 'default')}${hasImage ? ' page-header-has-image' : ''}"${styleAttr}>
-      <div class="page-header-content">
-        <h1>${escapeHtml(model.title)}</h1>
-        ${chipsHtml}
-      </div>
-    </header>`;
-  }
-
   function renderOverview() {
     const overview = data.overview;
-    const header = projectHeaderModel();
     return `<section id="overview" class="panel active" role="tabpanel" aria-labelledby="part-tab-overview">
       <div class="overview-shell">
-        ${renderPageHeader(header)}
-        ${renderPartCards()}
         <div class="overview-grid">
           <article class="overview-card">
             <h2>Логистика</h2>
@@ -496,7 +414,6 @@
   }
 
   function renderPartOverview(part) {
-    const header = partHeaderModel(part);
     const dayItems = part.dayIds.map(dayId => {
       const day = getDay(dayId);
       const number = dayNumber(dayId);
@@ -521,7 +438,6 @@
 
     return `<section id="part-${part.id}" class="panel part-panel" role="tabpanel" aria-labelledby="part-tab-${part.id}">
       <div class="part-overview-shell">
-        ${renderPageHeader(header)}
         <div id="part-map-${part.id}" class="part-overview-map" aria-label="Карта маршрутов части ${escapeHtml(part.title)}"></div>
         <div class="part-day-list">${dayItems}</div>
       </div>
@@ -1147,7 +1063,7 @@
       const stop = day.stops.find(item => item.order === order);
       if (stop) points.push(getDrivingCoordinates(stop));
     }
-    for (const stop of day.stops.filter(item => item.mapVisible)) {
+    for (const stop of day.stops.filter(item => item.mapVisible !== false)) {
       points.push([stop.lat, stop.lon]);
     }
     const bounds = L.latLngBounds(points);
@@ -1480,7 +1396,7 @@
     setRouteFailure(dayId,false);
 
     const routeStops = day.routeStopOrders.map(order => day.stops.find(stop => stop.order === order));
-    const bounds = day.stops.filter(stop => stop.mapVisible).map(stop => [stop.lat,stop.lon]);
+    const bounds = day.stops.filter(stop => stop.mapVisible !== false).map(stop => [stop.lat,stop.lon]);
     routeStops.forEach(stop => bounds.push(getDrivingCoordinates(stop)));
     const routing = L.Routing.control({
       waypoints: routeStops.map(stop => L.latLng(...getDrivingCoordinates(stop))),
@@ -1541,7 +1457,7 @@
     map.getPane('routeOverlays').style.zIndex = 450;
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap contributors' }).addTo(map);
 
-    const visibleStops = day.stops.filter(stop => stop.mapVisible);
+    const visibleStops = day.stops.filter(stop => stop.mapVisible !== false);
     visibleStops.forEach(stop => {
       const icon = L.divIcon({ className:'', html:`<div class="numbered-marker" data-marker-order="${stop.order}">${stop.order}</div>`, iconSize:[36,36], iconAnchor:[18,18] });
       const marker = L.marker([stop.lat,stop.lon], { icon });
@@ -1687,12 +1603,6 @@
             if (segmentType === 'stop') focusTimelineStop(dayPanel.id, stopOrder);
           }
         }
-        return;
-      }
-      const partCard = event.target.closest('.part-card');
-      if (partCard) {
-        const partId = partCard.dataset.partId;
-        activatePanel(`part-${partId}`, true, partId);
         return;
       }
       const partDay = event.target.closest('.part-day-item[data-day-id]');

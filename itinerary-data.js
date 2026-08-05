@@ -1,27 +1,12 @@
 window.CRETE_ITINERARY = {
   "project": {
-    "title": "Crete 2026 — Full Trip MASTER | 11–22 August",
-    "part": "FULL TRIP",
-    "heading": "Crete 2026",
-    "dateRange": "11–22 августа 2026",
-    "overviewEyebrow": "Крит · семейный маршрут",
-    "header": {
-      "title": "Crete 2026",
-      "chips": [
-        { "label": "Даты", "value": "11–22 августа 2026" },
-        { "label": "Базы", "value": "Sitia + Platanes" }
-      ],
-      "theme": "overview",
-      "media": {
-        "imageUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Vai_R01.jpg?width=1600",
-        "position": "center 44%"
-      }
-    }
+    "title": "Крит 2026",
+    "dateRange": "11–22 августа 2026"
   },
   "parts": [
     {
       "id": "east",
-      "title": "East Crete",
+      "title": "Восточный Крит",
       "dates": "11–15 августа",
       "base": "Sitia",
       "dayIds": [
@@ -30,25 +15,11 @@ window.CRETE_ITINERARY = {
         "day13",
         "day14",
         "day15"
-      ],
-      "kicker": "PART 1",
-      "description": "Готовая восточная часть маршрута с базой в Sitia.",
-      "header": {
-        "title": "East Crete",
-        "chips": [
-          { "label": "Даты", "value": "11–15 августа" },
-          { "label": "База", "value": "Sitia" }
-        ],
-        "theme": "east",
-        "media": {
-          "imageUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Vai_R01.jpg?width=1600",
-          "position": "center 42%"
-        }
-      }
+      ]
     },
     {
       "id": "west",
-      "title": "West & Central Crete",
+      "title": "Западный Крит",
       "dates": "15–22 августа",
       "base": "Platanes",
       "dayIds": [
@@ -60,21 +31,7 @@ window.CRETE_ITINERARY = {
         "day20",
         "day21",
         "day22"
-      ],
-      "kicker": "PART 2",
-      "description": "Переезд 15 августа уже готов; дни 16–22 будут добавляться после согласования.",
-      "header": {
-        "title": "West & Central Crete",
-        "chips": [
-          { "label": "Даты", "value": "15–22 августа" },
-          { "label": "База", "value": "Platanes" }
-        ],
-        "theme": "west",
-        "media": {
-          "imageUrl": "https://commons.wikimedia.org/wiki/Special:FilePath/Vai_R01.jpg?width=1600",
-          "position": "center 62%"
-        }
-      }
+      ]
     }
   ],
   "overview": {
@@ -163,11 +120,17 @@ window.CRETE_ITINERARY = {
       "lat": 35.20939,
       "lon": 26.10724,
       "navigationQuery": "35.20939,26.10724",
+      "status": "recommended",
+      "walkMinutes": 1,
+      "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.",
       "type": "public",
       "paid": false,
       "reliability": "high",
       "crowding": "Вечером и в высокий сезон ближайшие места могут быть заняты.",
       "notes": [
+        "Cars are not allowed on Ioannou Kondylaki street.",
+        "Для навигации используем парковку у порта, а не адрес дома.",
+        "После парковки пройти к Ioannou Kondylaki 18 пешком.",
         "Следовать дорожным знакам и не блокировать проезд по территории порта."
       ],
       "lastVerified": "2026-07-31"
@@ -413,13 +376,8 @@ window.CRETE_ITINERARY = {
           "lat": 35.33972,
           "lon": 25.18028,
           "navigationQuery": "35.33972,25.18028",
-          "mapVisible": true,
-          "parking": { "primary": { "ref": "heraklion-airport-gomega", "status": "on-site", "walkMinutes": 0, "summary": "Место получения автомобиля определяется инструкциями прокатчика и шаттлом." }, "alternatives": [] },
-          "pointNavigationQuery": "35.33972,25.18028",
-          "mode": "flight",
-          "includeInDrivingTotals": false,
-          "includeInDistanceTotals": false,
-          "showOnRouteMap": false
+          "parking": { "primary": { "ref": "heraklion-airport-gomega", "status": "on-site", "walkMinutes": 0, "summary": "Место получения автомобиля определяется инструкциями прокатчика и шаттлом." } },
+          "mode": "flight"
         },
         {
           "order": 2,
@@ -433,9 +391,7 @@ window.CRETE_ITINERARY = {
           "lat": 35.18377,
           "lon": 25.9054,
           "navigationQuery": "35.18377,25.9054",
-          "mapVisible": true,
-          "parking": { "primary": { "ref": "mochlos-village", "status": "street", "walkMinutes": 3, "summary": "Искать разрешённое место на въезде в деревню или вдоль дороги до набережной." }, "alternatives": [] },
-          "pointNavigationQuery": "35.18377,25.9054"
+          "parking": { "primary": { "ref": "mochlos-village", "status": "street", "walkMinutes": 3, "summary": "Искать разрешённое место на въезде в деревню или вдоль дороги до набережной." } }
         },
         {
           "order": 3,
@@ -449,9 +405,7 @@ window.CRETE_ITINERARY = {
           "lat": 35.20981541927463,
           "lon": 26.1065768823924,
           "navigationQuery": "35.20939,26.10724",
-          "mapVisible": true,
-          "parking": { "primary": { "ref": "sitia-port", "status": "recommended", "walkMinutes": 1, "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.", "notes": ["Cars are not allowed on Ioannou Kondylaki street.", "Для навигации используем парковку у порта, а не адрес дома.", "После парковки пройти к Ioannou Kondylaki 18 пешком."] }, "alternatives": [] },
-          "pointNavigationQuery": "35.20981541927463,26.1065768823924"
+          "parking": { "primary": { "ref": "sitia-port" } }
         }
       ],
       "sections": {
@@ -487,9 +441,7 @@ window.CRETE_ITINERARY = {
           "lat": 35.20981541927463,
           "lon": 26.1065768823924,
           "navigationQuery": "35.20939,26.10724",
-          "mapVisible": true,
-          "parking": { "primary": { "ref": "sitia-port", "status": "recommended", "walkMinutes": 1, "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.", "notes": ["Cars are not allowed on Ioannou Kondylaki street.", "Для навигации используем парковку у порта, а не адрес дома.", "После парковки пройти к Ioannou Kondylaki 18 пешком."] }, "alternatives": [] },
-          "pointNavigationQuery": "35.20981541927463,26.1065768823924"
+          "parking": { "primary": { "ref": "sitia-port" } }
         },
         {
           "order": 1,
@@ -503,9 +455,7 @@ window.CRETE_ITINERARY = {
           "lat": 35.221552,
           "lon": 26.21605,
           "navigationQuery": "35.221552,26.21605",
-          "mapVisible": true,
-          "parking": { "primary": { "ref": "toplou-monastery", "status": "on-site", "walkMinutes": 1, "summary": "Парковка непосредственно у комплекса Toplou Monastery." }, "alternatives": [] },
-          "pointNavigationQuery": "35.221552,26.21605"
+          "parking": { "primary": { "ref": "toplou-monastery", "status": "on-site", "walkMinutes": 1, "summary": "Парковка непосредственно у комплекса Toplou Monastery." } }
         },
         {
           "order": 2,
@@ -519,9 +469,7 @@ window.CRETE_ITINERARY = {
           "lat": 35.19776,
           "lon": 26.27745,
           "navigationQuery": "35.19776,26.27745",
-          "mapVisible": true,
-          "parking": { "primary": { "ref": "chiona-hiona", "status": "on-site", "walkMinutes": 1, "summary": "Парковка у таверны и пляжа, рядом с конечной точкой подъезда." }, "alternatives": [] },
-          "pointNavigationQuery": "35.19776,26.27745"
+          "parking": { "primary": { "ref": "chiona-hiona", "status": "on-site", "walkMinutes": 1, "summary": "Парковка у таверны и пляжа, рядом с конечной точкой подъезда." } }
         },
         {
           "order": 3,
@@ -535,9 +483,7 @@ window.CRETE_ITINERARY = {
           "lat": 35.264308,
           "lon": 26.262072,
           "navigationQuery": "35.264308,26.262072",
-          "mapVisible": true,
-          "parking": { "primary": { "ref": "itanos-erimoupolis", "status": "on-site", "walkMinutes": 3, "summary": "Общая точка парковки для Ancient City Itanos и Erimoupolis beach." }, "alternatives": [] },
-          "pointNavigationQuery": "35.264308,26.262072"
+          "parking": { "primary": { "ref": "itanos-erimoupolis", "status": "on-site", "walkMinutes": 3, "summary": "Общая точка парковки для Ancient City Itanos и Erimoupolis beach." } }
         },
         {
           "order": 4,
@@ -551,9 +497,7 @@ window.CRETE_ITINERARY = {
           "lat": 35.2544,
           "lon": 26.26493,
           "navigationQuery": "35.25315,26.26431",
-          "mapVisible": true,
-          "parking": { "primary": { "ref": "vai-main", "status": "recommended", "walkMinutes": 3, "summary": "Въезд в основную организованную парковку перед Vai Beach." }, "alternatives": [] },
-          "pointNavigationQuery": "35.2544,26.26493"
+          "parking": { "primary": { "ref": "vai-main", "status": "recommended", "walkMinutes": 3, "summary": "Въезд в основную организованную парковку перед Vai Beach." } }
         },
         {
           "order": 5,
@@ -567,9 +511,7 @@ window.CRETE_ITINERARY = {
           "lat": 35.20981541927463,
           "lon": 26.1065768823924,
           "navigationQuery": "35.20939,26.10724",
-          "mapVisible": true,
-          "parking": { "primary": { "ref": "sitia-port", "status": "recommended", "walkMinutes": 1, "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.", "notes": ["Cars are not allowed on Ioannou Kondylaki street.", "Для навигации используем парковку у порта, а не адрес дома.", "После парковки пройти к Ioannou Kondylaki 18 пешком."] }, "alternatives": [] },
-          "pointNavigationQuery": "35.20981541927463,26.1065768823924"
+          "parking": { "primary": { "ref": "sitia-port" } }
         }
       ],
       "sections": {
@@ -593,11 +535,11 @@ window.CRETE_ITINERARY = {
         { "label": "Купание", "value": "Mazida Ammos beach" }
       ],
       "stops": [
-        { "order": 0, "name": "Sitia Airbnb", "role": "Выезд", "time": "09:30", "duration": "Старт", "drive": "—", "distance": "—", "note": "Заправиться и взять воду.", "lat": 35.20981541927463, "lon": 26.1065768823924, "navigationQuery": "35.20939,26.10724", "mapVisible": true, "parking": { "primary": { "ref": "sitia-port", "status": "recommended", "walkMinutes": 1, "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.", "notes": ["Cars are not allowed on Ioannou Kondylaki street.", "Для навигации используем парковку у порта, а не адрес дома.", "После парковки пройти к Ioannou Kondylaki 18 пешком."] }, "alternatives": [] }, "pointNavigationQuery": "35.20981541927463,26.1065768823924" },
-        { "order": 1, "name": "Ziros", "role": "Кофе и короткая прогулка", "time": "10:25–10:55", "duration": "30 мин", "drive": "55 мин", "distance": "31 км", "note": "Перед панорамным спуском.", "lat": 35.07531, "lon": 26.13951, "navigationQuery": "35.07531,26.13951", "mapVisible": true, "parking": { "primary": { "ref": "ziros-village", "status": "street", "walkMinutes": 2, "summary": "Короткая уличная парковка в центре деревни или рядом с кафе." }, "alternatives": [] }, "pointNavigationQuery": "35.07531,26.13951" },
-        { "order": 2, "name": "Mazida Ammos beach", "role": "Главный пляж", "time": "11:30–14:45", "duration": "3 ч 15 мин", "drive": "35 мин", "distance": "13 км", "note": "Последний участок асфальтирован.", "lat": 35.03626, "lon": 26.22006, "navigationQuery": "35.03626,26.22006", "mapVisible": true, "parking": { "primary": { "ref": "mazida-ammos", "status": "on-site", "walkMinutes": 2, "summary": "Парковка у подъезда к пляжу на разрешённой ровной площадке." }, "alternatives": [] }, "pointNavigationQuery": "35.03626,26.22006" },
-        { "order": 3, "name": "Xerokampos / Taverna Kostas", "role": "Поздний обед", "time": "14:55–16:15", "duration": "1 ч 20 мин", "drive": "10 мин", "distance": "2 км", "note": "Проверить открытие и столик.", "lat": 35.04422, "lon": 26.22672, "navigationQuery": "35.04422,26.22672", "mapVisible": true, "parking": { "primary": { "ref": "taverna-kostas", "status": "on-site", "walkMinutes": 1, "summary": "Парковка рядом с Taverna Kostas или на ближайшем разрешённом участке дороги." }, "alternatives": [] }, "pointNavigationQuery": "35.04422,26.22672" },
-        { "order": 4, "name": "Sitia Airbnb", "role": "Возвращение и отдых", "time": "17:50", "duration": "Финиш", "drive": "1 ч 35 мин", "distance": "52 км", "note": "Inodion подтверждён на 21:00.", "lat": 35.20981541927463, "lon": 26.1065768823924, "navigationQuery": "35.20939,26.10724", "mapVisible": true, "parking": { "primary": { "ref": "sitia-port", "status": "recommended", "walkMinutes": 1, "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.", "notes": ["Cars are not allowed on Ioannou Kondylaki street.", "Для навигации используем парковку у порта, а не адрес дома.", "После парковки пройти к Ioannou Kondylaki 18 пешком."] }, "alternatives": [] }, "pointNavigationQuery": "35.20981541927463,26.1065768823924" }
+        { "order": 0, "name": "Sitia Airbnb", "role": "Выезд", "time": "09:30", "duration": "Старт", "drive": "—", "distance": "—", "note": "Заправиться и взять воду.", "lat": 35.20981541927463, "lon": 26.1065768823924, "navigationQuery": "35.20939,26.10724", "parking": { "primary": { "ref": "sitia-port" } } },
+        { "order": 1, "name": "Ziros", "role": "Кофе и короткая прогулка", "time": "10:25–10:55", "duration": "30 мин", "drive": "55 мин", "distance": "31 км", "note": "Перед панорамным спуском.", "lat": 35.07531, "lon": 26.13951, "navigationQuery": "35.07531,26.13951", "parking": { "primary": { "ref": "ziros-village", "status": "street", "walkMinutes": 2, "summary": "Короткая уличная парковка в центре деревни или рядом с кафе." } } },
+        { "order": 2, "name": "Mazida Ammos beach", "role": "Главный пляж", "time": "11:30–14:45", "duration": "3 ч 15 мин", "drive": "35 мин", "distance": "13 км", "note": "Последний участок асфальтирован.", "lat": 35.03626, "lon": 26.22006, "navigationQuery": "35.03626,26.22006", "parking": { "primary": { "ref": "mazida-ammos", "status": "on-site", "walkMinutes": 2, "summary": "Парковка у подъезда к пляжу на разрешённой ровной площадке." } } },
+        { "order": 3, "name": "Xerokampos / Taverna Kostas", "role": "Поздний обед", "time": "14:55–16:15", "duration": "1 ч 20 мин", "drive": "10 мин", "distance": "2 км", "note": "Проверить открытие и столик.", "lat": 35.04422, "lon": 26.22672, "navigationQuery": "35.04422,26.22672", "parking": { "primary": { "ref": "taverna-kostas", "status": "on-site", "walkMinutes": 1, "summary": "Парковка рядом с Taverna Kostas или на ближайшем разрешённом участке дороги." } } },
+        { "order": 4, "name": "Sitia Airbnb", "role": "Возвращение и отдых", "time": "17:50", "duration": "Финиш", "drive": "1 ч 35 мин", "distance": "52 км", "note": "Inodion подтверждён на 21:00.", "lat": 35.20981541927463, "lon": 26.1065768823924, "navigationQuery": "35.20939,26.10724", "parking": { "primary": { "ref": "sitia-port" } } }
       ],
       "sections": {
         "essentials": { "title": "Главное и гибкость", "items": ["Главное: Ziros, панорамная дорога и Mazida Ammos beach.", "Второй пляж не добавляем.", "Inodion: стол для 4 человек подтверждён на 21:00. Забронирован ближайший доступный стол к морю."] },
@@ -620,11 +562,11 @@ window.CRETE_ITINERARY = {
         { "label": "Купание", "value": "Kato Zakros" }
       ],
       "stops": [
-        { "order": 0, "name": "Sitia Airbnb", "role": "Выезд", "time": "09:30", "duration": "Старт", "drive": "—", "distance": "—", "note": "Заправиться и взять воду.", "lat": 35.20981541927463, "lon": 26.1065768823924, "navigationQuery": "35.20939,26.10724", "mapVisible": true, "parking": { "primary": { "ref": "sitia-port", "status": "recommended", "walkMinutes": 1, "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.", "notes": ["Cars are not allowed on Ioannou Kondylaki street.", "Для навигации используем парковку у порта, а не адрес дома.", "После парковки пройти к Ioannou Kondylaki 18 пешком."] }, "alternatives": [] }, "pointNavigationQuery": "35.20981541927463,26.1065768823924" },
-        { "order": 1, "name": "Zakros Springs & Water & Water Power Museum of Zakros", "role": "Источники, мельницы, музей и деревня", "time": "10:30–11:30", "duration": "1 ч", "drive": "1 ч", "distance": "44 км", "note": "Короткая прогулка.", "lat": 35.11312, "lon": 26.218, "navigationQuery": "35.11312,26.218", "mapVisible": true, "parking": { "primary": { "ref": "zakros-village", "status": "street", "walkMinutes": 3, "summary": "Парковка в деревне Zakros рядом с источниками и музеем, где разрешено и не мешает местным." }, "alternatives": [] }, "pointNavigationQuery": "35.11312,26.218" },
-        { "order": 2, "name": "Minoan Palace of Zakros", "role": "Археологический участок", "time": "11:50–13:05", "duration": "1 ч 15 мин", "drive": "20 мин", "distance": "8 км", "note": "Мало тени.", "lat": 35.09806, "lon": 26.26139, "navigationQuery": "35.09806,26.26139", "mapVisible": true, "parking": { "primary": { "ref": "minoan-palace-zakros", "status": "on-site", "walkMinutes": 2, "summary": "Парковка у входа в археологический комплекс." }, "alternatives": [] }, "pointNavigationQuery": "35.09806,26.26139" },
-        { "order": 3, "name": "Kato Zakros / Nostos / beach", "role": "Обед, пляж и купание", "time": "13:10–16:50", "duration": "3 ч 40 мин", "drive": "5 мин", "distance": "1 км", "note": "Около 17:00 — короткий взгляд на Gorge of the Dead по силам.", "lat": 35.09765, "lon": 26.26355, "navigationQuery": "35.09765,26.26355", "mapVisible": true, "parking": { "primary": { "ref": "kato-zakros-seafront", "status": "street", "walkMinutes": 2, "summary": "Парковка вдоль подъездной дороги или на разрешённой площадке у набережной и таверн." }, "alternatives": [] }, "pointNavigationQuery": "35.09765,26.26355" },
-        { "order": 4, "name": "Sitia Airbnb", "role": "Возвращение", "time": "18:05", "duration": "Финиш", "drive": "1 ч 15 мин", "distance": "45 км", "note": "Kipseli и ужин только по времени и силам.", "lat": 35.20981541927463, "lon": 26.1065768823924, "navigationQuery": "35.20939,26.10724", "mapVisible": true, "parking": { "primary": { "ref": "sitia-port", "status": "recommended", "walkMinutes": 1, "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.", "notes": ["Cars are not allowed on Ioannou Kondylaki street.", "Для навигации используем парковку у порта, а не адрес дома.", "После парковки пройти к Ioannou Kondylaki 18 пешком."] }, "alternatives": [] }, "pointNavigationQuery": "35.20981541927463,26.1065768823924" }
+        { "order": 0, "name": "Sitia Airbnb", "role": "Выезд", "time": "09:30", "duration": "Старт", "drive": "—", "distance": "—", "note": "Заправиться и взять воду.", "lat": 35.20981541927463, "lon": 26.1065768823924, "navigationQuery": "35.20939,26.10724", "parking": { "primary": { "ref": "sitia-port" } } },
+        { "order": 1, "name": "Zakros Springs & Water & Water Power Museum of Zakros", "role": "Источники, мельницы, музей и деревня", "time": "10:30–11:30", "duration": "1 ч", "drive": "1 ч", "distance": "44 км", "note": "Короткая прогулка.", "lat": 35.11312, "lon": 26.218, "navigationQuery": "35.11312,26.218", "parking": { "primary": { "ref": "zakros-village", "status": "street", "walkMinutes": 3, "summary": "Парковка в деревне Zakros рядом с источниками и музеем, где разрешено и не мешает местным." } } },
+        { "order": 2, "name": "Minoan Palace of Zakros", "role": "Археологический участок", "time": "11:50–13:05", "duration": "1 ч 15 мин", "drive": "20 мин", "distance": "8 км", "note": "Мало тени.", "lat": 35.09806, "lon": 26.26139, "navigationQuery": "35.09806,26.26139", "parking": { "primary": { "ref": "minoan-palace-zakros", "status": "on-site", "walkMinutes": 2, "summary": "Парковка у входа в археологический комплекс." } } },
+        { "order": 3, "name": "Kato Zakros / Nostos / beach", "role": "Обед, пляж и купание", "time": "13:10–16:50", "duration": "3 ч 40 мин", "drive": "5 мин", "distance": "1 км", "note": "Около 17:00 — короткий взгляд на Gorge of the Dead по силам.", "lat": 35.09765, "lon": 26.26355, "navigationQuery": "35.09765,26.26355", "parking": { "primary": { "ref": "kato-zakros-seafront", "status": "street", "walkMinutes": 2, "summary": "Парковка вдоль подъездной дороги или на разрешённой площадке у набережной и таверн." } } },
+        { "order": 4, "name": "Sitia Airbnb", "role": "Возвращение", "time": "18:05", "duration": "Финиш", "drive": "1 ч 15 мин", "distance": "45 км", "note": "Kipseli и ужин только по времени и силам.", "lat": 35.20981541927463, "lon": 26.1065768823924, "navigationQuery": "35.20939,26.10724", "parking": { "primary": { "ref": "sitia-port" } } }
       ],
       "sections": {
         "essentials": { "title": "Главное и гибкость", "items": ["Главное: Zakros, Minoan Palace of Zakros и Kato Zakros.", "Необязательно: короткий взгляд на нижний выход Gorge of the Dead.", "Kipseli и последний ужин в Sitia — только по времени и силам."] },
@@ -647,11 +589,11 @@ window.CRETE_ITINERARY = {
         { "label": "Купание", "value": "без пляжной остановки" }
       ],
       "stops": [
-        { "order": 0, "name": "Sitia Airbnb", "role": "Начало дня", "time": "08:30", "duration": "Старт", "drive": "—", "distance": "—", "note": "После крепости возвращаемся к жилью.", "lat": 35.20981541927463, "lon": 26.1065768823924, "navigationQuery": "35.20939,26.10724", "mapVisible": true, "parking": { "primary": { "ref": "sitia-port", "status": "recommended", "walkMinutes": 1, "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.", "notes": ["Cars are not allowed on Ioannou Kondylaki street.", "Для навигации используем парковку у порта, а не адрес дома.", "После парковки пройти к Ioannou Kondylaki 18 пешком."] }, "alternatives": [] }, "pointNavigationQuery": "35.20981541927463,26.1065768823924" },
-        { "order": 1, "name": "Kazarma Fortress", "role": "Крепость изнутри", "time": "08:35–09:20", "duration": "45 мин", "drive": "5 мин", "distance": "1 км", "note": "Утренний визит.", "lat": 35.21114, "lon": 26.10752, "navigationQuery": "35.21114,26.10752", "mapVisible": true, "parking": { "primary": { "ref": "kazarma-lower-streets", "status": "street", "walkMinutes": 4, "summary": "Искать разрешённое место на улицах ниже крепости; подъезд непосредственно к входу может быть тесным." }, "alternatives": [] }, "pointNavigationQuery": "35.21114,26.10752" },
-        { "order": 2, "name": "Sitia Airbnb", "role": "Завтрак, сборы и загрузка", "time": "09:25–10:40", "duration": "1 ч 15 мин", "drive": "5 мин", "distance": "1 км", "note": "Окончательный выезд около 10:30.", "lat": 35.20981541927463, "lon": 26.1065768823924, "navigationQuery": "35.20939,26.10724", "mapVisible": true, "parking": { "primary": { "ref": "sitia-port", "status": "recommended", "walkMinutes": 1, "summary": "Бесплатная общественная парковка у порта, примерно в минуте пешком от дома.", "notes": ["Cars are not allowed on Ioannou Kondylaki street.", "Для навигации используем парковку у порта, а не адрес дома.", "После парковки пройти к Ioannou Kondylaki 18 пешком."] }, "alternatives": [] }, "pointNavigationQuery": "35.20981541927463,26.1065768823924" },
-        { "order": 3, "name": "Mathena Olive Tree Lastros", "role": "Древняя олива, прогулка и ранний обед", "time": "11:20–12:45", "duration": "1 ч 25 мин", "drive": "40 мин", "distance": "34 км", "note": "При очередях переносим обед.", "lat": 35.1411116, "lon": 25.900172, "navigationQuery": "35.1411116,25.900172", "mapVisible": true, "parking": { "primary": { "ref": "lastros-village", "status": "street", "walkMinutes": 3, "summary": "Парковка в деревне Lastros на широком разрешённом участке рядом с остановкой." }, "alternatives": [] }, "pointNavigationQuery": "35.1411116,25.900172" },
-        { "order": 4, "name": "Pomegranate Garden Villa", "role": "Заселение и отдых", "time": "15:15", "duration": "Финиш", "drive": "2 ч 30 мин", "distance": "130 км", "note": "Airbnb в Platanes: Lasithiou 4, Rethymno 741 50, Greece.", "lat": 35.36855713304881, "lon": 24.530239843450914, "navigationQuery": "Lasithiou 4, Rethymno 741 50, Greece", "mapVisible": true, "parking": { "primary": { "ref": "pomegranate-villa", "status": "street", "walkMinutes": 1, "summary": "Парковка у виллы или на ближайшем разрешённом участке улицы." }, "alternatives": [] }, "pointNavigationQuery": "Lasithiou 4, Rethymno 741 50, Greece" }
+        { "order": 0, "name": "Sitia Airbnb", "role": "Начало дня", "time": "08:30", "duration": "Старт", "drive": "—", "distance": "—", "note": "После крепости возвращаемся к жилью.", "lat": 35.20981541927463, "lon": 26.1065768823924, "navigationQuery": "35.20939,26.10724", "parking": { "primary": { "ref": "sitia-port" } } },
+        { "order": 1, "name": "Kazarma Fortress", "role": "Крепость изнутри", "time": "08:35–09:20", "duration": "45 мин", "drive": "5 мин", "distance": "1 км", "note": "Утренний визит.", "lat": 35.21114, "lon": 26.10752, "navigationQuery": "35.21114,26.10752", "parking": { "primary": { "ref": "kazarma-lower-streets", "status": "street", "walkMinutes": 4, "summary": "Искать разрешённое место на улицах ниже крепости; подъезд непосредственно к входу может быть тесным." } } },
+        { "order": 2, "name": "Sitia Airbnb", "role": "Завтрак, сборы и загрузка", "time": "09:25–10:40", "duration": "1 ч 15 мин", "drive": "5 мин", "distance": "1 км", "note": "Окончательный выезд около 10:30.", "lat": 35.20981541927463, "lon": 26.1065768823924, "navigationQuery": "35.20939,26.10724", "parking": { "primary": { "ref": "sitia-port" } } },
+        { "order": 3, "name": "Mathena Olive Tree Lastros", "role": "Древняя олива, прогулка и ранний обед", "time": "11:20–12:45", "duration": "1 ч 25 мин", "drive": "40 мин", "distance": "34 км", "note": "При очередях переносим обед.", "lat": 35.1411116, "lon": 25.900172, "navigationQuery": "35.1411116,25.900172", "parking": { "primary": { "ref": "lastros-village", "status": "street", "walkMinutes": 3, "summary": "Парковка в деревне Lastros на широком разрешённом участке рядом с остановкой." } } },
+        { "order": 4, "name": "Pomegranate Garden Villa", "role": "Заселение и отдых", "time": "15:15", "duration": "Финиш", "drive": "2 ч 30 мин", "distance": "130 км", "note": "Airbnb в Platanes: Lasithiou 4, Rethymno 741 50, Greece.", "lat": 35.36855713304881, "lon": 24.530239843450914, "navigationQuery": "Lasithiou 4, Rethymno 741 50, Greece", "parking": { "primary": { "ref": "pomegranate-villa", "status": "street", "walkMinutes": 1, "summary": "Парковка у виллы или на ближайшем разрешённом участке улицы." } } }
       ],
       "sections": {
         "essentials": { "title": "Главное и гибкость", "items": ["Главное: Kazarma Fortress, Mathena Olive Tree Lastros и переезд.", "Lastros — финальная остановка восточной части, но обед не задерживает трансфер.", "После Platanes — только заселение и отдых."] },
@@ -672,20 +614,16 @@ window.CRETE_ITINERARY = {
     name: 'Pomegranate Garden Villa',
     lat: 35.36855713304881,
     lon: 24.530239843450914,
-    navigationQuery: 'Lasithiou 4, Rethymno 741 50, Greece',
-    mapVisible: true
+    navigationQuery: 'Lasithiou 4, Rethymno 741 50, Greece'
   };
   const villaStop = (order, role, time, duration, drive, distance, note) => ({ order, ...VILLA, role, time, duration, drive, distance, note });
-  const stop = (order, name, role, time, duration, drive, distance, note, lat, lon, navigationQuery = name) => ({ order, name, role, time, duration, drive, distance, note, lat, lon, navigationQuery, mapVisible: true });
+  const stop = (order, name, role, time, duration, drive, distance, note, lat, lon, navigationQuery = name) => ({ order, name, role, time, duration, drive, distance, note, lat, lon, navigationQuery });
   const section = (title, items) => ({ title, items });
   const day = (id, date, title, meta, stops, essentials, food, practical, routeStopOrders, mealSummary) => ({
     id, short: `${id.replace('day', '')} Aug`, date, title, meta, stops,
     sections: { essentials: section('Главное и гибкость', essentials), food: section('Питание', food), practical: section('Практические заметки', practical) },
     routeStopOrders, mealSummary
   });
-
-  const westPart = data.parts?.find(part => part.id === 'west');
-  if (westPart) westPart.description = 'Черновой каркас по варианту 1: спокойный старт, Chania, деревни, южное побережье, Falassarna и гибкий резервный день. Детали будут уточнены после семейного обсуждения.';
 
   const draftDays = [
     day('day16', '16 августа, воскресенье', 'Rethymno и спокойный день у моря',
@@ -726,7 +664,7 @@ window.CRETE_ITINERARY = {
       ['Не бронировать ничего невозвратного до проверки погоды.', 'При накопившейся усталости остаёмся в Platanes / Rethymno без чувства долга перед картой.', 'Вечером проверить заправку, документы, багаж и порядок возврата машины.'], [0,1,2,3], 'обед в Georgioupoli; вечером ужин и сборы у базы'),
     day('day22', '22 августа, суббота', 'Выезд в Heraklion Airport',
       [{ label: 'Статус', value: 'Черновик' }, { label: 'Выезд', value: '10:30–10:45' }, { label: 'Машина', value: 'вернуть до 14:00' }, { label: 'Рейс', value: 'HN 2322 · 17:55' }, { label: 'Вождение', value: 'около 1 ч 15 мин' }, { label: 'Расстояние', value: 'около 80 км' }],
-      [villaStop(0, 'Выселение и выезд', '10:30–10:45', 'Старт', '—', '—', 'Выселение до 11:00; выезжаем раньше предельного времени.'), stop(1, 'GoMega Car Rentals — Heraklion', 'Дозаправка по пути, возврат автомобиля и шаттл', '12:15–13:30', '1 ч 15 мин', '1 ч 15 мин', '80 км', 'Точный порядок возврата подтвердить у прокатчика при получении машины.', 35.3397, 25.1685, 'GoMega Car Rentals, Leoforos Ikarou 83, Nea Alikarnassos, Greece'), { ...stop(2, 'Heraklion International Airport N. Kazantzakis', 'Багаж, регистрация и вылет', 'около 13:30–17:55', 'Аэропорт', 'шаттл прокатчика', 'несколько минут', 'Рейс HN 2322 вылетает в 17:55.', 35.33972, 25.18028, 'Heraklion International Airport, Greece'), mode: 'flight', includeInDrivingTotals: false, includeInDistanceTotals: false, showOnRouteMap: false }],
+      [villaStop(0, 'Выселение и выезд', '10:30–10:45', 'Старт', '—', '—', 'Выселение до 11:00; выезжаем раньше предельного времени.'), stop(1, 'GoMega Car Rentals — Heraklion', 'Дозаправка по пути, возврат автомобиля и шаттл', '12:15–13:30', '1 ч 15 мин', '1 ч 15 мин', '80 км', 'Точный порядок возврата подтвердить у прокатчика при получении машины.', 35.3397, 25.1685, 'GoMega Car Rentals, Leoforos Ikarou 83, Nea Alikarnassos, Greece'), { ...stop(2, 'Heraklion International Airport N. Kazantzakis', 'Багаж, регистрация и вылет', 'около 13:30–17:55', 'Аэропорт', 'шаттл прокатчика', 'несколько минут', 'Рейс HN 2322 вылетает в 17:55.', 35.33972, 25.18028, 'Heraklion International Airport, Greece'), mode: 'flight' }],
       ['Выезд из Platanes около 10:30–10:45.', 'Автомобиль нужно вернуть до 14:00.', 'Рейс Heraklion → Vilnius вылетает в 17:55.'],
       ['Нормальный завтрак дома перед выездом.', 'В аэропорту предусмотреть перекус после возврата машины.'],
       ['Заложен запас на дорогу, дозаправку, возврат машины, шаттл и багаж.', 'Не планируем остановки и достопримечательности по пути в аэропорт.', 'Накануне уточнить у GoMega точную точку и процедуру возврата.'], [0,1], 'завтрак дома; перекус в аэропорту')

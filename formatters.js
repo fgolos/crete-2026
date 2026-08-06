@@ -6,6 +6,7 @@
   const monthOnly = new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' });
   const dayMonth = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', timeZone: 'UTC' });
   const weekdayOnly = new Intl.DateTimeFormat(locale, { weekday: 'long', timeZone: 'UTC' });
+  const integer = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
 
   function formatDateRange(startDate, endDate, includeYear = false) {
     if (!startDate || !endDate) return '';
@@ -32,33 +33,66 @@
     const hours = Math.floor(minutes / 60);
     const remainder = minutes % 60;
     if (!hours) return `${remainder} мин`;
-    return remainder ? `${hours} ч ${remainder} мин` : `${hours} ч`;
+    return remainder ? `${hours} ч ${String(remainder).padStart(2, '0')} мин` : `${hours} ч`;
   }
 
   function formatDistance(km) {
-    return Number.isFinite(km) ? `${km} км` : '';
+    return Number.isFinite(km) ? `${integer.format(km)} км` : '';
   }
 
-  function formatLegacyDuration(minutes, hint) {
-    return Number.isFinite(minutes) ? formatDuration(minutes) : (hint || '—');
+  function formatTimeRange(timing) {
+    if (!timing?.start) return '';
+    const value = timing.end ? `${timing.start}–${timing.end}` : timing.start;
+    return timing.approximate ? `около ${value}` : value;
+  }
+
+  function formatVisitDuration(minutes, kind) {
+    if (Number.isFinite(minutes)) return formatDuration(minutes);
+    return ({
+      departure: 'Вылет',
+      'check-in-rest': 'Заселение и отдых',
+      start: 'Старт',
+      finish: 'Финиш',
+      airport: 'Аэропорт'
+    })[kind] || '—';
+  }
+
+  function formatInboundDuration(travel) {
+    if (travel?.status === 'none') return '—';
+    if (travel?.status === 'rental-shuttle') return 'шаттл прокатчика';
+    return formatDuration(travel?.durationMinutes) || '—';
+  }
+
+  function formatInboundDistance(travel) {
+    if (travel?.status === 'none') return '—';
+    if (travel?.status === 'rental-shuttle') return 'несколько минут';
+    return formatDistance(travel?.distanceKm) || '—';
   }
 
   function sectionTitle(key) {
     return ({ essentials: 'Главное и гибкость', food: 'Питание', practical: 'Практические заметки' })[key] || key;
   }
 
-  function buildLegacyDayMeta(day) {
-    const values = day.metrics || {};
-    const hints = day.metricDisplayHints || {};
+  function statusLabel(status) {
+    return ({ draft: 'Черновик', 'draft-reserve': 'Черновик / резерв', confirmed: 'Подтверждено' })[status] || status;
+  }
+
+  function buildDayMeta(day) {
     const items = [];
-    if (values.status) items.push({ label: 'Статус', value: hints.status || values.status });
-    if (values.departureTime) items.push({ label: 'Выезд', value: hints.departureTime || values.departureTime });
-    if (values.finishTime) items.push({ label: 'Финиш', value: hints.finishTime || values.finishTime });
-    if (values.carReturn) items.push({ label: 'Машина', value: hints.carReturn || values.carReturn });
-    if (values.flight) items.push({ label: 'Рейс', value: hints.flight || values.flight });
-    if (Number.isFinite(values.drivingDurationMinutes) || hints.drivingDurationMinutes) items.push({ label: 'Вождение', value: hints.drivingDurationMinutes || formatDuration(values.drivingDurationMinutes) });
-    if (Number.isFinite(values.distanceKm) || hints.distanceKm) items.push({ label: 'Расстояние', value: hints.distanceKm || formatDistance(values.distanceKm) });
-    if (values.swimming) items.push({ label: 'Купание', value: hints.swimming || values.swimming });
+    if (day.status !== 'confirmed') items.push({ label: 'Статус', value: statusLabel(day.status) });
+    if (day.schedule?.departure) items.push({ label: 'Выезд', value: formatTimeRange(day.schedule.departure) });
+    if (day.schedule?.finish) items.push({ label: 'Финиш', value: formatTimeRange(day.schedule.finish) });
+    if (day.schedule?.carReturnDeadline) items.push({ label: 'Машина', value: `вернуть до ${day.schedule.carReturnDeadline}` });
+    if (day.schedule?.flight) items.push({ label: 'Рейс', value: `${day.schedule.flight.number} · ${day.schedule.flight.departureTime}` });
+    if (Number.isFinite(day.travelTotals?.drivingDurationMinutes)) {
+      const value = formatDuration(day.travelTotals.drivingDurationMinutes);
+      items.push({ label: 'Вождение', value: day.travelTotals.approximate ? `около ${value}` : value });
+    }
+    if (Number.isFinite(day.travelTotals?.distanceKm)) {
+      const value = formatDistance(day.travelTotals.distanceKm);
+      items.push({ label: 'Расстояние', value: day.travelTotals.approximate ? `около ${value}` : value });
+    }
+    if (day.swimming) items.push({ label: 'Купание', value: day.swimming });
     return items;
   }
 
@@ -72,13 +106,43 @@
     return reservation.date ? dayMonth.format(dateOnly(reservation.date)) : '';
   }
 
-  function buildOverviewLogistics() {
-    return [
-      { label: 'Перелёт', value: 'Vilnius 05:15 → Heraklion 08:35, 11 августа' },
-      { label: 'Автомобиль', value: 'Station Wagon Manual; получение около 10:00, 11 августа' },
-      { label: 'Жильё в Sitia', value: '11 августа 12:00 → 15 августа 12:00' },
-      { label: 'Жильё в Platanes', value: 'заселение с 13:00, 15 августа' }
-    ];
+  function dateTimeParts(value) {
+    return value ? { date: value.slice(0, 10), time: value.slice(11, 16) } : { date: null, time: null };
+  }
+
+  function buildOverviewLogistics(trip) {
+    const logistics = trip.logistics || {};
+    const outbound = logistics.flights?.find(flight => flight.direction === 'outbound');
+    const car = logistics.carRental;
+    const stays = logistics.accommodations || [];
+    const items = [];
+
+    if (outbound) {
+      const departure = dateTimeParts(outbound.departureAt);
+      const arrival = dateTimeParts(outbound.arrivalAt);
+      items.push({
+        label: 'Перелёт',
+        value: `${outbound.origin} ${departure.time} → ${outbound.destination} ${arrival.time}, ${dayMonth.format(dateOnly(departure.date))}`
+      });
+    }
+    if (car) {
+      const pickup = dateTimeParts(car.pickupAt);
+      items.push({
+        label: 'Автомобиль',
+        value: `${car.category}; получение ${car.pickupApproximate ? 'около ' : ''}${pickup.time}, ${dayMonth.format(dateOnly(pickup.date))}`
+      });
+    }
+    stays.forEach((stay, index) => {
+      const checkIn = dateTimeParts(stay.checkInAt);
+      const checkOut = dateTimeParts(stay.checkOutAt);
+      items.push({
+        label: `Жильё в ${stay.baseName}`,
+        value: index === 0
+          ? `${dayMonth.format(dateOnly(checkIn.date))} ${checkIn.time} → ${dayMonth.format(dateOnly(checkOut.date))} ${checkOut.time}`
+          : `заселение с ${checkIn.time}, ${dayMonth.format(dateOnly(checkIn.date))}`
+      });
+    });
+    return items;
   }
 
   window.CRETE_FORMATTERS = Object.freeze({
@@ -87,10 +151,13 @@
     formatShortDateEn,
     formatDuration,
     formatDistance,
-    formatLegacyDuration,
+    formatTimeRange,
+    formatVisitDuration,
+    formatInboundDuration,
+    formatInboundDistance,
     formatReservationWhen,
     sectionTitle,
-    buildLegacyDayMeta,
+    buildDayMeta,
     buildOverviewLogistics
   });
 })();

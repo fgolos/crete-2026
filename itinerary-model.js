@@ -22,8 +22,7 @@
       getRoute: id => data.routes[id] || null,
       getRouteVisits: id => (data.routes[id]?.visitIds || []).map(visitId => data.visits[visitId]).filter(Boolean),
       getParking: id => data.parkingLocations[id] || null,
-      getReservation: id => data.reservations[id] || null,
-      findVisitByLegacyKey: (dayId, stopOrder) => data.visits[data.legacyVisitIndex[`${dayId}:${stopOrder}`]] || null
+      getReservation: id => data.reservations[id] || null
     });
   }
 

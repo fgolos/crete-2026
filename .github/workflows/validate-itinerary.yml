@@ -4,7 +4,8 @@ on:
   pull_request:
   push:
     branches:
-      - feature/normalized-itinerary-data
+      - refactor/native-normalized-renderer
+      - main
 
 jobs:
   validate:
@@ -18,6 +19,7 @@ jobs:
         run: |
           node --check itinerary-data.js
           node --check itinerary-model.js
+          node --check itinerary-renderer-model.js
           node --check formatters.js
           node --check data-validation.js
           node --check itinerary-bootstrap.js
@@ -25,7 +27,16 @@ jobs:
           node --check app-runtime.js
           node --check stories-data.js
           node --check service-worker.js
+          node --check scripts/generate-audio.mjs
+          node --check scripts/validate-itinerary.mjs
+          node --check scripts/check-runtime-contract.mjs
+          node --check scripts/check-audio-source-contract.mjs
+          node --check scripts/smoke-browser.mjs
       - name: Validate normalized itinerary
         run: node scripts/validate-itinerary.mjs
-      - name: Check compatibility runtime contract
+      - name: Check native renderer contract
         run: node scripts/check-runtime-contract.mjs
+      - name: Check audio source update contract
+        run: node scripts/check-audio-source-contract.mjs
+      - name: Smoke test rendered application
+        run: node scripts/smoke-browser.mjs

@@ -197,8 +197,9 @@
 
       function attachStoryButtons() {
         for (const story of stories) {
-          const panel = document.getElementById(story.dayId);
-          const row = panel?.querySelector(`.route-row[data-stop-order="${story.stopOrder}"]`);
+          const row = story.visitId
+            ? document.querySelector(`.route-row[data-visit-id="${CSS.escape(story.visitId)}"]`)
+            : null;
           const cell = row?.querySelector('.stop-name');
           if (!cell || cell.querySelector(`[data-story-id="${story.id}"]`)) continue;
 
@@ -224,6 +225,7 @@
       }
 
       function init() {
+        attachStoryButtons();
         requestAnimationFrame(() => requestAnimationFrame(attachStoryButtons));
       }
 

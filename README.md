@@ -1,29 +1,49 @@
 # Crete 2026 itinerary
 
-Static GitHub Pages site for the family itinerary.
+Static GitHub Pages application for the family itinerary.
 
 ## Architecture
 
 - `index.html` — semantic shell, external library loading, and the integrated story dialog/audio-guide UI.
 - `styles.css` — presentation and responsive/print rules for the core itinerary interface.
-- `app.js` — rendering, trip-part and day navigation, maps, route links, parking UI, and list-to-marker interaction.
-- `itinerary-data.js` — the single source of truth for itinerary content, trip parts, stops, coordinates, timings, notes, bookings, route order, and reusable parking locations.
-- `stories-data.js` — audio-guide stories attached to itinerary stops, including optional narration settings, generated MP3 paths, and measured audio duration.
+- `app.js` — parser-blocking runtime bootstrap and load order.
+- `app-runtime.js` — itinerary rendering, navigation, maps, routes, parking interaction, PWA status and event handling.
+- `itinerary-data.js` — immutable normalized schema v2 and the single itinerary source of truth.
+- `itinerary-model.js` — entity selectors and relationship traversal.
+- `itinerary-renderer-model.js` — presentation-facing read model built from normalized entities.
+- `formatters.js` — user-facing dates, durations, distances, statuses and labels.
+- `data-validation.js` — normalized-data and reference validation.
+- `itinerary-bootstrap.js` — validation and creation of `CRETE_MODEL` / `CRETE_RENDERER_MODEL`.
+- `stories-data.js` — audio-guide stories attached to stable `visitId` values.
 - `pronunciations-data.js` — replacements used only when generating Russian speech; display names remain unchanged.
 - `scripts/generate-audio.mjs` — Azure Speech MP3 generator.
+- `scripts/validate-itinerary.mjs` — schema and story-reference validation.
+- `scripts/check-runtime-contract.mjs` — rejects obsolete compatibility contracts.
+- `scripts/smoke-browser.mjs` — headless Chrome smoke test for overview, East and West views.
 - `service-worker.js` — versioned offline caching and update lifecycle.
 - `manifest.webmanifest` — installable app metadata.
 - `icon.svg` — local app and browser icon.
 
 ## Editing contract
 
-### Route/content changes
+### Route and content changes
 
-Edit only `itinerary-data.js` whenever possible. This preserves the current look and feel and all interaction logic.
+Edit the normalized entities in `itinerary-data.js`:
+
+- days reference visits by stable `visitIds`;
+- visits reference reusable places and parking entities;
+- routes store ordered `visitIds`;
+- numeric visit `sequence` is display order, not identity.
+
+Do not add a second itinerary object or reconnect features through row numbers.
+
+### Formatting and presentation data
+
+Add user-facing formatting rules to `formatters.js`. Add presentation-facing derived fields to `itinerary-renderer-model.js`. Keep domain entities independent from HTML and interface labels whenever the value can be represented structurally.
 
 ### Audio-guide content
 
-Edit `stories-data.js`. Keep the visible Google Maps spelling in story text; pronunciation substitutions belong in `pronunciations-data.js`.
+Edit `stories-data.js`. Every story references a stable `visitId`. Keep visible Google Maps spelling in story text; pronunciation substitutions belong in `pronunciations-data.js`.
 
 The spoken version uses the story title, main text, and the complete `lookFor` section. A custom `narration.blocks` array may control phrasing and voice settings, but the visible main text should remain identical to the spoken main text so listeners can follow along.
 
@@ -33,13 +53,25 @@ Edit `styles.css` for the core interface. Story-dialog and audio-guide presentat
 
 ### Behaviour changes
 
-Edit `app.js` for the core itinerary interface. Visit rows, timeline segments, parking markers, stories, and map markers are connected through stable ISO `day.id` and `visit.id`. Story-dialog and audio-guide behaviour currently lives in the integrated story UI block in `index.html`.
+Use `app-runtime.js` for interface behaviour, `itinerary-model.js` for entity traversal, and `itinerary-renderer-model.js` for presentation read models. Visit rows, timeline segments, parking markers, stories, and map markers are connected through ISO `day.id` and stable `visit.id`.
 
 ### Page structure or external dependencies
 
-Edit `index.html` when the shell, loaded assets, or integrated story UI must change.
+Edit `index.html` when the shell, loaded assets, or integrated story UI must change. `app.js` should remain a small, explicit load-order bootstrap.
 
 Every push to `main` automatically deploys to GitHub Pages.
+
+## Validation
+
+Run before merging runtime or data changes:
+
+```bash
+node scripts/validate-itinerary.mjs
+node scripts/check-runtime-contract.mjs
+node scripts/smoke-browser.mjs
+```
+
+The browser smoke test requires Chrome or Chromium and starts a temporary local server. GitHub Actions runs all three checks automatically.
 
 ## Generating MP3 audio with Azure Speech
 
@@ -82,16 +114,12 @@ Before an MP3 exists, the interface estimates listening time from the title, sto
 
 ## Offline support
 
-The site registers `service-worker.js` on HTTP/HTTPS and caches the local application shell, Leaflet dependencies, fonts, the integrated story UI, and the overview image. MP3 files are cached by the network-first same-origin handler after they are first requested. Plan, Notes, stop details, stories, and cached UI assets remain available offline. OSRM responses and OpenStreetMap tiles are not cached; the existing route fallback handles routing outages and maps may have a blank background without previously available browser data.
+The site registers `service-worker.js` on HTTP/HTTPS and caches the local application shell, normalized data, renderer modules, Leaflet dependencies, fonts, the integrated story UI, and the overview image. MP3 files are cached by the network-first same-origin handler after they are first requested. Plan, Notes, stop details, stories, and cached UI assets remain available offline. OSRM responses and OpenStreetMap tiles are not cached; the route fallback handles routing outages and maps may have a blank background without previously available browser data.
 
 Test locally with `python -m http.server 8000`, open `http://127.0.0.1:8000`, reload once after the service worker activates, then switch the browser network to Offline and reload. Service workers do not run from `file://` URLs.
 
-Increment `CACHE_VERSION` in `service-worker.js` when changing the offline asset list or caching behavior. Normal local app updates use network-first caching and do not require a version bump.
+Increase `CACHE_VERSION` in `service-worker.js` after important runtime JS/CSS changes, changes to the offline asset list, or changes to caching behaviour.
 
 ## Previewing date-aware opening
 
-Without an explicit hash, the site opens the matching ready itinerary day during 11–22 August 2026. Dates whose days are not added yet open the relevant trip-part overview. Use `?date=2026-08-12` to preview a trip date without changing the system clock. Part-aware hashes use forms such as `#east/2026-08-14`, `#west/2026-08-15`, `#east`, and `#west`.
-
-## Data notes
-
-The checked-in `itinerary-data.js` contains the normalized schema v2 graph. Days reference stable visit IDs; visits reference reusable places and parking entities; routes contain ordered `visitIds`. User-facing dates, durations, statuses, booking summaries, and section titles are created by `formatters.js` and `itinerary-renderer-model.js`.
+Without an explicit hash, the site opens the matching itinerary day during 11–22 August 2026. Use `?date=2026-08-12` to preview a trip date without changing the system clock. Part-aware hashes use forms such as `#east/2026-08-14`, `#west/2026-08-15`, `#east`, and `#west`.

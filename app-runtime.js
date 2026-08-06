@@ -14,6 +14,7 @@
   const partOverviewMaps = new Map();
   const markerIndex = new Map();
   const parkingMarkerIndex = new Map();
+  const partRouteLabelLayoutIndex = new Map();
   const routingIndex = new Map();
   const mobileViewport = window.matchMedia('(max-width: 800px)');
   let activePanel = 'overview';
@@ -41,6 +42,204 @@
 
   function parkingMarkerKey(_dayId, visitId) {
     return visitId;
+  }
+
+  function schedulePartRouteLabelLayout(partId) {
+    const map = partOverviewMaps.get(partId)?.map;
+    if (!map) return;
+    if (partRouteLabelLayoutIndex.has(partId)) return;
+    const handle = window.requestAnimationFrame(() => {
+      partRouteLabelLayoutIndex.delete(partId);
+      layoutPartRouteLabels(partId);
+    });
+    partRouteLabelLayoutIndex.set(partId, handle);
+  }
+
+  function routePointLatLngAtFraction(coordinates, fraction) {
+    return routePointAtFraction(coordinates, fraction);
+  }
+
+  function routePointProjectionAtFraction(coordinates, fraction, map, zoom) {
+    const latLng = routePointLatLngAtFraction(coordinates, fraction);
+    return latLng ? map.project(latLng, zoom) : null;
+  }
+
+  function routeLabelNormalVector(coordinates, fraction, map, zoom) {
+    const before = routePointProjectionAtFraction(coordinates, Math.max(0.02, fraction - 0.02), map, zoom);
+    const after = routePointProjectionAtFraction(coordinates, Math.min(0.98, fraction + 0.02), map, zoom);
+    if (!before || !after) return null;
+    const dx = after.x - before.x;
+    const dy = after.y - before.y;
+    const length = Math.hypot(dx, dy);
+    if (length < 0.001) return null;
+    return L.point(-dy / length, dx / length);
+  }
+
+  function layoutPartRouteLabels(partId) {
+    const record = partOverviewMaps.get(partId);
+    const map = record?.map;
+    if (!record || !map) return;
+
+    const zoom = map.getZoom();
+    if (!Number.isFinite(zoom)) return;
+
+    const overlapArea = (left, right) => {
+      const width = Math.min(left.right, right.right) - Math.max(left.left, right.left);
+      const height = Math.min(left.bottom, right.bottom) - Math.max(left.top, right.top);
+      return width > 0 && height > 0 ? width * height : 0;
+    };
+
+    const rectForPoint = (point, size) => ({
+      left: point.x - size.width / 2,
+      right: point.x + size.width / 2,
+      top: point.y - size.height / 2,
+      bottom: point.y + size.height / 2
+    });
+
+    const dayRecords = Array.from(record.days.values());
+    const labels = [];
+    record.days.forEach((dayRecord, dayId) => {
+      if (!dayRecord?.label || !Array.isArray(dayRecord.routeCoordinates) || dayRecord.routeCoordinates.length < 2) return;
+      const element = dayRecord.label.getElement()?.querySelector('.part-route-label');
+      const size = element
+        ? { width: element.offsetWidth || 28, height: element.offsetHeight || 18 }
+        : { width: 28, height: 18 };
+      const preferredFraction = routeLabelFraction(dayRecord.dayIndex);
+      const basePoint = routePointProjectionAtFraction(dayRecord.routeCoordinates, preferredFraction, map, zoom);
+      if (!basePoint) return;
+      const density = dayRecords.reduce((count, otherRecord) => {
+        if (otherRecord === dayRecord || !Array.isArray(otherRecord.routeCoordinates)) return count;
+        const otherBase = routePointProjectionAtFraction(otherRecord.routeCoordinates, routeLabelFraction(otherRecord.dayIndex), map, zoom);
+        return otherBase && Math.hypot(otherBase.x - basePoint.x, otherBase.y - basePoint.y) < 120 ? count + 1 : count;
+      }, 0);
+      labels.push({ dayId, dayRecord, element, size, preferredFraction, basePoint, density });
+    });
+
+    if (!labels.length) return;
+
+    labels.sort((left, right) => {
+      if (right.density !== left.density) return right.density - left.density;
+      if (left.dayRecord.dayIndex !== right.dayRecord.dayIndex) return left.dayRecord.dayIndex - right.dayRecord.dayIndex;
+      return left.dayId.localeCompare(right.dayId);
+    });
+
+    const placed = [];
+    const desiredGap = 16;
+    const labelRadius = size => Math.max(size.width, size.height) * 0.5 + desiredGap;
+    const fractionOffsets = Array.from({ length: 41 }, (_, index) => (index - 20) * 0.025);
+    const normalOffsets = [0, 8, -8, 16, -16, 24, -24, 34, -34, 46, -46, 58, -58];
+
+    for (const label of labels) {
+      const { dayRecord, preferredFraction, basePoint, size } = label;
+      const candidates = [];
+      for (const fractionOffset of fractionOffsets) {
+        const fraction = Math.max(0.06, Math.min(0.94, preferredFraction + fractionOffset));
+        const point = routePointProjectionAtFraction(dayRecord.routeCoordinates, fraction, map, zoom);
+        if (!point) continue;
+        const normal = routeLabelNormalVector(dayRecord.routeCoordinates, fraction, map, zoom) || L.point(0, -1);
+        for (const normalOffset of normalOffsets) {
+          const candidatePoint = L.point(point.x + normal.x * normalOffset, point.y + normal.y * normalOffset);
+          const weight = Math.abs(fractionOffset) * 30 + Math.abs(normalOffset) * 0.35;
+          candidates.push({ fraction, point: candidatePoint, weight });
+        }
+      }
+
+      let bestCandidate = null;
+      let bestScore = Number.POSITIVE_INFINITY;
+      for (const candidate of candidates) {
+        const candidateBox = rectForPoint(candidate.point, size);
+        const candidateRadius = labelRadius(size);
+        let score = candidate.weight + Math.hypot(candidate.point.x - basePoint.x, candidate.point.y - basePoint.y) * 0.12;
+        for (const placedLabel of placed) {
+          const dist = Math.hypot(candidate.point.x - placedLabel.point.x, candidate.point.y - placedLabel.point.y);
+          const minDistance = candidateRadius + placedLabel.radius;
+          if (dist < minDistance) {
+            score += Math.pow(minDistance - dist, 2) * 14;
+          }
+          const overlap = overlapArea(candidateBox, placedLabel.box);
+          if (overlap > 0) {
+            score += overlap * 600;
+          }
+        }
+        const routeDistance = Math.hypot(candidate.point.x - basePoint.x, candidate.point.y - basePoint.y);
+        score += routeDistance * 0.08;
+        if (score < bestScore) {
+          bestScore = score;
+          bestCandidate = candidate;
+        }
+      }
+
+      if (!bestCandidate) continue;
+      dayRecord.label.setLatLng(map.unproject(bestCandidate.point, zoom));
+      placed.push({
+        dayRecord,
+        point: bestCandidate.point,
+        radius: labelRadius(size),
+        box: rectForPoint(bestCandidate.point, size),
+        anchor: basePoint,
+        size
+      });
+    }
+
+    if (placed.length < 2) return;
+
+    const resolveBox = item => rectForPoint(item.point, item.size);
+    const relaxIterations = 32;
+    const repelStrength = 0.6;
+    const anchorStrength = 0.04;
+    const maxDrift = 90;
+
+    for (let iteration = 0; iteration < relaxIterations; iteration++) {
+      for (let i = 0; i < placed.length; i++) {
+        for (let j = i + 1; j < placed.length; j++) {
+          const left = placed[i];
+          const right = placed[j];
+
+          let dx = right.point.x - left.point.x;
+          let dy = right.point.y - left.point.y;
+          let distance = Math.hypot(dx, dy);
+          const desired = left.radius + right.radius;
+          if (distance >= desired) continue;
+
+          if (distance < 0.001) {
+            const angle = (i * 97 + j * 57) % 360 * Math.PI / 180;
+            dx = Math.cos(angle);
+            dy = Math.sin(angle);
+            distance = 1;
+          }
+
+          const push = (desired - distance) * 0.5 * repelStrength;
+          const nx = dx / distance;
+          const ny = dy / distance;
+
+          left.point = L.point(left.point.x - nx * push, left.point.y - ny * push);
+          right.point = L.point(right.point.x + nx * push, right.point.y + ny * push);
+          left.box = resolveBox(left);
+          right.box = resolveBox(right);
+        }
+      }
+
+      for (const item of placed) {
+        const anchorDx = item.anchor.x - item.point.x;
+        const anchorDy = item.anchor.y - item.point.y;
+        item.point = L.point(
+          item.point.x + anchorDx * anchorStrength,
+          item.point.y + anchorDy * anchorStrength
+        );
+        const driftX = item.point.x - item.anchor.x;
+        const driftY = item.point.y - item.anchor.y;
+        const drift = Math.hypot(driftX, driftY);
+        if (drift > maxDrift) {
+          const scale = maxDrift / drift;
+          item.point = L.point(item.anchor.x + driftX * scale, item.anchor.y + driftY * scale);
+        }
+        item.box = resolveBox(item);
+      }
+    }
+
+    for (const item of placed) {
+      item.dayRecord.label.setLatLng(map.unproject(item.point, zoom));
+    }
   }
 
   function getDrivingCoordinates(stop) {
@@ -954,11 +1153,12 @@
         return marker;
       });
 
-      days.set(day.id, { color, route:null, routeHitArea:null, label:null, stops });
+      days.set(day.id, { color, dayIndex, routeCoordinates:null, route:null, routeHitArea:null, label:null, stops });
 
       fetchRoadRouteCoordinates(day).then(roadCoordinates => {
         const record = partOverviewMaps.get(partId)?.days.get(day.id);
         if (!record || !Array.isArray(roadCoordinates) || roadCoordinates.length < 2) return;
+        record.routeCoordinates = roadCoordinates;
         const route = L.polyline(roadCoordinates, { ...partRouteStyle(color), interactive:false }).addTo(map);
         const routeHitArea = L.polyline(roadCoordinates, {
           weight:22,
@@ -978,10 +1178,12 @@
         record.routeHitArea = routeHitArea;
         record.label = label;
         syncPartOverviewState(partId);
+        schedulePartRouteLabelLayout(partId);
       });
     });
 
     partOverviewMaps.set(partId, { map, bounds, days, hoveredDayId:null });
+    map.on('zoomend', () => schedulePartRouteLabelLayout(partId));
     fitPartOverview(partId);
   }
 
@@ -1394,7 +1596,7 @@
       marker.on('click', () => selectStop(dayId, stop.id));
       marker.on('add', () => {
         const element = marker.getElement()?.querySelector('.numbered-marker');
-        markerIndex.set(markerKey(stop.id), { marker,map,element });
+        markerIndex.set(markerKey(stop.id), { marker,map,element,baseLatLng:L.latLng(stop.lat, stop.lon) });
         if (element) {
           element.addEventListener('mouseover', () => syncSelectionUI(dayId, 'stop', stop.id, true));
           element.addEventListener('mouseout', () => {

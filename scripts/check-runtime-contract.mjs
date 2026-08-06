@@ -1,21 +1,58 @@
 import fs from 'node:fs';
 
-const app = fs.readFileSync('app-runtime.js', 'utf8');
-const bootstrap = fs.readFileSync('itinerary-bootstrap.js', 'utf8');
-const stories = fs.readFileSync('stories-data.js', 'utf8');
-const forbidden = ['window.CRETE_ITINERARY', 'projectLegacyData', 'routeStopOrders', 'data-stop-order', 'dataset.stopOrder', 'legacyVisitIndex'];
-const required = ['window.CRETE_RENDERER_MODEL', 'routeVisitIds', 'data-visit-id', 'dataset.visitId'];
+const runtimePaths = [
+  'app.js',
+  'app-runtime.js',
+  'index.html',
+  'itinerary-bootstrap.js',
+  'itinerary-data.js',
+  'itinerary-model.js',
+  'itinerary-renderer-model.js',
+  'formatters.js',
+  'stories-data.js',
+  'service-worker.js'
+];
+const runtime = Object.fromEntries(runtimePaths.map(file => [file, fs.readFileSync(file, 'utf8')]));
+const combined = Object.values(runtime).join('\n');
+const forbidden = [
+  'window.CRETE_ITINERARY',
+  'projectLegacyData',
+  'routeStopOrders',
+  'stopOrder',
+  'data-stop-order',
+  'dataset.stopOrder',
+  'legacyVisitIndex',
+  'itinerary-source.js',
+  'formatLegacyDuration',
+  'buildLegacyDayMeta'
+];
+const required = [
+  ['app-runtime.js', 'window.CRETE_RENDERER_MODEL'],
+  ['app-runtime.js', 'routeVisitIds'],
+  ['app-runtime.js', 'data-visit-id'],
+  ['app-runtime.js', 'dataset.visitId'],
+  ['itinerary-bootstrap.js', 'window.CRETE_DATA'],
+  ['itinerary-bootstrap.js', 'window.CRETE_RENDERER_MODEL'],
+  ['itinerary-data.js', 'schemaVersion'],
+  ['stories-data.js', 'visitId'],
+  ['service-worker.js', './itinerary-renderer-model.js']
+];
 
 for (const token of forbidden) {
-  if (app.includes(token) || bootstrap.includes(token) || stories.includes(token)) {
+  if (combined.includes(token)) {
     console.error(`Native runtime contract failed: legacy token remains: ${token}`);
     process.exitCode = 1;
   }
 }
-for (const token of required) {
-  if (!app.includes(token) && !bootstrap.includes(token)) {
-    console.error(`Native runtime contract failed: missing ${token}`);
+for (const [file, token] of required) {
+  if (!runtime[file].includes(token)) {
+    console.error(`Native runtime contract failed: ${file} is missing ${token}`);
     process.exitCode = 1;
   }
 }
+if (fs.existsSync('itinerary-source.js')) {
+  console.error('Native runtime contract failed: itinerary-source.js still exists');
+  process.exitCode = 1;
+}
+
 if (!process.exitCode) console.log('Native normalized renderer contract is present.');

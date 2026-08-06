@@ -33,7 +33,7 @@ Edit `styles.css` for the core interface. Story-dialog and audio-guide presentat
 
 ### Behaviour changes
 
-Edit `app.js` for the core itinerary interface. Stop rows and map markers are connected through `day.id` and `stop.order`. Story-dialog and audio-guide behaviour currently lives in the integrated story UI block in `index.html`.
+Edit `app.js` for the core itinerary interface. Visit rows, timeline segments, parking markers, stories, and map markers are connected through stable ISO `day.id` and `visit.id`. Story-dialog and audio-guide behaviour currently lives in the integrated story UI block in `index.html`.
 
 ### Page structure or external dependencies
 
@@ -90,16 +90,8 @@ Increment `CACHE_VERSION` in `service-worker.js` when changing the offline asset
 
 ## Previewing date-aware opening
 
-Without an explicit hash, the site opens the matching ready itinerary day during 11–22 August 2026. Dates whose days are not added yet open the relevant trip-part overview. Use `?date=2026-08-12` to preview a trip date without changing the system clock. Part-aware hashes use forms such as `#east/day14`, `#west/day15`, `#east`, and `#west`; legacy `#day14` links remain supported.
+Without an explicit hash, the site opens the matching ready itinerary day during 11–22 August 2026. Dates whose days are not added yet open the relevant trip-part overview. Use `?date=2026-08-12` to preview a trip date without changing the system clock. Part-aware hashes use forms such as `#east/2026-08-14`, `#west/2026-08-15`, `#east`, and `#west`.
 
 ## Data notes
 
-Each day contains:
-
-- `meta` — compact summary fields;
-- `stops` — visible itinerary rows, marker data, and references to parking locations;
-- `routeStopOrders` — the exact driving-route sequence;
-- `sections` — essentials, food, and practical notes.
-
-For a stop that should appear in the text but not on the map, set `mapVisible: false`.
-Use `navigationQuery` for the value passed to Google Maps. It may be coordinates or a human-readable address. Physical parking points live once in `parkingLocations`; stops reference them through `parking.primary.ref` and optional alternative references.
+The checked-in `itinerary-data.js` contains the normalized schema v2 graph. Days reference stable visit IDs; visits reference reusable places and parking entities; routes contain ordered `visitIds`. User-facing dates, durations, statuses, booking summaries, and section titles are created by `formatters.js` and `itinerary-renderer-model.js`.

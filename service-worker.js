@@ -1,13 +1,12 @@
 'use strict';
 
-const CACHE_VERSION = 'crete-2026-v20';
+const CACHE_VERSION = 'crete-2026-v21';
 const SHELL_URL = new URL('./index.html', self.registration.scope).href;
 const CORE_ASSETS = [
   './',
   './index.html',
   './styles.css',
   './itinerary-data.js',
-  './itinerary-source.js',
   './itinerary-bootstrap.js',
   './itinerary-model.js',
   './itinerary-renderer-model.js',

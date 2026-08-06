@@ -1,8 +1,8 @@
 (() => {
   'use strict';
 
-  const data = window.CRETE_ITINERARY;
-  if (!data) throw new Error('CRETE_ITINERARY is not loaded');
+  const data = window.CRETE_RENDERER_MODEL;
+  if (!data) throw new Error('CRETE_RENDERER_MODEL is not loaded');
 
   const app = document.getElementById('app');
   const partTabs = document.getElementById('part-tabs');
@@ -31,30 +31,16 @@
     .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
     .replaceAll('"','&quot;').replaceAll("'",'&#039;');
 
-  function resolveParkingLink(link) {
-    if (!link?.ref) return null;
-    const base = data.parkingLocations?.[link.ref];
-    if (!base) {
-      console.warn(`Unknown parking reference: ${link.ref}`);
-      return null;
-    }
-    return {
-      ...base,
-      ...link,
-      notes: [...(base.notes || []), ...(link.notes || [])]
-    };
-  }
-
   function getPrimaryParking(stop) {
-    return resolveParkingLink(stop?.parking?.primary);
+    return stop?.parking?.primary || null;
   }
 
   function getAlternativeParkings(stop) {
-    return (stop?.parking?.alternatives || []).map(resolveParkingLink).filter(Boolean);
+    return stop?.parking?.alternatives || [];
   }
 
-  function parkingMarkerKey(dayId, order) {
-    return `${dayId}:${order}`;
+  function parkingMarkerKey(_dayId, visitId) {
+    return visitId;
   }
 
   function getDrivingCoordinates(stop) {
@@ -201,30 +187,17 @@
 
   function clearParkingMarkerState(dayId, className) {
     parkingMarkerIndex.forEach(({ element }, key) => {
-      if (key.startsWith(`${dayId}:`) && element) element.classList.remove(className);
+      if (key.startsWith(dayId) && element) element.classList.remove(className);
     });
   }
 
-  function setParkingMarkerState(dayId, stopOrder, className) {
+  function setParkingMarkerState(dayId, visitId, className) {
     clearParkingMarkerState(dayId, className);
-    parkingMarkerIndex.get(parkingMarkerKey(dayId, stopOrder))?.element?.classList.add(className);
-  }
-
-  function validateParkingReferences() {
-    for (const day of data.days || []) {
-      for (const stop of day.stops || []) {
-        const links = [stop.parking?.primary, ...(stop.parking?.alternatives || [])].filter(Boolean);
-        for (const link of links) {
-          if (!data.parkingLocations?.[link.ref]) {
-            console.error(`Missing parking "${link.ref}" for ${day.id}: ${stop.name}`);
-          }
-        }
-      }
-    }
+    parkingMarkerIndex.get(parkingMarkerKey(dayId, visitId))?.element?.classList.add(className);
   }
 
   function buildGoogleMapsUrl(day) {
-    const routeStops = day.routeStopOrders.map(order => day.stops.find(stop => stop.order === order));
+    const routeStops = day.routeVisitIds.map(visitId => day.stops.find(stop => stop.id === visitId)).filter(Boolean);
     const [origin, ...rest] = routeStops;
     const destination = rest.pop();
     const params = new URLSearchParams({
@@ -248,7 +221,7 @@
   }
 
   function dayNumber(dayId) {
-    return Number(String(dayId).replace(/^day/, ''));
+    return data.getDayNumber(dayId);
   }
 
   function dayRouteColor(dayId) {
@@ -277,12 +250,12 @@
   }
 
   function isTransitionDay(dayId) {
-    return dayId === 'day15';
+    return dayId === '2026-08-15';
   }
 
   function dayRoutePoints(day) {
-    return day.routeStopOrders
-      .map(order => day.stops.find(stop => stop.order === order))
+    return day.routeVisitIds
+      .map(visitId => day.stops.find(stop => stop.id === visitId))
       .filter(Boolean)
       .map(getDrivingCoordinates);
   }
@@ -608,7 +581,7 @@
             fullLabel: driveLabel,
             shortLabel: abbreviateTime(driveLabel),
             description: description,
-            stopOrder: nextStop.order,
+            visitId: nextStop.id,
             clockStart: currentStopEnd,
             clockEnd: nextStartTime
           });
@@ -641,7 +614,7 @@
             fullLabel: stop.duration,
             shortLabel: abbreviateTime(stop.duration),
             description: description,
-            stopOrder: stop.order,
+            visitId: stop.id,
             clockStart: clockStart,
             clockEnd: clockEnd
           });
@@ -692,10 +665,10 @@
       const width = offsetEnd - offsetStart;
       
       const fullTooltip = `${seg.description} (${escapeHtml(seg.fullLabel)})`;
-      return `<div class="timeline-segment timeline-${seg.type}" data-stop-order="${seg.stopOrder}" data-segment-type="${seg.type}" data-width-percent="${width}" tabindex="0" role="button" aria-label="${seg.type === 'flight' ? 'Перелёт' : seg.type === 'drive' ? 'Вождение' : 'Остановка'}: ${fullTooltip}" title="${fullTooltip}" style="left:${offsetStart}%; width:${width}%;"><span class="timeline-time">${escapeHtml(seg.shortLabel)}</span></div>`;
+      return `<div class="timeline-segment timeline-${seg.type}" data-visit-id="${seg.visitId}" data-segment-type="${seg.type}" data-width-percent="${width}" tabindex="0" role="button" aria-label="${seg.type === 'flight' ? 'Перелёт' : seg.type === 'drive' ? 'Вождение' : 'Остановка'}: ${fullTooltip}" title="${fullTooltip}" style="left:${offsetStart}%; width:${width}%;"><span class="timeline-time">${escapeHtml(seg.shortLabel)}</span></div>`;
     }).join('');
     
-    const timelineHtml = `<div class="timeline-container" data-timeline="day-${data.days.findIndex(d => d === day)}" aria-label="Визуальный обзор дня: вождение и остановки">${segmentHtml}</div>`;
+    const timelineHtml = `<div class="timeline-container" data-timeline="day-${day.id}" aria-label="Визуальный обзор дня: вождение и остановки">${segmentHtml}</div>`;
     
     return { ruler: rulerHtml, timeline: timelineHtml };
   }
@@ -726,7 +699,7 @@
     const rows = day.stops.map(stop => {
       const flexible = isFlexibleStop(day, stop);
       const stopDuration = stop.duration && stop.duration !== '—' && stop.duration !== '-' ? stop.duration : '';
-      return `<tr class="route-row${flexible?' is-flexible':''}" tabindex="0" data-day-id="${day.id}" data-stop-order="${stop.order}" data-mode="${escapeHtml(stop.mode || 'stop')}" aria-label="Показать ${escapeHtml(stop.name)} на карте">
+      return `<tr class="route-row${flexible?' is-flexible':''}" tabindex="0" data-day-id="${day.id}" data-visit-id="${stop.id}" data-mode="${escapeHtml(stop.mode || 'stop')}" aria-label="Показать ${escapeHtml(stop.name)} на карте">
         <td class="stop-order">${stop.order}</td><td class="stop-name"><strong>${escapeHtml(stop.name)}</strong>${flexible?'<span class="flexible-label">Гибко</span>':''}<span class="role">${escapeHtml(stop.role)}</span></td>
         <td data-label="Расстояние">${escapeHtml(stop.distance)}<span class="drive-time">${escapeHtml(stop.drive)}</span></td><td data-label="Время">${escapeHtml(stop.time)}${stopDuration ? `<span class="stop-time">${escapeHtml(stopDuration)}</span>` : ''}</td></tr>`;
     }).join('');
@@ -813,7 +786,6 @@
   }
 
   function render() {
-    validateParkingReferences();
     renderPartTabs();
     app.innerHTML = renderOverview() + data.parts.map(renderPartOverview).join('') + data.days.map(renderDay).join('');
     setActivePart('overview');
@@ -1013,28 +985,26 @@
     fitPartOverview(partId);
   }
 
-  function markerKey(dayId, order) { return `${dayId}:${order}`; }
+  function markerKey(visitId) { return visitId; }
 
   function fitDayRoute(dayId) {
-    const day = data.days.find(item => item.id === dayId);
+    const day = getDay(dayId);
     const map = maps.get(dayId);
     if (!day || !map) return;
     const points = [];
-    for (const order of day.routeStopOrders) {
-      const stop = day.stops.find(item => item.order === order);
+    for (const visitId of day.routeVisitIds) {
+      const stop = day.stops.find(item => item.id === visitId);
       if (stop) points.push(getDrivingCoordinates(stop));
     }
-    for (const stop of day.stops.filter(item => item.mapVisible !== false)) {
-      points.push([stop.lat, stop.lon]);
-    }
+    for (const stop of day.stops.filter(item => item.mapVisible !== false)) points.push([stop.lat, stop.lon]);
     const bounds = L.latLngBounds(points);
     map.invalidateSize({ pan:false });
     if (bounds.isValid()) map.fitBounds(bounds,{ padding:[30,30],animate:false });
   }
 
-  function renderStopDetail(dayId,order) {
-    const day = data.days.find(item => item.id === dayId);
-    const stop = day?.stops.find(item => item.order === Number(order));
+  function renderStopDetail(dayId, visitId) {
+    const day = getDay(dayId);
+    const stop = day?.stops.find(item => item.id === visitId);
     const detail = document.querySelector(`#${dayId} .stop-detail`);
     if (!stop || !detail) return;
     const navigationUrl = buildStopNavigationUrl(stop);
@@ -1053,7 +1023,7 @@
     detail.closest('.map-wrap').classList.add('has-stop-detail');
   }
 
-  function syncSelectionUI(dayId, selectedType, selectedOrder, isHover = false) {
+  function syncSelectionUI(dayId, selectedType, selectedVisitId, isHover = false) {
     const panel = document.getElementById(dayId);
     if (!panel) return;
     
@@ -1068,7 +1038,7 @@
         seg.classList.remove('is-hovered');
       });
       markerIndex.forEach(({ element }, key) => {
-        if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-hovered');
+        if (key.startsWith(dayId) && element) element.classList.remove('is-hovered');
       });
       clearParkingMarkerState(dayId, 'is-hovered');
     } else {
@@ -1080,17 +1050,17 @@
         seg.classList.remove('is-selected');
       });
       markerIndex.forEach(({ element }, key) => {
-        if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-active');
+        if (key.startsWith(dayId) && element) element.classList.remove('is-active');
       });
       clearParkingMarkerState(dayId, 'is-active');
     }
     
-    if (!selectedType || selectedOrder === null) return; // Cleared but no new selection/hover
+    if (!selectedType || selectedVisitId === null) return; // Cleared but no new selection/hover
     
     // Apply selection/hover based on type
     if (selectedType === 'stop') {
       // Highlight the stop row
-      const row = panel.querySelector(`.route-row[data-stop-order="${selectedOrder}"]`);
+      const row = panel.querySelector(`.route-row[data-visit-id="${selectedVisitId}"]`);
       if (isHover) {
         row?.classList.add('is-hovered', 'is-stop-hovered');
       } else {
@@ -1098,17 +1068,17 @@
       }
       
       // Highlight the stop timeline segment
-      const segment = panel.querySelector(`.timeline-segment[data-stop-order="${selectedOrder}"][data-segment-type="stop"]`);
+      const segment = panel.querySelector(`.timeline-segment[data-visit-id="${selectedVisitId}"][data-segment-type="stop"]`);
       segment?.classList.add(selectionClass);
       
       // Highlight the map marker
-      const marker = markerIndex.get(markerKey(dayId, selectedOrder));
+      const marker = markerIndex.get(markerKey(selectedVisitId));
       marker?.element?.classList.add(isHover ? 'is-hovered' : 'is-active');
-      setParkingMarkerState(dayId, selectedOrder, isHover ? 'is-hovered' : 'is-active');
+      setParkingMarkerState(dayId, selectedVisitId, isHover ? 'is-hovered' : 'is-active');
       
     } else if (selectedType === 'drive') {
       // Highlight the destination stop's row with drive column styling (Км + В пути)
-      const row = panel.querySelector(`.route-row[data-stop-order="${selectedOrder}"]`);
+      const row = panel.querySelector(`.route-row[data-visit-id="${selectedVisitId}"]`);
       if (isHover) {
         row?.classList.add('is-hovered', 'is-drive-hovered');
       } else {
@@ -1116,7 +1086,7 @@
       }
       
       // Highlight the drive timeline segment
-      const segment = panel.querySelector(`.timeline-segment[data-stop-order="${selectedOrder}"][data-segment-type="drive"]`);
+      const segment = panel.querySelector(`.timeline-segment[data-visit-id="${selectedVisitId}"][data-segment-type="drive"]`);
       segment?.classList.add(selectionClass);
     }
   }
@@ -1134,7 +1104,7 @@
     detail.closest('.map-wrap').classList.remove('has-stop-detail');
     syncSelectionUI(dayId, null, null);
     clearHoverDrive(dayId);
-    delete panel.dataset.focusStop;
+    delete panel.dataset.focusVisit;
     if (fitRoute && (!mobileViewport.matches || panel.classList.contains('mobile-map-view'))) fitDayRoute(dayId);
     if (restoreFocus) focusTarget?.focus({ preventScroll:true });
   }
@@ -1166,33 +1136,33 @@
 
   function activateStopRow(row) {
     const dayId = row.dataset.dayId;
-    const order = Number(row.dataset.stopOrder);
+    const visitId = row.dataset.visitId;
     clearActiveDrive(dayId);
-    if (!mobileViewport.matches) { selectStop(dayId,order,true); return; }
-    document.getElementById(dayId).dataset.focusStop = String(order);
-    selectStop(dayId,order);
+    if (!mobileViewport.matches) { selectStop(dayId, visitId, true); return; }
+    document.getElementById(dayId).dataset.focusVisit = visitId;
+    selectStop(dayId, visitId);
     setMobileView(dayId, 'map');
     setTimeout(() => {
-      selectStop(dayId,order,true);
+      selectStop(dayId, visitId, true);
       document.querySelector(`#${dayId} .stop-detail`)?.focus({ preventScroll:true });
     },100);
   }
 
-  function setActiveStop(dayId,order,focusMap = false) {
+  function setActiveStop(dayId, visitId, focusMap = false) {
     document.querySelectorAll(`.route-row[data-day-id="${dayId}"]`).forEach(row => {
-      row.classList.toggle('is-active', Number(row.dataset.stopOrder) === Number(order));
+      row.classList.toggle('is-active', row.dataset.visitId === visitId);
     });
-    const record = markerIndex.get(markerKey(dayId, order));
+    const record = markerIndex.get(markerKey(visitId));
     if (!record) return;
     markerIndex.forEach(({ element }, key) => {
-      if (key.startsWith(`${dayId}:`) && element) element.classList.remove('is-active');
+      if (key.startsWith(dayId) && element) element.classList.remove('is-active');
     });
     clearParkingMarkerState(dayId, 'is-active');
     if (record.element) record.element.classList.add('is-active');
-    setParkingMarkerState(dayId, order, 'is-active');
+    setParkingMarkerState(dayId, visitId, 'is-active');
     if (focusMap) {
-      const day = data.days.find(item => item.id === dayId);
-      const stop = day?.stops.find(item => item.order === Number(order));
+      const day = getDay(dayId);
+      const stop = day?.stops.find(item => item.id === visitId);
       const parking = getPrimaryParking(stop);
       if (stop && isSeparateParking(stop) && parking) {
         record.map.fitBounds([[stop.lat, stop.lon], [parking.lat, parking.lon]], { padding:[70,70], maxZoom:17, animate:true });
@@ -1202,13 +1172,13 @@
     }
   }
 
-  function selectStop(dayId,order,focusMap = false) {
-    const day = data.days.find(item => item.id === dayId);
-    const stop = day?.stops.find(item => item.order === Number(order));
+  function selectStop(dayId, visitId, focusMap = false) {
+    const day = getDay(dayId);
+    const stop = day?.stops.find(item => item.id === visitId);
     clearActiveDrive(dayId);
-    setActiveStop(dayId,order,focusMap);
-    renderStopDetail(dayId,order);
-    syncSelectionUI(dayId, 'stop', order);
+    setActiveStop(dayId, visitId, focusMap);
+    renderStopDetail(dayId, visitId);
+    syncSelectionUI(dayId, 'stop', visitId);
     if (stop) scheduleParkingFocus(dayId, stop);
   }
 
@@ -1244,7 +1214,7 @@
     return segmentCoords.length > 1 ? segmentCoords : null;
   }
 
-  function setActiveDrive(dayId, stopOrder, driveCoordinates) {
+  function setActiveDrive(dayId, visitId, driveCoordinates) {
     const panel = document.getElementById(dayId);
     const map = maps.get(dayId);
     const state = routingIndex.get(dayId);
@@ -1253,10 +1223,10 @@
     if (map && state && Array.isArray(driveCoordinates) && driveCoordinates.length > 1) {
       state.driveHighlight = L.polyline(driveCoordinates, { color:'#f3b11f', weight:6, opacity:.92, lineCap:'round' }).addTo(map);
     }
-    syncSelectionUI(dayId, 'drive', stopOrder);
+    syncSelectionUI(dayId, 'drive', visitId);
   }
 
-  function setHoverDrive(dayId, stopOrder) {
+  function setHoverDrive(dayId, visitId) {
     const panel = document.getElementById(dayId);
     const map = maps.get(dayId);
     const state = routingIndex.get(dayId);
@@ -1268,10 +1238,10 @@
       state.driveHoverHighlight = null;
     }
     
-    const day = data.days.find(item => item.id === dayId);
+    const day = getDay(dayId);
     if (!day) return;
     
-    const currentOrderIndex = day.routeStopOrders.indexOf(Number(stopOrder));
+    const currentOrderIndex = day.routeVisitIds.indexOf(visitId);
     if (currentOrderIndex <= 0) return;
     
     // Get coordinates for this drive segment
@@ -1291,39 +1261,39 @@
     }
   }
 
-  function focusTimelineStop(dayId, stopOrder) {
+  function focusTimelineStop(dayId, visitId) {
     const panel = document.getElementById(dayId);
     if (!panel) return;
-    const row = panel.querySelector(`.route-row[data-stop-order="${stopOrder}"]`);
+    const row = panel.querySelector(`.route-row[data-visit-id="${visitId}"]`);
     if (row) {
       activateStopRow(row);
       return;
     }
-    setActiveStop(dayId, stopOrder, true);
-    renderStopDetail(dayId, stopOrder);
+    setActiveStop(dayId, visitId, true);
+    renderStopDetail(dayId, visitId);
   }
 
-  function focusTimelineDrive(dayId, stopOrder) {
+  function focusTimelineDrive(dayId, visitId) {
     const panel = document.getElementById(dayId);
-    const day = data.days.find(item => item.id === dayId);
+    const day = getDay(dayId);
     if (!panel || !day) return;
     if (mobileViewport.matches && panel.classList.contains('mobile-plan-view')) {
       setMobileView(dayId, 'map');
-      setTimeout(() => focusTimelineDrive(dayId, stopOrder), 100);
+      setTimeout(() => focusTimelineDrive(dayId, visitId), 100);
       return;
     }
 
     const map = maps.get(dayId);
-    const currentOrderIndex = day.routeStopOrders.indexOf(Number(stopOrder));
+    const currentOrderIndex = day.routeVisitIds.indexOf(visitId);
     if (!map || currentOrderIndex <= 0) return;
 
-    const currentStop = day.stops.find(item => item.order === Number(stopOrder));
-    const previousStop = day.stops.find(item => item.order === day.routeStopOrders[currentOrderIndex - 1]);
+    const currentStop = day.stops.find(item => item.id === visitId);
+    const previousStop = day.stops.find(item => item.id === day.routeVisitIds[currentOrderIndex - 1]);
     if (!currentStop || !previousStop) return;
     const segmentCoordinates = routeSegmentCoordinates(dayId, currentOrderIndex - 1, currentOrderIndex);
 
     closeStopDetail(dayId, false, false);
-    setActiveDrive(dayId, stopOrder, segmentCoordinates);
+    setActiveDrive(dayId, visitId, segmentCoordinates);
     map.invalidateSize({ pan:false });
     if (segmentCoordinates) {
       map.fitBounds(segmentCoordinates, { padding:[60,60], maxZoom:13, animate:true });
@@ -1341,7 +1311,7 @@
   }
 
   function initializeRoute(dayId) {
-    const day = data.days.find(item => item.id === dayId);
+    const day = getDay(dayId);
     const map = maps.get(dayId);
     if (!day || !map) return;
 
@@ -1353,7 +1323,7 @@
     previous?.segmentOverlays?.forEach(l => map.removeLayer(l));
     setRouteFailure(dayId,false);
 
-    const routeStops = day.routeStopOrders.map(order => day.stops.find(stop => stop.order === order));
+    const routeStops = day.routeVisitIds.map(visitId => day.stops.find(stop => stop.id === visitId)).filter(Boolean);
     const bounds = day.stops.filter(stop => stop.mapVisible !== false).map(stop => [stop.lat,stop.lon]);
     routeStops.forEach(stop => bounds.push(getDrivingCoordinates(stop)));
     const routing = L.Routing.control({
@@ -1372,16 +1342,16 @@
       // Add invisible wide overlays on each segment so they're clickable
       state.segmentOverlays?.forEach(l => map.removeLayer(l));
       state.segmentOverlays = [];
-      for (let i = 1; i < day.routeStopOrders.length; i++) {
+      for (let i = 1; i < day.routeVisitIds.length; i++) {
         const segCoords = routeSegmentCoordinates(dayId, i - 1, i);
         if (!segCoords) continue;
-        const stopOrder = day.routeStopOrders[i];
+        const visitId = day.routeVisitIds[i];
         const overlay = L.polyline(segCoords, { weight:20, opacity:0.001, interactive:true, pane:'routeOverlays' }).addTo(map);
-        overlay.on('click', () => focusTimelineDrive(dayId, stopOrder));
+        overlay.on('click', () => focusTimelineDrive(dayId, visitId));
         // Add hover listeners to route overlay
         overlay.on('mouseover', () => {
-          syncSelectionUI(dayId, 'drive', stopOrder, true);
-          setHoverDrive(dayId, stopOrder);
+          syncSelectionUI(dayId, 'drive', visitId, true);
+          setHoverDrive(dayId, visitId);
         });
         overlay.on('mouseout', () => {
           syncSelectionUI(dayId, null, null, true);
@@ -1390,7 +1360,7 @@
         state.segmentOverlays.push(overlay);
       }
       const panel = document.getElementById(dayId);
-      if (panel?.classList.contains('mobile-map-view') && !panel.dataset.focusStop) fitDayRoute(dayId);
+      if (panel?.classList.contains('mobile-map-view') && !panel.dataset.focusVisit) fitDayRoute(dayId);
     });
     routing.on('routingerror', () => {
       const state = routingIndex.get(dayId);
@@ -1405,7 +1375,7 @@
   }
 
   function initializeMap(dayId) {
-    const day = data.days.find(item => item.id === dayId);
+    const day = getDay(dayId);
     if (!day) return;
     if (maps.has(dayId)) { setTimeout(() => maps.get(dayId).invalidateSize(), 70); return; }
 
@@ -1419,12 +1389,12 @@
     visibleStops.forEach(stop => {
       const icon = L.divIcon({ className:'', html:`<div class="numbered-marker" data-marker-order="${stop.order}">${stop.order}</div>`, iconSize:[36,36], iconAnchor:[18,18] });
       const marker = L.marker([stop.lat,stop.lon], { icon });
-      marker.on('click', () => selectStop(dayId,stop.order));
+      marker.on('click', () => selectStop(dayId, stop.id));
       marker.on('add', () => {
         const element = marker.getElement()?.querySelector('.numbered-marker');
-        markerIndex.set(markerKey(dayId,stop.order), { marker,map,element });
+        markerIndex.set(markerKey(stop.id), { marker,map,element });
         if (element) {
-          element.addEventListener('mouseover', () => syncSelectionUI(dayId, 'stop', stop.order, true));
+          element.addEventListener('mouseover', () => syncSelectionUI(dayId, 'stop', stop.id, true));
           element.addEventListener('mouseout', () => {
             syncSelectionUI(dayId, null, null, true);
             clearHoverDrive(dayId);
@@ -1440,10 +1410,10 @@
         keyboard: true,
         title: parking.name || 'Парковка'
       });
-      parkingMarker.on('click', () => selectStop(dayId, stop.order, true));
+      parkingMarker.on('click', () => selectStop(dayId, stop.id, true));
       parkingMarker.on('add', () => {
         const element = parkingMarker.getElement()?.querySelector('.parking-marker');
-        parkingMarkerIndex.set(parkingMarkerKey(dayId, stop.order), { marker:parkingMarker, map, element });
+        parkingMarkerIndex.set(parkingMarkerKey(dayId, stop.id), { marker:parkingMarker, map, element });
       });
       parkingMarker.addTo(map);
       L.polyline([[stop.lat, stop.lon], [parking.lat, parking.lon]], {
@@ -1489,7 +1459,7 @@
       initializeMap(panelId);
       adjustTimelineSegmentDisplay();
       if (mobileViewport.matches) {
-        delete document.getElementById(panelId).dataset.focusStop;
+        delete document.getElementById(panelId).dataset.focusVisit;
         setMobileView(panelId, 'plan', false);
       }
     } else if (panelId.startsWith('part-')) {
@@ -1543,7 +1513,7 @@
       const viewButton = event.target.closest('.mobile-view-button');
       if (viewButton) {
         const panel = viewButton.closest('.day-panel');
-        delete panel.dataset.focusStop;
+        delete panel.dataset.focusVisit;
         clearActiveDrive(panel.id);
         setMobileView(panel.id, viewButton.dataset.view);
         return;
@@ -1553,12 +1523,12 @@
         const container = timelineSegment.closest('.timeline-container');
         if (container) {
           const dayPanel = container.closest('.day-panel');
-          const stopOrder = Number(timelineSegment.dataset.stopOrder);
+          const visitId = timelineSegment.dataset.visitId;
           const segmentType = timelineSegment.dataset.segmentType;
           setActiveTimelineSegment(container, timelineSegment);
-          if (dayPanel && stopOrder) {
-            if (segmentType === 'drive') focusTimelineDrive(dayPanel.id, stopOrder);
-            if (segmentType === 'stop') focusTimelineStop(dayPanel.id, stopOrder);
+          if (dayPanel && visitId) {
+            if (segmentType === 'drive') focusTimelineDrive(dayPanel.id, visitId);
+            if (segmentType === 'stop') focusTimelineStop(dayPanel.id, visitId);
           }
         }
         return;
@@ -1580,7 +1550,7 @@
         if (cell) {
           const cellIndex = [...row.cells].indexOf(cell);
           if (row.dataset.mode !== 'flight' && cellIndex === 2 && cell.textContent.trim() !== '—') {
-            focusTimelineDrive(row.dataset.dayId, Number(row.dataset.stopOrder));
+            focusTimelineDrive(row.dataset.dayId, row.dataset.visitId);
             return;
           }
         }
@@ -1636,12 +1606,12 @@
       const container = segment.closest('.timeline-container');
       const dayPanel = container?.closest('.day-panel');
       if (dayPanel) {
-        const stopOrder = Number(segment.dataset.stopOrder);
+        const visitId = segment.dataset.visitId;
         const segmentType = segment.dataset.segmentType;
-        syncSelectionUI(dayPanel.id, segmentType, stopOrder, true);
+        syncSelectionUI(dayPanel.id, segmentType, visitId, true);
         // Show drive highlight on map when hovering over drive segment
         if (segmentType === 'drive') {
-          setHoverDrive(dayPanel.id, stopOrder);
+          setHoverDrive(dayPanel.id, visitId);
         }
       }
     });
@@ -1661,20 +1631,20 @@
       const row = event.target.closest('.route-row');
       if (!row) return;
       const dayId = row.dataset.dayId;
-      const stopOrder = Number(row.dataset.stopOrder);
+      const visitId = row.dataset.visitId;
       const cell = event.target.closest('td');
       if (cell) {
         const cellIndex = [...row.cells].indexOf(cell);
         // Hover on merged distance/drive column highlights drive, otherwise highlights stop.
         const isDriveCell = row.dataset.mode !== 'flight' && cellIndex === 2 && cell.textContent.trim() !== '—';
         const selectedType = isDriveCell ? 'drive' : 'stop';
-        syncSelectionUI(dayId, selectedType, stopOrder, true);
+        syncSelectionUI(dayId, selectedType, visitId, true);
         // Show drive highlight on map when hovering over drive columns
         if (isDriveCell) {
-          setHoverDrive(dayId, stopOrder);
+          setHoverDrive(dayId, visitId);
         }
       } else {
-        syncSelectionUI(dayId, 'stop', stopOrder, true);
+        syncSelectionUI(dayId, 'stop', visitId, true);
       }
     });
     app.addEventListener('mouseout', event => {
@@ -1749,7 +1719,7 @@
     if (date.getFullYear() !== 2026 || date.getMonth() !== 7) {
       return { panelId:'overview', partId:'overview' };
     }
-    const dayId = `day${date.getDate()}`;
+    const dayId = `2026-08-${String(date.getDate()).padStart(2, '0')}`;
     if (getDay(dayId)) {
       return { panelId:dayId, partId:date.getDate() <= 15 ? 'east' : 'west' };
     }
@@ -1765,7 +1735,7 @@
     if (hash === 'overview') return { panelId:'overview', partId:'overview' };
     if (getPart(hash)) return { panelId:`part-${hash}`, partId:hash };
 
-    const scoped = hash.match(/^(east|west)\/(day\d+)$/);
+    const scoped = hash.match(/^(east|west)\/(2026-08-\d{2})$/);
     if (scoped) {
       const [, partId, dayId] = scoped;
       return getDay(dayId) && getPart(partId)?.dayIds.includes(dayId)

@@ -8,89 +8,136 @@
 
     const values = object => Object.values(object || {});
 
-    function getRegion(regionId) {
-      return model.getRegion(regionId);
+    function parkingView(parkingId, overrides = null) {
+      const parking = parkingId ? model.getParking(parkingId) : null;
+      if (!parking) return null;
+      const extraNotes = (overrides?.notes || []).map(note => typeof note === 'string' ? note : note?.text).filter(Boolean);
+      return {
+        id: parking.id,
+        name: overrides?.name || parking.name,
+        lat: parking.coordinates.lat,
+        lon: parking.coordinates.lon,
+        navigationQuery: overrides?.navigationQuery || parking.navigationQuery,
+        type: overrides?.type || parking.category,
+        paid: parking.payment.type === 'free' ? false : parking.payment.type === 'paid' ? true : null,
+        reliability: overrides?.reliability || parking.reliability,
+        walkMinutes: Number.isFinite(overrides?.walkMinutes)
+          ? overrides.walkMinutes
+          : parking.walking?.durationMinutes,
+        status: overrides?.status || parking.status,
+        summary: overrides?.summary || parking.summary,
+        priceNote: overrides?.priceNote || parking.priceNote,
+        crowding: overrides?.crowding || parking.crowdingNote,
+        notes: [...parking.notes.map(note => note.text), ...extraNotes],
+        lastVerified: parking.verification?.date || null
+      };
     }
 
-    function getRegions() {
-      return model.getRegions();
+    function visitView(visitId) {
+      const visit = model.getVisit(visitId);
+      if (!visit) return null;
+      const place = model.getPlace(visit.placeId);
+      if (!place) return null;
+      const primary = visit.parking?.primaryId
+        ? parkingView(visit.parking.primaryId, visit.parking.primaryOverrides)
+        : null;
+      const alternatives = (visit.parking?.alternatives || [])
+        .map(item => parkingView(item.id, item.overrides))
+        .filter(Boolean);
+      return {
+        id: visit.id,
+        order: visit.sequence,
+        name: place.name,
+        role: visit.role,
+        time: visit.timing.label,
+        duration: formatters.formatLegacyDuration(visit.durationMinutes, visit.timing.label),
+        drive: visit.inboundTravel.displayHints.duration,
+        distance: visit.inboundTravel.displayHints.distance,
+        note: visit.note,
+        lat: place.coordinates.lat,
+        lon: place.coordinates.lon,
+        navigationQuery: place.navigationQuery,
+        mapVisible: visit.map.visible,
+        mode: visit.inboundTravel.mode === 'driving' ? undefined : visit.inboundTravel.mode,
+        parking: primary || alternatives.length ? { primary, alternatives } : undefined
+      };
     }
 
-    function getDay(dayId) {
-      return model.getDay(dayId);
+    function dayView(dayId) {
+      const day = model.getDay(dayId);
+      if (!day) return null;
+      const route = model.getRoute(day.routeId);
+      return {
+        id: day.id,
+        short: formatters.formatShortDateEn(day.id),
+        date: formatters.formatLongDate(day.id),
+        title: day.title,
+        status: day.status,
+        meta: formatters.buildLegacyDayMeta(day),
+        stops: day.visitIds.map(visitView).filter(Boolean),
+        routeVisitIds: [...(route?.visitIds || [])],
+        sections: Object.fromEntries(Object.entries(day.sections || {}).map(([key, section]) => [key, {
+          title: formatters.sectionTitle(key),
+          items: [...(section.items || [])]
+        }])),
+        mealSummary: day.mealSummary
+      };
     }
 
-    function getDays() {
-      return model.getDays();
-    }
-
-    function getDayVisits(dayId) {
-      return model.getDayVisits(dayId).map(visit => ({
-        visit,
-        place: model.getPlace(visit.placeId),
-        primaryParking: visit.parking?.primaryId ? model.getParking(visit.parking.primaryId) : null,
-        alternativeParkings: (visit.parking?.alternatives || [])
-          .map(item => ({ link: item, parking: model.getParking(item.id) }))
-          .filter(item => item.parking)
-      }));
-    }
-
-    function getRouteVisits(routeId) {
-      return model.getRouteVisits(routeId).map(visit => ({
-        visit,
-        place: model.getPlace(visit.placeId),
-        primaryParking: visit.parking?.primaryId ? model.getParking(visit.parking.primaryId) : null
-      }));
-    }
-
-    function resolveDayId(value) {
-      if (!value) return null;
-      if (data.days[value]) return value;
-      return values(data.days).find(day => day.legacyId === value)?.id || null;
-    }
-
-    function getDayNumber(dayId) {
-      const resolved = resolveDayId(dayId);
-      if (!resolved) return null;
-      return Number(resolved.slice(-2));
-    }
-
-    function getRegionDisplay(regionId) {
-      const region = getRegion(regionId);
+    function partView(regionId) {
+      const region = model.getRegion(regionId);
       if (!region) return null;
       return {
         id: region.id,
         title: region.name,
-        subtitle: `${formatters.formatDateRange(region.startDate, region.endDate)} · ${region.basePlaceName}`,
+        dates: formatters.formatDateRange(region.startDate, region.endDate),
+        base: region.basePlaceName,
         dayIds: [...region.dayIds]
       };
     }
 
-    function getOverview() {
+    function bookingView(reservation) {
       return {
-        title: data.trip.title,
-        dateRange: formatters.formatDateRange(data.trip.startDate, data.trip.endDate, true),
-        logistics: formatters.buildOverviewLogistics(),
-        reservations: values(data.reservations),
-        rules: [...(data.policies?.rules || [])],
-        privacyNote: data.policies?.privacyNote || null
+        id: reservation.id,
+        name: model.getPlace(reservation.placeId)?.name || reservation.id,
+        when: formatters.formatReservationWhen(reservation),
+        note: reservation.notes.map(note => note.text).join(' '),
+        status: reservation.status
       };
     }
+
+    const parts = model.getRegions().map(region => partView(region.id)).filter(Boolean);
+    const days = model.getDays().map(day => dayView(day.id)).filter(Boolean);
+    const dayIndex = new Map(days.map(day => [day.id, day]));
+    const partIndex = new Map(parts.map(part => [part.id, part]));
+    const parkingLocations = Object.fromEntries(values(data.parkingLocations).map(item => [item.id, parkingView(item.id)]));
+    const overview = {
+      title: data.trip.title,
+      dateRange: formatters.formatDateRange(data.trip.startDate, data.trip.endDate, true),
+      logistics: formatters.buildOverviewLogistics(),
+      bookings: values(data.reservations).map(bookingView),
+      rules: [...(data.policies?.rules || [])],
+      privacyNote: data.policies?.privacyNote || null
+    };
 
     return Object.freeze({
       data,
       model,
+      parts,
+      days,
+      overview,
+      parkingLocations,
       getTrip: model.getTrip,
-      getRegion,
-      getRegions,
-      getRegionDisplay,
-      getDay,
-      getDays,
-      getDayVisits,
-      getRouteVisits,
-      getOverview,
-      resolveDayId,
-      getDayNumber
+      getPart: id => partIndex.get(id) || null,
+      getParts: () => [...parts],
+      getDay: id => dayIndex.get(id) || null,
+      getDays: () => [...days],
+      getVisit: visitView,
+      getDayVisits: id => dayIndex.get(id)?.stops || [],
+      getRouteVisits: id => (model.getRoute(id)?.visitIds || []).map(visitView).filter(Boolean),
+      getParking: parkingView,
+      getOverview: () => overview,
+      getDayNumber: dayId => Number(String(dayId).slice(-2))
     });
   }
 

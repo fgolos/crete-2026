@@ -44,8 +44,8 @@ const contractPath = 'scripts/check-runtime-contract.mjs';
 let contract = fs.readFileSync(contractPath, 'utf8');
 contract = replaceOnce(
   contract,
-  "  'buildLegacyDayMeta'\n];",
-  "  'buildLegacyDayMeta',\n  'document.querySelector(`#${dayId}'\n];",
+  "  'timing.label'\n];",
+  "  'timing.label',\n  'document.querySelector(`#${dayId}'\n];",
   'unsafe day selector contract'
 );
 fs.writeFileSync(contractPath, contract);

@@ -5,26 +5,16 @@ on:
   push:
     branches:
       - refactor/native-normalized-renderer
-
-permissions:
-  contents: write
+      - main
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: refactor/native-normalized-renderer
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Complete native renderer migration
-        if: hashFiles('scripts/finish-native-renderer.mjs') != ''
-        run: |
-          node scripts/finish-native-renderer.mjs
-          rm scripts/finish-native-renderer.mjs
       - name: Check JavaScript syntax
         run: |
           node --check itinerary-data.js
@@ -37,19 +27,12 @@ jobs:
           node --check app-runtime.js
           node --check stories-data.js
           node --check service-worker.js
+          node --check scripts/validate-itinerary.mjs
+          node --check scripts/check-runtime-contract.mjs
+          node --check scripts/smoke-browser.mjs
       - name: Validate normalized itinerary
         run: node scripts/validate-itinerary.mjs
       - name: Check native renderer contract
         run: node scripts/check-runtime-contract.mjs
-      - name: Commit completed migration
-        run: |
-          git restore .github/workflows/validate-itinerary.yml .github/workflows/finish-native-renderer.yml
-          if git diff --quiet && git diff --cached --quiet; then
-            echo 'No migration changes to commit.'
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'refactor: complete native normalized renderer'
-          git push origin HEAD:refactor/native-normalized-renderer
+      - name: Smoke test rendered application
+        run: node scripts/smoke-browser.mjs

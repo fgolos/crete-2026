@@ -1,0 +1,289 @@
+name: Update west itinerary once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-west-itinerary.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update itinerary source
+        shell: bash
+        run: |
+          python3 <<'PY'
+          import json, re
+          from pathlib import Path
+
+          path = Path('itinerary-data.js')
+          text = path.read_text(encoding='utf-8')
+          match = re.search(r'window\.CRETE_DATA = deepFreeze\((\{.*\})\);\s*\}\)\(\);\s*$', text, re.S)
+          if not match:
+              raise SystemExit('Could not locate CRETE_DATA JSON payload')
+          data = json.loads(match.group(1))
+
+          days = data['days']
+          places = data['places']
+          visits = data['visits']
+          routes = data['routes']
+
+          def place(pid, name, query=None, mode='driving', lat=None, lon=None):
+              places[pid] = {
+                  'id': pid,
+                  'name': name,
+                  'coordinates': {'lat': lat, 'lon': lon},
+                  'navigationQuery': query or name,
+                  'transportMode': mode,
+              }
+
+          def visit(day, pid, seq, role, start, end=None, duration=None,
+                    travel_status='standard', travel_mode='driving', travel_minutes=0,
+                    distance=0, note='', visible=True, duration_kind=None):
+              vid = f'{day}-{pid}'
+              visits[vid] = {
+                  'id': vid,
+                  'dayId': day,
+                  'placeId': pid,
+                  'sequence': seq,
+                  'role': role,
+                  'timing': {'start': start, 'end': end, 'approximate': True},
+                  'durationMinutes': duration,
+                  'inboundTravel': {
+                      'mode': travel_mode,
+                      'durationMinutes': None if travel_status == 'none' else travel_minutes,
+                      'distanceKm': None if travel_status == 'none' else distance,
+                      'status': travel_status,
+                  },
+                  'note': note,
+                  'parking': {'primaryId': None, 'primaryOverrides': None, 'alternatives': []},
+                  'map': {'visible': visible},
+                  'durationKind': duration_kind,
+              }
+              return vid
+
+          def set_day(day, title, status, visit_ids, essentials, food, practical,
+                      meal, depart, finish, drive_min, km, swimming=None):
+              days[day] = {
+                  'id': day,
+                  'title': title,
+                  'status': status,
+                  'visitIds': visit_ids,
+                  'routeId': f'route-{day}',
+                  'sections': {
+                      'essentials': {'items': essentials},
+                      'food': {'items': food},
+                      'practical': {'items': practical},
+                  },
+                  'mealSummary': meal,
+                  'schedule': {
+                      'departure': {'start': depart, 'end': None, 'approximate': True},
+                      'finish': {'start': finish, 'end': None, 'approximate': True} if finish else None,
+                      'carReturnDeadline': None,
+                      'flight': None,
+                  },
+                  'travelTotals': {
+                      'drivingDurationMinutes': drive_min,
+                      'distanceKm': km,
+                      'approximate': True,
+                  },
+                  'swimming': swimming,
+              }
+              routes[f'route-{day}'] = {'id': f'route-{day}', 'dayId': day, 'visitIds': visit_ids}
+
+          # Remove the previous western draft visits and routes before rebuilding them.
+          for key in list(visits):
+              if any(key.startswith(f'2026-08-{d:02d}-') for d in range(15, 23)):
+                  del visits[key]
+          for d in range(15, 23):
+              routes.pop(f'route-2026-08-{d:02d}', None)
+
+          for obsolete in [
+              'margarites', 'plakias', 'falassarna-beach', 'lake-kournas',
+              'georgioupoli', 'chania-old-town-and-venetian-port'
+          ]:
+              places.pop(obsolete, None)
+
+          # Shared and new places.
+          place('panigiri-village-tbd', 'Panigiri — деревня уточняется', 'Rethymno panigiri 15 August 2026', lat=None, lon=None)
+          place('organic-farmers-market-rethymno', 'Organic Farmers’ Market Rethymno', 'Koumoundourou Street, Rethymno, Greece', lat=None, lon=None)
+          place('laiki-market-rethymno', 'Laiki Market Rethymno', 'Municipal Garden, Rethymno, Greece', lat=None, lon=None)
+          place('eleftherna', 'Eleutherna Archaeological Museum', 'Museum of Ancient Eleutherna, Crete, Greece', lat=35.3246, lon=24.6754)
+          place('stavros-beach', 'Stavros Beach', 'Stavros Beach, Akrotiri, Crete, Greece', lat=35.5914, lon=24.0955)
+          place('kouzina-epe', 'Kouzina EPE', 'Kouzina EPE, Chania, Greece', lat=None, lon=None)
+          place('marathi-beach', 'Marathi Beach', 'Marathi Beach, Crete, Greece', lat=35.5057, lon=24.1691)
+          for pid, name in [
+              ('apostoloi-amari', 'Apostoloi'),
+              ('nefs-amari', 'Nefs Amari'),
+              ('opsigias', 'Opsigias'),
+              ('monastiraki-amari', 'Monastiraki'),
+              ('meronas', 'Meronas'),
+              ('elenes', 'Elenes'),
+              ('gerakari', 'Gerakari'),
+          ]:
+              place(pid, name, f'{name}, Amari, Crete, Greece', lat=None, lon=None)
+
+          # 15 August: transfer plus a flexible village panigiri.
+          d = '2026-08-15'
+          ids = [
+              visit(d, 'sitia-airbnb', 0, 'Утренний выезд и завершение восточной части', '08:30', None, None, 'none', note='Kazarma, завтрак и окончательная загрузка машины остаются в первой половине дня.', duration_kind='start'),
+              visit(d, 'mathena-olive-tree-lastros', 1, 'Короткая остановка и ранний обед', '11:45', '13:00', 75, travel_minutes=55, distance=47, note='Не затягивать переезд из-за праздничного дня.'),
+              visit(d, 'pomegranate-garden-villa', 2, 'Заселение и отдых в Platanes', '15:15', '20:30', 315, travel_minutes=145, distance=119, note='После дороги ничего серьёзного не планировать.', duration_kind=None),
+              visit(d, 'panigiri-village-tbd', 3, 'Традиционный критский panigiri', '21:00', None, None, travel_minutes=30, distance=20, note='Конкретную деревню, парковку и необходимость бронирования стола уточнить ближе к дате.', visible=False, duration_kind='finish'),
+          ]
+          set_day(d, 'Переезд в Platanes и вечерний panigiri', 'confirmed', ids,
+                  ['Главное: спокойно переехать из Sitia в Platanes и заселиться.', 'Вечером — традиционный критский panigiri; деревню выберем ближе к 15 августа.', 'После заселения обязательно оставить несколько часов на отдых.'],
+                  ['Ранний обед по дороге, ориентировочно в Lastros.', 'На panigiri рассчитываем на деревенский ужин; перед выездом только лёгкий перекус.'],
+                  ['15 августа дороги, таверны и парковки могут быть загружены.', 'Водитель не пьёт раки.', 'Точную афишу panigiri перепроверить за несколько дней.'],
+                  'ранний обед по дороге; ужин на panigiri', '08:30', 'после полуночи' if False else '23:59', 230, 186, None)
+
+          # 16 August: deliberately late and light.
+          d = '2026-08-16'
+          ids = [
+              visit(d, 'pomegranate-garden-villa', 0, 'Позднее спокойное начало', '12:00', None, None, 'none', travel_mode='walking', note='После panigiri никаких ранних подвигов.', duration_kind='start'),
+              visit(d, 'rethymno-old-town-and-venetian-harbour', 1, 'Обед и неспешная прогулка', '13:00', '17:00', 240, travel_mode='transit', travel_minutes=25, distance=7, note='Можно приехать автобусом; программа без обязательных музеев.'),
+              visit(d, 'platanes-beach', 2, 'Пляж и возвращение вдоль моря', '17:30', '20:00', 150, travel_mode='walking', travel_minutes=75, distance=6, note='Пешком только если не накупили гору сувениров.'),
+              visit(d, 'pomegranate-garden-villa', 3, 'Свободный вечер', '20:05', None, None, travel_mode='walking', travel_minutes=5, distance=0.4, duration_kind='finish'),
+          ]
+          set_day(d, 'Поздний Rethymno и пляж', 'confirmed', ids,
+                  ['Начало дня около 12:00.', 'Rethymno — без туристического марафона: обед, знакомый город и море.', 'При хорошем настроении вернуться в Platanes пешком вдоль пляжа.'],
+                  ['Обед в Rethymno.', 'Ужин свободно возле жилья.'],
+                  ['Лучше ехать автобусом, чтобы не заниматься парковочной археологией.', 'Пеший возврат зависит от жары, ветра и количества покупок.'],
+                  'обед в Rethymno; ужин у базы', '12:00', '20:05', 0, 0, 'Platanes Beach')
+
+          # 17 August: protected beach day.
+          d = '2026-08-17'
+          ids = [
+              visit(d, 'pomegranate-garden-villa', 0, 'Выход на пляж без машины', '09:30', None, None, 'none', travel_mode='walking', duration_kind='start'),
+              visit(d, 'platanes-beach', 1, 'Полный пляжный день', '09:40', '19:00', 560, travel_mode='walking', travel_minutes=10, distance=0.7, note='Утром занять лежаки; никаких поездок и «маленьких остановок».'),
+              visit(d, 'pomegranate-garden-villa', 2, 'Возвращение домой', '19:10', None, None, travel_mode='walking', travel_minutes=10, distance=0.7, duration_kind='finish'),
+          ]
+          set_day(d, 'Полный пляжный день №1', 'confirmed', ids,
+                  ['Весь день провести на пляже возле Airbnb.', 'Без машины, экскурсий и дополнительных задач.', 'Этот день нельзя отдавать под запасной маршрут.'],
+                  ['Обед и напитки — на пляже или рядом.', 'Ужин после возвращения домой.'],
+                  ['Утром занять лежаки.', 'Проверить флаг и состояние моря, но не превращать это в повод ехать через остров.'],
+                  'обед на пляже; ужин у базы', '09:30', '19:10', 0, 0, 'Platanes Beach')
+
+          # 18 August: authentic Amari villages.
+          d = '2026-08-18'
+          village_specs = [
+              ('pomegranate-garden-villa', 'Выезд из Platanes', '09:30', None, None, 0, 0, 'none'),
+              ('apostoloi-amari', 'Первая деревенская остановка', '10:35', '11:15', 40, 65, 48, 'standard'),
+              ('nefs-amari', 'Кафенио и знакомство с долиной Amari', '11:30', '12:10', 40, 15, 8, 'standard'),
+              ('opsigias', 'Короткая остановка без формальной программы', '12:25', '12:55', 30, 15, 7, 'standard'),
+              ('monastiraki-amari', 'Деревня и поиск локальных продуктов', '13:10', '13:50', 40, 15, 8, 'standard'),
+              ('meronas', 'Главная остановка и обед', '14:05', '16:00', 115, 15, 8, 'standard'),
+              ('elenes', 'Небольшая деревенская пауза', '16:15', '16:45', 30, 15, 7, 'standard'),
+              ('gerakari', 'Финальная остановка: травы, раки, масло', '17:00', '18:00', 60, 15, 8, 'standard'),
+              ('pomegranate-garden-villa', 'Возвращение в Platanes', '19:05', None, None, 65, 45, 'standard'),
+          ]
+          ids = []
+          for seq, (pid, role, start, end, duration, tmin, dist, status) in enumerate(village_specs):
+              ids.append(visit(d, pid, seq, role, start, end, duration, status, travel_minutes=tmin, distance=dist,
+                               note='Остановка гибкая: важнее атмосфера, открытое кафенио и разговоры, чем выполнение списка.',
+                               duration_kind='start' if seq == 0 else ('finish' if seq == len(village_specs)-1 else None)))
+          set_day(d, 'Горные деревни Amari', 'confirmed', ids,
+                  ['Маршрут: Apostoloi → Nefs Amari → Opsigias → Monastiraki → Meronas → Elenes → Gerakari.', 'Цель — жилой, нетуристический Крит: кафенио, разговоры и небольшие деревенские остановки.', 'Ищем домашнее оливковое масло, раки, травы, мёд и другие локальные продукты.'],
+                  ['Обед — в Meronas или другой деревне, где найдётся живое подходящее место.', 'Кофе и небольшие покупки — по ситуации, без жёстких броней.'],
+                  ['Не ждать, что в каждой деревне будут магазины и производители открыты.', 'Покупать домашние продукты только там, где понятно происхождение и условия хранения.', 'Маршрут черновой по времени и допускает пропуск любой промежуточной деревни.'],
+                  'деревенский обед; кофе и локальные продукты по пути', '09:30', '19:05', 160, 139, None)
+
+          # 19 August: farmers market, with Akrotiri explicitly kept as Plan B.
+          d = '2026-08-19'
+          ids = [
+              visit(d, 'pomegranate-garden-villa', 0, 'Выезд на рынок', '10:30', None, None, 'none', duration_kind='start'),
+              visit(d, 'organic-farmers-market-rethymno', 1, 'Свежие овощи, фрукты и местные продукты', '11:00', '12:15', 75, travel_minutes=20, distance=7, note='Рынок желательный, но не обязательный.'),
+              visit(d, 'pomegranate-garden-villa', 2, 'Сразу вернуть свежие покупки домой', '12:35', None, None, travel_minutes=20, distance=7, note='После рынка — холодильник, пляж и отдых.', duration_kind='finish'),
+          ]
+          set_day(d, 'Organic Farmers’ Market или Akrotiri', 'draft', ids,
+                  ['План A: Organic Farmers’ Market, затем сразу домой со свежими покупками.', 'План Б, если рынок пропускаем: Stavros Beach → обязательный обед в Kouzina EPE → Marathi Beach.', 'Akrotiri — потенциальный дальний день, а не обязанность.'],
+                  ['После рынка — обед и отдых у базы.', 'При плане Б обед в Kouzina EPE обязателен.'],
+                  ['Решение между рынком и Akrotiri принять по настроению и погоде.', 'Akrotiri — около 175–180 км и до четырёх часов транспортной возни.', 'Не пытаться совместить рынок и дальний маршрут в один день.'],
+                  'план A: еда дома; план Б: Kouzina EPE', '10:30', '12:35', 40, 14, 'Platanes Beach после рынка; Marathi при плане Б')
+
+          # 20 August: obligatory laiki, museum, optional Panormo, start packing.
+          d = '2026-08-20'
+          ids = [
+              visit(d, 'pomegranate-garden-villa', 0, 'Ранний выезд на Laiki', '07:45', None, None, 'none', duration_kind='start'),
+              visit(d, 'laiki-market-rethymno', 1, 'Обязательный большой рынок', '08:10', '10:10', 120, travel_minutes=25, distance=8, note='Приехать пораньше на машине; майки и оливковое масло смогут ждать в машине.'),
+              visit(d, 'eleftherna', 2, 'Eleutherna Archaeological Museum', '11:00', '13:00', 120, travel_minutes=50, distance=30, note='Музей обязателен; вторник для него не подходит.'),
+              visit(d, 'panormo', 3, 'Короткая проверка Panormo по желанию', '14:00', '16:30', 150, travel_minutes=35, distance=25, note='Необязательная прогулка, обед или купание. Если не нравится атмосфера — уехать без чувства долга.'),
+              visit(d, 'pomegranate-garden-villa', 4, 'Возвращение и начало сборов', '17:00', None, None, travel_minutes=30, distance=22, note='Вечером начать собирать чемоданы.', duration_kind='finish'),
+          ]
+          set_day(d, 'Laiki, Eleutherna и Panormo по желанию', 'confirmed', ids,
+                  ['Laiki Market обязателен: приехать рано и оставить нескоропортящиеся покупки в машине.', 'Eleutherna Archaeological Museum — главная культурная остановка дня.', 'Panormo — только короткая необязательная проверка, не цель путешествия.'],
+                  ['После Laiki можно ехать дальше без возвращения домой.', 'Обед — во внутренних районах или в Panormo по ситуации.'],
+                  ['Margarites и Arkadi Monastery исключены: семья уже была.', 'Вечером начать сборы и убрать большую часть вещей.', 'Не оставлять упаковку чемоданов на 22 августа.'],
+                  'обед после музея или в Panormo', '07:45', '17:00', 140, 85, 'Panormo по желанию')
+
+          # 21 August: finish packing early, then second protected beach day.
+          d = '2026-08-21'
+          ids = [
+              visit(d, 'pomegranate-garden-villa', 0, 'Практически закончить сборы', '08:30', '10:00', 90, 'none', note='Оставить снаружи только купальные вещи, одежду на дорогу и необходимые мелочи.', duration_kind=None),
+              visit(d, 'platanes-beach', 1, 'Полный пляжный день', '10:15', '19:00', 525, travel_mode='walking', travel_minutes=10, distance=0.7, note='После утренних сборов день полностью принадлежит пляжу.'),
+              visit(d, 'pomegranate-garden-villa', 2, 'Последний спокойный вечер', '19:10', None, None, travel_mode='walking', travel_minutes=10, distance=0.7, duration_kind='finish'),
+          ]
+          set_day(d, 'Полный пляжный день №2', 'confirmed', ids,
+                  ['Утром практически закончить сборы.', 'После 10:00 — полный пляжный день возле Airbnb.', 'Без машины, поездок и переноса сюда несостоявшихся экскурсий.'],
+                  ['Обед на пляже или рядом.', 'Последний ужин — спокойно возле жилья.'],
+                  ['К вечеру 20 августа уже должна быть собрана основная часть вещей.', 'Оставить отдельную компактную сумку на последнее утро и дорогу.'],
+                  'обед на пляже; последний ужин у базы', '08:30', '19:10', 0, 0, 'Platanes Beach')
+
+          # 22 August: relaxed morning, no packing project.
+          d = '2026-08-22'
+          ids = [
+              visit(d, 'pomegranate-garden-villa', 0, 'Спокойное последнее утро и выезд', '08:00', '10:30', 150, 'none', note='Завтрак и короткий расслабон; чемоданы уже собраны.', duration_kind=None),
+              visit(d, 'gomega-car-rentals-heraklion', 1, 'Возврат автомобиля', '12:00', '13:30', 90, travel_minutes=80, distance=80, note='Дедлайн возврата — 14:00.'),
+              visit(d, 'heraklion-international-airport-n-kazantzakis', 2, 'Регистрация и вылет в Vilnius', '13:40', None, None, travel_mode='rental-shuttle', travel_minutes=10, distance=2, note='Рейс HN 2322 в 17:55.', duration_kind='airport'),
+          ]
+          set_day(d, 'Расслабленное утро и вылет', 'confirmed', ids,
+                  ['Утро оставить спокойным: завтрак, море по времени и никаких больших сборов.', 'Выезд из Platanes около 10:30.', 'Автомобиль вернуть до 14:00; рейс HN 2322 вылетает в 17:55.'],
+                  ['Нормальный завтрак дома.', 'Перекус после возврата машины или в аэропорту.'],
+                  ['Основные сборы закончены утром 21 августа.', 'Перед выездом проверить только документы, ручную кладь, холодильник и зарядки.', 'Накануне уточнить у GoMega процедуру возврата.'],
+                  'завтрак дома; перекус в аэропорту', '08:00', None, 80, 80, None)
+          days[d]['schedule']['carReturnDeadline'] = '14:00'
+          days[d]['schedule']['flight'] = {'number': 'HN 2322', 'departureTime': '17:55'}
+
+          payload = json.dumps(data, ensure_ascii=False, indent=2)
+          updated = text[:match.start(1)] + payload + text[match.end(1):]
+          path.write_text(updated, encoding='utf-8')
+
+          sw = Path('service-worker.js')
+          sw_text = sw.read_text(encoding='utf-8')
+          sw_text, count = re.subn(r"const CACHE_VERSION = 'crete-2026-v(\d+)';", lambda m: f"const CACHE_VERSION = 'crete-2026-v{int(m.group(1)) + 1}';", sw_text, count=1)
+          if count != 1:
+              raise SystemExit('Could not bump service worker cache')
+          sw.write_text(sw_text, encoding='utf-8')
+          PY
+
+      - name: Validate JavaScript and itinerary schema
+        run: |
+          node --check itinerary-data.js
+          node - <<'NODE'
+          global.window = {};
+          require('./itinerary-data.js');
+          require('./data-validation.js');
+          const result = window.CRETE_VALIDATION_API.validate(window.CRETE_DATA);
+          if (!result.valid) {
+            console.error(result.errors.join('\n'));
+            process.exit(1);
+          }
+          console.log('Validated', Object.keys(window.CRETE_DATA.days).length, 'days');
+          NODE
+
+      - name: Commit source update and remove one-shot workflow
+        run: |
+          rm .github/workflows/update-west-itinerary.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add itinerary-data.js service-worker.js .github/workflows/update-west-itinerary.yml
+          git commit -m 'Update west Crete itinerary'
+          git push

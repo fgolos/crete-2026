@@ -28,7 +28,8 @@ const forbidden = [
   'metricDisplayHints',
   'durationDisplayHint',
   'displayHints',
-  'timing.label'
+  'timing.label',
+  'document.querySelector(`#${dayId}'
 ];
 const required = [
   ['app-runtime.js', 'window.CRETE_RENDERER_MODEL'],

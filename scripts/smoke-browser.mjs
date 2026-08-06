@@ -176,6 +176,10 @@ function dumpDom(browser, url, timeoutMs = 30000) {
         finish(new Error(`Browser failed for ${url}: ${stderr || `exit ${code}`}`));
         return;
       }
+      if (/Failed to execute 'querySelector'|Set map center and zoom first/.test(stderr)) {
+        finish(new Error(`Browser runtime error for ${url}: ${stderr}`));
+        return;
+      }
       finish(null, stdout);
     });
 
@@ -218,12 +222,14 @@ try {
   assertIncludes(eastDay, 'data-visit-id="2026-08-12-toplou-monastery-and-toplou-fabrica"', 'east day');
   assertIncludes(eastDay, 'class="story-open', 'east day story buttons');
   assertIncludes(eastDay, 'Открыть в Google Maps', 'east day map action');
+  assertIncludes(eastDay, 'class="numbered-marker', 'east day Leaflet markers');
 
   console.log('Testing West day...');
   const westDay = await dumpDom(browser, `${origin}/#west/2026-08-16`);
   assertActivePanel(westDay, '2026-08-16', 'west day');
   assertIncludes(westDay, 'data-visit-id="2026-08-16-rethymno-old-town-and-venetian-harbour"', 'west day');
   assertIncludes(westDay, 'Памятка', 'west day mobile controls');
+  assertIncludes(westDay, 'class="numbered-marker', 'west day Leaflet markers');
 
   console.log(`Headless browser smoke test passed with ${browser}.`);
 } finally {

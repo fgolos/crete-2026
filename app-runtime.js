@@ -1005,7 +1005,7 @@
   function renderStopDetail(dayId, visitId) {
     const day = getDay(dayId);
     const stop = day?.stops.find(item => item.id === visitId);
-    const detail = document.querySelector(`#${dayId} .stop-detail`);
+    const detail = document.getElementById(dayId)?.querySelector('.stop-detail');
     if (!stop || !detail) return;
     const navigationUrl = buildStopNavigationUrl(stop);
     detail.innerHTML = `<button class="stop-detail-close" type="button" aria-label="Закрыть информацию об остановке">×</button>
@@ -1144,7 +1144,7 @@
     setMobileView(dayId, 'map');
     setTimeout(() => {
       selectStop(dayId, visitId, true);
-      document.querySelector(`#${dayId} .stop-detail`)?.focus({ preventScroll:true });
+      document.getElementById(dayId)?.querySelector('.stop-detail')?.focus({ preventScroll:true });
     },100);
   }
 
@@ -1306,7 +1306,7 @@
   }
 
   function setRouteFailure(dayId,failed) {
-    const status = document.querySelector(`#${dayId} .route-status`);
+    const status = document.getElementById(dayId)?.querySelector('.route-status');
     if (status) status.hidden = !failed;
   }
 
@@ -1384,6 +1384,8 @@
     map.createPane('routeOverlays');
     map.getPane('routeOverlays').style.zIndex = 450;
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap contributors' }).addTo(map);
+
+    fitDayRoute(dayId);
 
     const visibleStops = day.stops.filter(stop => stop.mapVisible !== false);
     visibleStops.forEach(stop => {

@@ -39,7 +39,7 @@
     return Number.isFinite(km) ? `${km} км` : '';
   }
 
-  function formatLegacyDuration(minutes, hint) {
+  function formatDurationOrHint(minutes, hint) {
     return Number.isFinite(minutes) ? formatDuration(minutes) : (hint || '—');
   }
 
@@ -47,7 +47,7 @@
     return ({ essentials: 'Главное и гибкость', food: 'Питание', practical: 'Практические заметки' })[key] || key;
   }
 
-  function buildLegacyDayMeta(day) {
+  function buildDayMeta(day) {
     const values = day.metrics || {};
     const hints = day.metricDisplayHints || {};
     const items = [];
@@ -87,10 +87,10 @@
     formatShortDateEn,
     formatDuration,
     formatDistance,
-    formatLegacyDuration,
+    formatDurationOrHint,
     formatReservationWhen,
     sectionTitle,
-    buildLegacyDayMeta,
+    buildDayMeta,
     buildOverviewLogistics
   });
 })();

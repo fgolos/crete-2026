@@ -205,7 +205,7 @@ function mp3DurationSeconds(buffer) {
 
 function replaceStoryField(source, storyId, field, valuePattern, replacement) {
   const escapedStoryId = storyId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const pattern = new RegExp(`(id:\\s*['"]${escapedStoryId}['"][\\s\\S]*?${field}:\\s*)(${valuePattern})`);
+  const pattern = new RegExp(`(["']?id["']?\\s*:\\s*["']${escapedStoryId}["'][\\s\\S]*?["']?${field}["']?\\s*:\\s*)(${valuePattern})`);
   if (!pattern.test(source)) throw new Error(`Не удалось найти поле ${field} для истории ${storyId}`);
   return source.replace(pattern, `$1${replacement}`);
 }

@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
@@ -127,31 +127,63 @@ function closeServer(server) {
   return new Promise(resolve => server.close(() => resolve()));
 }
 
-function dumpDom(browser, url) {
+function dumpDom(browser, url, timeoutMs = 30000) {
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'crete-smoke-'));
-  try {
-    const result = spawnSync(browser, [
-      '--headless=new',
-      '--no-sandbox',
-      '--disable-gpu',
-      '--disable-dev-shm-usage',
-      '--ignore-certificate-errors',
-      `--user-data-dir=${profile}`,
-      '--virtual-time-budget=8000',
-      '--dump-dom',
-      url
-    ], {
-      encoding: 'utf8',
-      maxBuffer: 20 * 1024 * 1024,
-      windowsHide: true
+  const args = [
+    '--headless=new',
+    '--no-sandbox',
+    '--disable-gpu',
+    '--disable-dev-shm-usage',
+    '--disable-background-networking',
+    '--ignore-certificate-errors',
+    `--user-data-dir=${profile}`,
+    '--virtual-time-budget=8000',
+    '--dump-dom',
+    url
+  ];
+
+  return new Promise((resolve, reject) => {
+    const child = spawn(browser, args, {
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'pipe']
     });
-    if (result.status !== 0) {
-      throw new Error(`Browser failed for ${url}: ${result.stderr || `exit ${result.status}`}`);
-    }
-    return result.stdout;
-  } finally {
-    fs.rmSync(profile, { recursive: true, force: true });
-  }
+    let stdout = '';
+    let stderr = '';
+    let settled = false;
+
+    const finish = (error, html = '') => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      fs.rmSync(profile, { recursive: true, force: true });
+      if (error) reject(error);
+      else resolve(html);
+    };
+
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', chunk => {
+      stdout += chunk;
+      if (stdout.length > 20 * 1024 * 1024) {
+        child.kill();
+        finish(new Error(`Browser output exceeded 20 MB for ${url}`));
+      }
+    });
+    child.stderr.on('data', chunk => { stderr += chunk; });
+    child.once('error', error => finish(error));
+    child.once('close', code => {
+      if (code !== 0) {
+        finish(new Error(`Browser failed for ${url}: ${stderr || `exit ${code}`}`));
+        return;
+      }
+      finish(null, stdout);
+    });
+
+    const timeout = setTimeout(() => {
+      child.kill();
+      finish(new Error(`Browser timed out after ${timeoutMs / 1000}s for ${url}`));
+    }, timeoutMs);
+  });
 }
 
 function assertIncludes(html, expected, label) {
@@ -165,6 +197,8 @@ function assertActivePanel(html, panelId, label) {
 }
 
 const browser = findBrowser();
+console.log(`Using browser: ${browser}`);
+
 const server = createStaticServer(process.cwd());
 await listen(server);
 const address = server.address();
@@ -172,18 +206,21 @@ if (!address || typeof address === 'string') throw new Error('Smoke-test server 
 const origin = `http://127.0.0.1:${address.port}`;
 
 try {
-  const overview = dumpDom(browser, `${origin}/#overview`);
+  console.log('Testing overview...');
+  const overview = await dumpDom(browser, `${origin}/#overview`);
   assertActivePanel(overview, 'overview', 'overview');
   assertIncludes(overview, 'data-day-id="2026-08-12"', 'overview');
   assertIncludes(overview, 'Бронирования и ожидания', 'overview');
 
-  const eastDay = dumpDom(browser, `${origin}/#east/2026-08-12`);
+  console.log('Testing East day...');
+  const eastDay = await dumpDom(browser, `${origin}/#east/2026-08-12`);
   assertActivePanel(eastDay, '2026-08-12', 'east day');
   assertIncludes(eastDay, 'data-visit-id="2026-08-12-toplou-monastery-and-toplou-fabrica"', 'east day');
   assertIncludes(eastDay, 'class="story-open', 'east day story buttons');
   assertIncludes(eastDay, 'Открыть в Google Maps', 'east day map action');
 
-  const westDay = dumpDom(browser, `${origin}/#west/2026-08-16`);
+  console.log('Testing West day...');
+  const westDay = await dumpDom(browser, `${origin}/#west/2026-08-16`);
   assertActivePanel(westDay, '2026-08-16', 'west day');
   assertIncludes(westDay, 'data-visit-id="2026-08-16-rethymno-old-town-and-venetian-harbour"', 'west day');
   assertIncludes(westDay, 'Памятка', 'west day mobile controls');

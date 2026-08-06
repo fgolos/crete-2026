@@ -49,10 +49,10 @@
         order: visit.sequence,
         name: place.name,
         role: visit.role,
-        time: visit.timing.label,
-        duration: formatters.formatDurationOrHint(visit.durationMinutes, visit.durationDisplayHint),
-        drive: visit.inboundTravel.displayHints.duration,
-        distance: visit.inboundTravel.displayHints.distance,
+        time: formatters.formatTimeRange(visit.timing),
+        duration: formatters.formatVisitDuration(visit.durationMinutes, visit.durationKind),
+        drive: formatters.formatInboundDuration(visit.inboundTravel),
+        distance: formatters.formatInboundDistance(visit.inboundTravel),
         note: visit.note,
         lat: place.coordinates.lat,
         lon: place.coordinates.lon,
@@ -114,7 +114,7 @@
     const overview = {
       title: data.trip.title,
       dateRange: formatters.formatDateRange(data.trip.startDate, data.trip.endDate, true),
-      logistics: formatters.buildOverviewLogistics(),
+      logistics: formatters.buildOverviewLogistics(data.trip),
       bookings: values(data.reservations).map(bookingView),
       rules: [...(data.policies?.rules || [])],
       privacyNote: data.policies?.privacyNote || null

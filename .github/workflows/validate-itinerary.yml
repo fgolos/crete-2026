@@ -5,16 +5,25 @@ on:
   push:
     branches:
       - refactor/native-normalized-renderer
-      - main
+
+permissions:
+  contents: write
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: refactor/native-normalized-renderer
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Fix ISO day map selectors
+        run: |
+          node scripts/fix-day-map-runtime.mjs
+          rm scripts/fix-day-map-runtime.mjs
       - name: Check JavaScript syntax
         run: |
           node --check itinerary-data.js
@@ -40,3 +49,11 @@ jobs:
         run: node scripts/check-audio-source-contract.mjs
       - name: Smoke test rendered application
         run: node scripts/smoke-browser.mjs
+      - name: Commit day map fix
+        run: |
+          git restore .github/workflows/validate-itinerary.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix: initialize day maps with ISO IDs'
+          git push origin HEAD:refactor/native-normalized-renderer

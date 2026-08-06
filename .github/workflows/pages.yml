@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -25,13 +25,40 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Build clean site artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf _site
+          mkdir -p _site
+          cp \
+            index.html \
+            styles.css \
+            app.js \
+            app-runtime.js \
+            itinerary-data.js \
+            itinerary-bootstrap.js \
+            itinerary-model.js \
+            itinerary-renderer-model.js \
+            formatters.js \
+            data-validation.js \
+            stories-data.js \
+            service-worker.js \
+            manifest.webmanifest \
+            icon.svg \
+            _site/
+          cp -R audio _site/audio
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
+
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: .
+          path: _site
           name: github-pages-${{ github.run_attempt }}
+
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

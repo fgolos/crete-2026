@@ -50,7 +50,7 @@
         name: place.name,
         role: visit.role,
         time: visit.timing.label,
-        duration: formatters.formatLegacyDuration(visit.durationMinutes, visit.timing.label),
+        duration: formatters.formatDurationOrHint(visit.durationMinutes, visit.durationDisplayHint),
         drive: visit.inboundTravel.displayHints.duration,
         distance: visit.inboundTravel.displayHints.distance,
         note: visit.note,
@@ -73,7 +73,7 @@
         date: formatters.formatLongDate(day.id),
         title: day.title,
         status: day.status,
-        meta: formatters.buildLegacyDayMeta(day),
+        meta: formatters.buildDayMeta(day),
         stops: day.visitIds.map(visitView).filter(Boolean),
         routeVisitIds: [...(route?.visitIds || [])],
         sections: Object.fromEntries(Object.entries(day.sections || {}).map(([key, section]) => [key, {

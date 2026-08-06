@@ -20,6 +20,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           DEPLOYMENT_ID: 4b02a14e9e5628880da53152b05a555895172cdc
         run: |
+          echo 'Cancelling the stale Pages deployment that blocks the current release.'
           status=$(curl -sS -o response.json -w '%{http_code}' \
             -L -X POST \
             -H 'Accept: application/vnd.github+json' \

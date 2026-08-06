@@ -25,42 +25,6 @@ jobs:
         run: |
           node scripts/finish-native-renderer.mjs
           rm scripts/finish-native-renderer.mjs
-          rm -f .github/workflows/finish-native-renderer.yml
-          cat > .github/workflows/validate-itinerary.yml <<'YAML'
-          name: Validate itinerary
-
-          on:
-            pull_request:
-            push:
-              branches:
-                - refactor/native-normalized-renderer
-                - main
-
-          jobs:
-            validate:
-              runs-on: ubuntu-latest
-              steps:
-                - uses: actions/checkout@v4
-                - uses: actions/setup-node@v4
-                  with:
-                    node-version: '22'
-                - name: Check JavaScript syntax
-                  run: |
-                    node --check itinerary-data.js
-                    node --check itinerary-model.js
-                    node --check itinerary-renderer-model.js
-                    node --check formatters.js
-                    node --check data-validation.js
-                    node --check itinerary-bootstrap.js
-                    node --check app.js
-                    node --check app-runtime.js
-                    node --check stories-data.js
-                    node --check service-worker.js
-                - name: Validate normalized itinerary
-                  run: node scripts/validate-itinerary.mjs
-                - name: Check native renderer contract
-                  run: node scripts/check-runtime-contract.mjs
-          YAML
       - name: Check JavaScript syntax
         run: |
           node --check itinerary-data.js
@@ -78,8 +42,8 @@ jobs:
       - name: Check native renderer contract
         run: node scripts/check-runtime-contract.mjs
       - name: Commit completed migration
-        if: hashFiles('scripts/finish-native-renderer.mjs') == ''
         run: |
+          git restore .github/workflows/validate-itinerary.yml .github/workflows/finish-native-renderer.yml
           if git diff --quiet && git diff --cached --quiet; then
             echo 'No migration changes to commit.'
             exit 0

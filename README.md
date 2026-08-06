@@ -59,7 +59,7 @@ Use `app-runtime.js` for interface behaviour, `itinerary-model.js` for entity tr
 
 Edit `index.html` when the shell, loaded assets, or integrated story UI must change. `app.js` should remain a small, explicit load-order bootstrap.
 
-Every push to `main` automatically deploys to GitHub Pages.
+Every non-workflow push to `main` automatically deploys to GitHub Pages. Pages artifacts use the workflow run-attempt number so a failed-job rerun cannot create duplicate artifact names. Changes limited to `.github/workflows/**` do not redeploy the unchanged site.
 
 ## Validation
 

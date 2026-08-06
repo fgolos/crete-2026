@@ -24,7 +24,11 @@ const forbidden = [
   'legacyVisitIndex',
   'itinerary-source.js',
   'formatLegacyDuration',
-  'buildLegacyDayMeta'
+  'buildLegacyDayMeta',
+  'metricDisplayHints',
+  'durationDisplayHint',
+  'displayHints',
+  'timing.label'
 ];
 const required = [
   ['app-runtime.js', 'window.CRETE_RENDERER_MODEL'],
@@ -34,13 +38,16 @@ const required = [
   ['itinerary-bootstrap.js', 'window.CRETE_DATA'],
   ['itinerary-bootstrap.js', 'window.CRETE_RENDERER_MODEL'],
   ['itinerary-data.js', 'schemaVersion'],
+  ['itinerary-data.js', 'travelTotals'],
+  ['itinerary-data.js', 'durationKind'],
+  ['itinerary-data.js', 'trip'],
   ['stories-data.js', 'visitId'],
   ['service-worker.js', './itinerary-renderer-model.js']
 ];
 
 for (const token of forbidden) {
   if (combined.includes(token)) {
-    console.error(`Native runtime contract failed: legacy token remains: ${token}`);
+    console.error(`Native runtime contract failed: legacy or presentation token remains: ${token}`);
     process.exitCode = 1;
   }
 }

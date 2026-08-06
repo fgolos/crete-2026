@@ -14,25 +14,30 @@ jobs:
   cancel-stale-deployment:
     runs-on: ubuntu-latest
     steps:
-      - name: Cancel stale deployment for 4b02a14e
+      - name: Cancel stuck Pages deployments
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-          DEPLOYMENT_ID: 4b02a14e9e5628880da53152b05a555895172cdc
         run: |
-          echo 'Cancelling the stale Pages deployment that blocks the current release.'
-          status=$(curl -sS -o response.json -w '%{http_code}' \
-            -L -X POST \
-            -H 'Accept: application/vnd.github+json' \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H 'X-GitHub-Api-Version: 2022-11-28' \
-            "https://api.github.com/repos/${REPOSITORY}/pages/deployments/${DEPLOYMENT_ID}/cancel")
+          set -euo pipefail
+          for deployment_id in \
+            4b02a14e9e5628880da53152b05a555895172cdc \
+            f00ab6f1dfe2390838e9bd8f8de1fa194780f7d7
+          do
+            echo "Cancelling Pages deployment ${deployment_id}."
+            status=$(curl -sS -o response.json -w '%{http_code}' \
+              -L -X POST \
+              -H 'Accept: application/vnd.github+json' \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H 'X-GitHub-Api-Version: 2022-11-28' \
+              "https://api.github.com/repos/${REPOSITORY}/pages/deployments/${deployment_id}/cancel")
 
-          if [ "$status" = '204' ] || [ "$status" = '404' ]; then
-            echo "Stale Pages deployment is cancelled or no longer present (HTTP ${status})."
-            exit 0
-          fi
+            if [ "$status" = '204' ] || [ "$status" = '404' ]; then
+              echo "Deployment ${deployment_id} is cancelled or no longer present (HTTP ${status})."
+              continue
+            fi
 
-          cat response.json
-          echo "Unexpected HTTP status: ${status}"
-          exit 1
+            cat response.json
+            echo "Unexpected HTTP status ${status} for ${deployment_id}."
+            exit 1
+          done

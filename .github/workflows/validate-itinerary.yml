@@ -32,6 +32,9 @@ jobs:
           node --check scripts/check-runtime-contract.mjs
           node --check scripts/check-audio-source-contract.mjs
           node --check scripts/smoke-browser.mjs
+          node --check scripts/report-data-hints.mjs
+      - name: Report remaining presentation hints
+        run: node scripts/report-data-hints.mjs
       - name: Validate normalized itinerary
         run: node scripts/validate-itinerary.mjs
       - name: Check native renderer contract

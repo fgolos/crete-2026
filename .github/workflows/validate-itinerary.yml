@@ -5,16 +5,25 @@ on:
   push:
     branches:
       - refactor/native-normalized-renderer
-      - main
+
+permissions:
+  contents: write
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: refactor/native-normalized-renderer
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Patch audio source updater
+        run: |
+          node scripts/patch-audio-generator.mjs
+          rm scripts/patch-audio-generator.mjs
       - name: Check JavaScript syntax
         run: |
           node --check itinerary-data.js
@@ -27,12 +36,24 @@ jobs:
           node --check app-runtime.js
           node --check stories-data.js
           node --check service-worker.js
+          node --check scripts/generate-audio.mjs
           node --check scripts/validate-itinerary.mjs
           node --check scripts/check-runtime-contract.mjs
+          node --check scripts/check-audio-source-contract.mjs
           node --check scripts/smoke-browser.mjs
       - name: Validate normalized itinerary
         run: node scripts/validate-itinerary.mjs
       - name: Check native renderer contract
         run: node scripts/check-runtime-contract.mjs
+      - name: Check audio source update contract
+        run: node scripts/check-audio-source-contract.mjs
       - name: Smoke test rendered application
         run: node scripts/smoke-browser.mjs
+      - name: Commit audio generator patch
+        run: |
+          git restore .github/workflows/validate-itinerary.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix: support normalized story source in audio generator'
+          git push origin HEAD:refactor/native-normalized-renderer

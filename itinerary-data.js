@@ -16,7 +16,49 @@
     "startDate": "2026-08-11",
     "endDate": "2026-08-22",
     "timezone": "Europe/Athens",
-    "locale": "ru-RU"
+    "locale": "ru-RU",
+    "logistics": {
+      "flights": [
+        {
+          "id": "flight-outbound",
+          "direction": "outbound",
+          "number": "HN 2321",
+          "origin": "Vilnius",
+          "destination": "Heraklion",
+          "departureAt": "2026-08-11T05:15:00+03:00",
+          "arrivalAt": "2026-08-11T08:35:00+03:00"
+        },
+        {
+          "id": "flight-return",
+          "direction": "return",
+          "number": "HN 2322",
+          "origin": "Heraklion",
+          "destination": "Vilnius",
+          "departureAt": "2026-08-22T17:55:00+03:00",
+          "arrivalAt": "2026-08-22T21:20:00+03:00"
+        }
+      ],
+      "carRental": {
+        "category": "Station Wagon Manual",
+        "pickupAt": "2026-08-11T10:00:00+03:00",
+        "pickupApproximate": true,
+        "returnDeadline": "2026-08-22T14:00:00+03:00"
+      },
+      "accommodations": [
+        {
+          "id": "stay-sitia",
+          "baseName": "Sitia",
+          "checkInAt": "2026-08-11T12:00:00+03:00",
+          "checkOutAt": "2026-08-15T12:00:00+03:00"
+        },
+        {
+          "id": "stay-platanes",
+          "baseName": "Platanes",
+          "checkInAt": "2026-08-15T13:00:00+03:00",
+          "checkOutAt": "2026-08-22T11:00:00+03:00"
+        }
+      ]
+    }
   },
   "regions": {
     "east": {
@@ -56,20 +98,6 @@
       "id": "2026-08-11",
       "title": "Прилёт, Mochlos и Sitia",
       "status": "confirmed",
-      "metrics": {
-        "departureTime": "05:15",
-        "finishTime": "15:00",
-        "drivingDurationMinutes": 150,
-        "distanceKm": 133,
-        "swimming": "Mochlos или Sitia Beach"
-      },
-      "metricDisplayHints": {
-        "departureTime": "05:15",
-        "finishTime": "15:00",
-        "drivingDurationMinutes": "2 ч 30 мин",
-        "distanceKm": "133 км",
-        "swimming": "Mochlos или Sitia Beach"
-      },
       "visitIds": [
         "2026-08-11-vilnius-airport",
         "2026-08-11-heraklion-international-airport-n-kazantzakis",
@@ -100,26 +128,32 @@
           ]
         }
       },
-      "mealSummary": "обед в Mochlos; ужин в Me Raki"
+      "mealSummary": "обед в Mochlos; ужин в Me Raki",
+      "schedule": {
+        "departure": {
+          "start": "05:15",
+          "end": null,
+          "approximate": false
+        },
+        "finish": {
+          "start": "15:00",
+          "end": null,
+          "approximate": false
+        },
+        "carReturnDeadline": null,
+        "flight": null
+      },
+      "travelTotals": {
+        "drivingDurationMinutes": 150,
+        "distanceKm": 133,
+        "approximate": false
+      },
+      "swimming": "Mochlos или Sitia Beach"
     },
     "2026-08-12": {
       "id": "2026-08-12",
       "title": "Toplou, Chiona, Itanos и Vai",
       "status": "confirmed",
-      "metrics": {
-        "departureTime": "09:45",
-        "finishTime": "18:50",
-        "drivingDurationMinutes": 115,
-        "distanceKm": 67,
-        "swimming": "Chiona, Erimoupolis, Vai"
-      },
-      "metricDisplayHints": {
-        "departureTime": "09:45",
-        "finishTime": "18:50",
-        "drivingDurationMinutes": "1 ч 55 мин",
-        "distanceKm": "67 км",
-        "swimming": "Chiona, Erimoupolis, Vai"
-      },
       "visitIds": [
         "2026-08-12-sitia-airbnb",
         "2026-08-12-toplou-monastery-and-toplou-fabrica",
@@ -155,26 +189,32 @@
           ]
         }
       },
-      "mealSummary": "Toplou Fabrica tasting и local food platter; поздний обед в Hiona Taverna; ужин свободно"
+      "mealSummary": "Toplou Fabrica tasting и local food platter; поздний обед в Hiona Taverna; ужин свободно",
+      "schedule": {
+        "departure": {
+          "start": "09:45",
+          "end": null,
+          "approximate": false
+        },
+        "finish": {
+          "start": "18:50",
+          "end": null,
+          "approximate": false
+        },
+        "carReturnDeadline": null,
+        "flight": null
+      },
+      "travelTotals": {
+        "drivingDurationMinutes": 115,
+        "distanceKm": 67,
+        "approximate": false
+      },
+      "swimming": "Chiona, Erimoupolis, Vai"
     },
     "2026-08-13": {
       "id": "2026-08-13",
       "title": "Ziros и Xerokampos",
       "status": "confirmed",
-      "metrics": {
-        "departureTime": "09:30",
-        "finishTime": "17:50",
-        "drivingDurationMinutes": 195,
-        "distanceKm": 98,
-        "swimming": "Mazida Ammos beach"
-      },
-      "metricDisplayHints": {
-        "departureTime": "09:30",
-        "finishTime": "17:50",
-        "drivingDurationMinutes": "3 ч 15 мин",
-        "distanceKm": "98 км",
-        "swimming": "Mazida Ammos beach"
-      },
       "visitIds": [
         "2026-08-13-sitia-airbnb",
         "2026-08-13-ziros",
@@ -207,26 +247,32 @@
           ]
         }
       },
-      "mealSummary": "кофе в Ziros; поздний обед в Taverna Kostas; Inodion в 21:00"
+      "mealSummary": "кофе в Ziros; поздний обед в Taverna Kostas; Inodion в 21:00",
+      "schedule": {
+        "departure": {
+          "start": "09:30",
+          "end": null,
+          "approximate": false
+        },
+        "finish": {
+          "start": "17:50",
+          "end": null,
+          "approximate": false
+        },
+        "carReturnDeadline": null,
+        "flight": null
+      },
+      "travelTotals": {
+        "drivingDurationMinutes": 195,
+        "distanceKm": 98,
+        "approximate": false
+      },
+      "swimming": "Mazida Ammos beach"
     },
     "2026-08-14": {
       "id": "2026-08-14",
       "title": "Zakros и Kato Zakros",
       "status": "confirmed",
-      "metrics": {
-        "departureTime": "09:30",
-        "finishTime": "18:05",
-        "drivingDurationMinutes": 160,
-        "distanceKm": 98,
-        "swimming": "Kato Zakros"
-      },
-      "metricDisplayHints": {
-        "departureTime": "09:30",
-        "finishTime": "18:05",
-        "drivingDurationMinutes": "2 ч 40 мин",
-        "distanceKm": "98 км",
-        "swimming": "Kato Zakros"
-      },
       "visitIds": [
         "2026-08-14-sitia-airbnb",
         "2026-08-14-zakros-springs-and-water-and-water-power-museum-of-zakros",
@@ -258,26 +304,32 @@
           ]
         }
       },
-      "mealSummary": "обед в Nostos; ужин свободно в Sitia"
+      "mealSummary": "обед в Nostos; ужин свободно в Sitia",
+      "schedule": {
+        "departure": {
+          "start": "09:30",
+          "end": null,
+          "approximate": false
+        },
+        "finish": {
+          "start": "18:05",
+          "end": null,
+          "approximate": false
+        },
+        "carReturnDeadline": null,
+        "flight": null
+      },
+      "travelTotals": {
+        "drivingDurationMinutes": 160,
+        "distanceKm": 98,
+        "approximate": false
+      },
+      "swimming": "Kato Zakros"
     },
     "2026-08-15": {
       "id": "2026-08-15",
       "title": "Kazarma Fortress, Lastros и переезд в Platanes",
       "status": "confirmed",
-      "metrics": {
-        "departureTime": "08:30",
-        "finishTime": "15:15",
-        "drivingDurationMinutes": 200,
-        "distanceKm": 166,
-        "swimming": "без пляжной остановки"
-      },
-      "metricDisplayHints": {
-        "departureTime": "08:30",
-        "finishTime": "15:15",
-        "drivingDurationMinutes": "3 ч 20 мин",
-        "distanceKm": "166 км",
-        "swimming": "без пляжной остановки"
-      },
       "visitIds": [
         "2026-08-15-sitia-airbnb",
         "2026-08-15-kazarma-fortress",
@@ -310,28 +362,32 @@
           ]
         }
       },
-      "mealSummary": "завтрак в Sitia; ранний обед в Lastros"
+      "mealSummary": "завтрак в Sitia; ранний обед в Lastros",
+      "schedule": {
+        "departure": {
+          "start": "08:30",
+          "end": null,
+          "approximate": false
+        },
+        "finish": {
+          "start": "15:15",
+          "end": null,
+          "approximate": false
+        },
+        "carReturnDeadline": null,
+        "flight": null
+      },
+      "travelTotals": {
+        "drivingDurationMinutes": 200,
+        "distanceKm": 166,
+        "approximate": false
+      },
+      "swimming": "без пляжной остановки"
     },
     "2026-08-16": {
       "id": "2026-08-16",
       "title": "Rethymno и спокойный день у моря",
       "status": "draft",
-      "metrics": {
-        "status": "Черновик",
-        "departureTime": "около 10:30",
-        "finishTime": "около 18:15",
-        "drivingDurationMinutes": 50,
-        "distanceKm": 25,
-        "swimming": "Platanes Beach"
-      },
-      "metricDisplayHints": {
-        "status": "Черновик",
-        "departureTime": "около 10:30",
-        "finishTime": "около 18:15",
-        "drivingDurationMinutes": "около 50 мин",
-        "distanceKm": "около 25 км",
-        "swimming": "Platanes Beach"
-      },
       "visitIds": [
         "2026-08-16-pomegranate-garden-villa",
         "2026-08-16-rethymno-old-town-and-venetian-harbour",
@@ -361,28 +417,32 @@
           ]
         }
       },
-      "mealSummary": "обед в Rethymno; ужин свободно в Platanes"
+      "mealSummary": "обед в Rethymno; ужин свободно в Platanes",
+      "schedule": {
+        "departure": {
+          "start": "10:30",
+          "end": null,
+          "approximate": true
+        },
+        "finish": {
+          "start": "18:15",
+          "end": null,
+          "approximate": true
+        },
+        "carReturnDeadline": null,
+        "flight": null
+      },
+      "travelTotals": {
+        "drivingDurationMinutes": 50,
+        "distanceKm": 25,
+        "approximate": true
+      },
+      "swimming": "Platanes Beach"
     },
     "2026-08-17": {
       "id": "2026-08-17",
       "title": "Chania и Marathi",
       "status": "draft",
-      "metrics": {
-        "status": "Черновик",
-        "departureTime": "около 09:45",
-        "finishTime": "около 19:15",
-        "drivingDurationMinutes": 165,
-        "distanceKm": 165,
-        "swimming": "Marathi Beach"
-      },
-      "metricDisplayHints": {
-        "status": "Черновик",
-        "departureTime": "около 09:45",
-        "finishTime": "около 19:15",
-        "drivingDurationMinutes": "около 2 ч 45 мин",
-        "distanceKm": "около 165 км",
-        "swimming": "Marathi Beach"
-      },
       "visitIds": [
         "2026-08-17-pomegranate-garden-villa",
         "2026-08-17-chania-old-town-and-venetian-port",
@@ -412,28 +472,32 @@
           ]
         }
       },
-      "mealSummary": "обед в Chania; вечером лёгкий ужин у базы"
+      "mealSummary": "обед в Chania; вечером лёгкий ужин у базы",
+      "schedule": {
+        "departure": {
+          "start": "09:45",
+          "end": null,
+          "approximate": true
+        },
+        "finish": {
+          "start": "19:15",
+          "end": null,
+          "approximate": true
+        },
+        "carReturnDeadline": null,
+        "flight": null
+      },
+      "travelTotals": {
+        "drivingDurationMinutes": 165,
+        "distanceKm": 165,
+        "approximate": true
+      },
+      "swimming": "Marathi Beach"
     },
     "2026-08-18": {
       "id": "2026-08-18",
       "title": "Margarites, Eleftherna и Panormo",
       "status": "draft",
-      "metrics": {
-        "status": "Черновик",
-        "departureTime": "около 10:00",
-        "finishTime": "около 18:30",
-        "drivingDurationMinutes": 120,
-        "distanceKm": 80,
-        "swimming": "Panormo"
-      },
-      "metricDisplayHints": {
-        "status": "Черновик",
-        "departureTime": "около 10:00",
-        "finishTime": "около 18:30",
-        "drivingDurationMinutes": "около 2 ч",
-        "distanceKm": "около 80 км",
-        "swimming": "Panormo"
-      },
       "visitIds": [
         "2026-08-18-pomegranate-garden-villa",
         "2026-08-18-margarites",
@@ -464,28 +528,32 @@
           ]
         }
       },
-      "mealSummary": "перекус в Margarites; поздний обед в Panormo"
+      "mealSummary": "перекус в Margarites; поздний обед в Panormo",
+      "schedule": {
+        "departure": {
+          "start": "10:00",
+          "end": null,
+          "approximate": true
+        },
+        "finish": {
+          "start": "18:30",
+          "end": null,
+          "approximate": true
+        },
+        "carReturnDeadline": null,
+        "flight": null
+      },
+      "travelTotals": {
+        "drivingDurationMinutes": 120,
+        "distanceKm": 80,
+        "approximate": true
+      },
+      "swimming": "Panormo"
     },
     "2026-08-19": {
       "id": "2026-08-19",
       "title": "Plakias и южное побережье",
       "status": "draft",
-      "metrics": {
-        "status": "Черновик",
-        "departureTime": "около 09:45",
-        "finishTime": "около 18:15",
-        "drivingDurationMinutes": 120,
-        "distanceKm": 95,
-        "swimming": "Plakias Beach"
-      },
-      "metricDisplayHints": {
-        "status": "Черновик",
-        "departureTime": "около 09:45",
-        "finishTime": "около 18:15",
-        "drivingDurationMinutes": "около 2 ч",
-        "distanceKm": "около 95 км",
-        "swimming": "Plakias Beach"
-      },
       "visitIds": [
         "2026-08-19-pomegranate-garden-villa",
         "2026-08-19-plakias",
@@ -514,28 +582,32 @@
           ]
         }
       },
-      "mealSummary": "обед в Plakias; ужин свободно у базы"
+      "mealSummary": "обед в Plakias; ужин свободно у базы",
+      "schedule": {
+        "departure": {
+          "start": "09:45",
+          "end": null,
+          "approximate": true
+        },
+        "finish": {
+          "start": "18:15",
+          "end": null,
+          "approximate": true
+        },
+        "carReturnDeadline": null,
+        "flight": null
+      },
+      "travelTotals": {
+        "drivingDurationMinutes": 120,
+        "distanceKm": 95,
+        "approximate": true
+      },
+      "swimming": "Plakias Beach"
     },
     "2026-08-20": {
       "id": "2026-08-20",
       "title": "Falassarna",
       "status": "draft",
-      "metrics": {
-        "status": "Черновик",
-        "departureTime": "около 09:00",
-        "finishTime": "около 19:30",
-        "drivingDurationMinutes": 250,
-        "distanceKm": 280,
-        "swimming": "Falassarna"
-      },
-      "metricDisplayHints": {
-        "status": "Черновик",
-        "departureTime": "около 09:00",
-        "finishTime": "около 19:30",
-        "drivingDurationMinutes": "около 4 ч 10 мин",
-        "distanceKm": "около 280 км",
-        "swimming": "Falassarna"
-      },
       "visitIds": [
         "2026-08-20-pomegranate-garden-villa",
         "2026-08-20-falassarna-beach",
@@ -564,28 +636,32 @@
           ]
         }
       },
-      "mealSummary": "обед у Falassarna; вечером отдых у базы"
+      "mealSummary": "обед у Falassarna; вечером отдых у базы",
+      "schedule": {
+        "departure": {
+          "start": "09:00",
+          "end": null,
+          "approximate": true
+        },
+        "finish": {
+          "start": "19:30",
+          "end": null,
+          "approximate": true
+        },
+        "carReturnDeadline": null,
+        "flight": null
+      },
+      "travelTotals": {
+        "drivingDurationMinutes": 250,
+        "distanceKm": 280,
+        "approximate": true
+      },
+      "swimming": "Falassarna"
     },
     "2026-08-21": {
       "id": "2026-08-21",
       "title": "Lake Kournas и Georgioupoli",
-      "status": "draft",
-      "metrics": {
-        "status": "Черновик / резерв",
-        "departureTime": "около 10:00",
-        "finishTime": "около 18:15",
-        "drivingDurationMinutes": 105,
-        "distanceKm": 105,
-        "swimming": "Georgioupoli"
-      },
-      "metricDisplayHints": {
-        "status": "Черновик / резерв",
-        "departureTime": "около 10:00",
-        "finishTime": "около 18:15",
-        "drivingDurationMinutes": "около 1 ч 45 мин",
-        "distanceKm": "около 105 км",
-        "swimming": "Georgioupoli"
-      },
+      "status": "draft-reserve",
       "visitIds": [
         "2026-08-21-pomegranate-garden-villa",
         "2026-08-21-lake-kournas",
@@ -615,28 +691,32 @@
           ]
         }
       },
-      "mealSummary": "обед в Georgioupoli; вечером ужин и сборы у базы"
+      "mealSummary": "обед в Georgioupoli; вечером ужин и сборы у базы",
+      "schedule": {
+        "departure": {
+          "start": "10:00",
+          "end": null,
+          "approximate": true
+        },
+        "finish": {
+          "start": "18:15",
+          "end": null,
+          "approximate": true
+        },
+        "carReturnDeadline": null,
+        "flight": null
+      },
+      "travelTotals": {
+        "drivingDurationMinutes": 105,
+        "distanceKm": 105,
+        "approximate": true
+      },
+      "swimming": "Georgioupoli"
     },
     "2026-08-22": {
       "id": "2026-08-22",
       "title": "Выезд в Heraklion Airport",
       "status": "draft",
-      "metrics": {
-        "status": "Черновик",
-        "departureTime": "10:30–10:45",
-        "carReturn": "вернуть до 14:00",
-        "flight": "HN 2322 · 17:55",
-        "drivingDurationMinutes": 75,
-        "distanceKm": 80
-      },
-      "metricDisplayHints": {
-        "status": "Черновик",
-        "departureTime": "10:30–10:45",
-        "carReturn": "вернуть до 14:00",
-        "flight": "HN 2322 · 17:55",
-        "drivingDurationMinutes": "около 1 ч 15 мин",
-        "distanceKm": "около 80 км"
-      },
       "visitIds": [
         "2026-08-22-pomegranate-garden-villa",
         "2026-08-22-gomega-car-rentals-heraklion",
@@ -665,7 +745,26 @@
           ]
         }
       },
-      "mealSummary": "завтрак дома; перекус в аэропорту"
+      "mealSummary": "завтрак дома; перекус в аэропорту",
+      "schedule": {
+        "departure": {
+          "start": "10:30",
+          "end": "10:45",
+          "approximate": false
+        },
+        "finish": null,
+        "carReturnDeadline": "14:00",
+        "flight": {
+          "number": "HN 2322",
+          "departureTime": "17:55"
+        }
+      },
+      "travelTotals": {
+        "drivingDurationMinutes": 75,
+        "distanceKm": 80,
+        "approximate": true
+      },
+      "swimming": null
     }
   },
   "places": {
@@ -998,19 +1097,16 @@
       "sequence": 0,
       "role": "Вылет в Heraklion",
       "timing": {
-        "label": "05:15",
         "start": "05:15",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": null,
         "distanceKm": null,
-        "displayHints": {
-          "duration": "—",
-          "distance": "—"
-        }
+        "status": "none"
       },
       "note": "Автомобильная карта начинается в Heraklion.",
       "parking": {
@@ -1021,7 +1117,7 @@
       "map": {
         "visible": false
       },
-      "durationDisplayHint": "Вылет"
+      "durationKind": "departure"
     },
     "2026-08-11-heraklion-international-airport-n-kazantzakis": {
       "id": "2026-08-11-heraklion-international-airport-n-kazantzakis",
@@ -1030,19 +1126,16 @@
       "sequence": 1,
       "role": "Прилёт, багаж, шаттл и машина",
       "timing": {
-        "label": "08:35–10:30",
         "start": "08:35",
-        "end": "10:30"
+        "end": "10:30",
+        "approximate": false
       },
       "durationMinutes": 115,
       "inboundTravel": {
         "mode": "flight",
         "durationMinutes": 200,
         "distanceKm": 2144,
-        "displayHints": {
-          "duration": "3 ч 20 мин",
-          "distance": "2 144 км"
-        }
+        "status": "standard"
       },
       "note": "Выезд после оформления аренды.",
       "parking": {
@@ -1057,7 +1150,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "1 ч 55 мин"
+      "durationKind": null
     },
     "2026-08-11-mochlos": {
       "id": "2026-08-11-mochlos",
@@ -1066,19 +1159,16 @@
       "sequence": 2,
       "role": "Прогулка, обед, возможное купание",
       "timing": {
-        "label": "12:15–14:15",
         "start": "12:15",
-        "end": "14:15"
+        "end": "14:15",
+        "approximate": false
       },
       "durationMinutes": 120,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 105,
         "distanceKm": 98,
-        "displayHints": {
-          "duration": "1 ч 45 мин",
-          "distance": "98 км"
-        }
+        "status": "standard"
       },
       "note": "Не затягивать при позднем выезде.",
       "parking": {
@@ -1093,7 +1183,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "2 ч"
+      "durationKind": null
     },
     "2026-08-11-sitia-airbnb": {
       "id": "2026-08-11-sitia-airbnb",
@@ -1102,19 +1192,16 @@
       "sequence": 3,
       "role": "База 11–15 августа",
       "timing": {
-        "label": "15:00",
         "start": "15:00",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 45,
         "distanceKm": 35,
-        "displayHints": {
-          "duration": "45 мин",
-          "distance": "35 км"
-        }
+        "status": "standard"
       },
       "note": "После 18:30 — Marina Sitia, набережная, Sitia Beach по силам и Me Raki.",
       "parking": {
@@ -1125,7 +1212,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Заселение и отдых"
+      "durationKind": "check-in-rest"
     },
     "2026-08-12-sitia-airbnb": {
       "id": "2026-08-12-sitia-airbnb",
@@ -1134,19 +1221,16 @@
       "sequence": 0,
       "role": "Выезд",
       "timing": {
-        "label": "09:45",
         "start": "09:45",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": null,
         "distanceKm": null,
-        "displayHints": {
-          "duration": "—",
-          "distance": "—"
-        }
+        "status": "none"
       },
       "note": "Старт можно заменить на адрес жилья.",
       "parking": {
@@ -1157,7 +1241,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Старт"
+      "durationKind": "start"
     },
     "2026-08-12-toplou-monastery-and-toplou-fabrica": {
       "id": "2026-08-12-toplou-monastery-and-toplou-fabrica",
@@ -1166,19 +1250,16 @@
       "sequence": 1,
       "role": "Монастырь, музей и подтверждённая семейная дегустация",
       "timing": {
-        "label": "10:10–12:10",
         "start": "10:10",
-        "end": "12:10"
+        "end": "12:10",
+        "approximate": false
       },
       "durationMinutes": 120,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 25,
         "distanceKm": 15,
-        "displayHints": {
-          "duration": "25 мин",
-          "distance": "15 км"
-        }
+        "status": "standard"
       },
       "note": "10:15–10:50 монастырь; Toplou Fabrica подтверждена на 11:00 для 4 человек.",
       "parking": {
@@ -1193,7 +1274,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "2 ч"
+      "durationKind": null
     },
     "2026-08-12-paralia-chiona-hiona-taverna": {
       "id": "2026-08-12-paralia-chiona-hiona-taverna",
@@ -1202,19 +1283,16 @@
       "sequence": 2,
       "role": "Поздний обед и купание",
       "timing": {
-        "label": "12:30–15:10",
         "start": "12:30",
-        "end": "15:10"
+        "end": "15:10",
+        "approximate": false
       },
       "durationMinutes": 160,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 20,
         "distanceKm": 11,
-        "displayHints": {
-          "duration": "20 мин",
-          "distance": "11 км"
-        }
+        "status": "standard"
       },
       "note": "Главная длинная остановка.",
       "parking": {
@@ -1229,7 +1307,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "2 ч 40 мин"
+      "durationKind": null
     },
     "2026-08-12-ancient-city-itanos-erimoupolis-beach-parking": {
       "id": "2026-08-12-ancient-city-itanos-erimoupolis-beach-parking",
@@ -1238,19 +1316,16 @@
       "sequence": 3,
       "role": "Археология и короткое купание",
       "timing": {
-        "label": "15:35–16:35",
         "start": "15:35",
-        "end": "16:35"
+        "end": "16:35",
+        "approximate": false
       },
       "durationMinutes": 60,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 25,
         "distanceKm": 14,
-        "displayHints": {
-          "duration": "25 мин",
-          "distance": "14 км"
-        }
+        "status": "standard"
       },
       "note": "При жаре сокращаем или пропускаем руины.",
       "parking": {
@@ -1265,7 +1340,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "1 ч"
+      "durationKind": null
     },
     "2026-08-12-vai-beach": {
       "id": "2026-08-12-vai-beach",
@@ -1274,19 +1349,16 @@
       "sequence": 4,
       "role": "Пальмовый лес и вечерний пляж",
       "timing": {
-        "label": "16:45–18:15",
         "start": "16:45",
-        "end": "18:15"
+        "end": "18:15",
+        "approximate": false
       },
       "durationMinutes": 90,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 10,
         "distanceKm": 3,
-        "displayHints": {
-          "duration": "10 мин",
-          "distance": "3 км"
-        }
+        "status": "standard"
       },
       "note": "После Vai не ставим обязательный ужин.",
       "parking": {
@@ -1301,7 +1373,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "1 ч 30 мин"
+      "durationKind": null
     },
     "2026-08-12-sitia-airbnb-2": {
       "id": "2026-08-12-sitia-airbnb-2",
@@ -1310,19 +1382,16 @@
       "sequence": 5,
       "role": "Возвращение",
       "timing": {
-        "label": "18:50",
         "start": "18:50",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 35,
         "distanceKm": 24,
-        "displayHints": {
-          "duration": "35 мин",
-          "distance": "24 км"
-        }
+        "status": "standard"
       },
       "note": "Лёгкий ужин по аппетиту.",
       "parking": {
@@ -1333,7 +1402,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Финиш"
+      "durationKind": "finish"
     },
     "2026-08-13-sitia-airbnb": {
       "id": "2026-08-13-sitia-airbnb",
@@ -1342,19 +1411,16 @@
       "sequence": 0,
       "role": "Выезд",
       "timing": {
-        "label": "09:30",
         "start": "09:30",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": null,
         "distanceKm": null,
-        "displayHints": {
-          "duration": "—",
-          "distance": "—"
-        }
+        "status": "none"
       },
       "note": "Заправиться и взять воду.",
       "parking": {
@@ -1365,7 +1431,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Старт"
+      "durationKind": "start"
     },
     "2026-08-13-ziros": {
       "id": "2026-08-13-ziros",
@@ -1374,19 +1440,16 @@
       "sequence": 1,
       "role": "Кофе и короткая прогулка",
       "timing": {
-        "label": "10:25–10:55",
         "start": "10:25",
-        "end": "10:55"
+        "end": "10:55",
+        "approximate": false
       },
       "durationMinutes": 30,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 55,
         "distanceKm": 31,
-        "displayHints": {
-          "duration": "55 мин",
-          "distance": "31 км"
-        }
+        "status": "standard"
       },
       "note": "Перед панорамным спуском.",
       "parking": {
@@ -1401,7 +1464,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "30 мин"
+      "durationKind": null
     },
     "2026-08-13-mazida-ammos-beach": {
       "id": "2026-08-13-mazida-ammos-beach",
@@ -1410,19 +1473,16 @@
       "sequence": 2,
       "role": "Главный пляж",
       "timing": {
-        "label": "11:30–14:45",
         "start": "11:30",
-        "end": "14:45"
+        "end": "14:45",
+        "approximate": false
       },
       "durationMinutes": 195,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 35,
         "distanceKm": 13,
-        "displayHints": {
-          "duration": "35 мин",
-          "distance": "13 км"
-        }
+        "status": "standard"
       },
       "note": "Последний участок асфальтирован.",
       "parking": {
@@ -1437,7 +1497,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "3 ч 15 мин"
+      "durationKind": null
     },
     "2026-08-13-xerokampos-taverna-kostas": {
       "id": "2026-08-13-xerokampos-taverna-kostas",
@@ -1446,19 +1506,16 @@
       "sequence": 3,
       "role": "Поздний обед",
       "timing": {
-        "label": "14:55–16:15",
         "start": "14:55",
-        "end": "16:15"
+        "end": "16:15",
+        "approximate": false
       },
       "durationMinutes": 80,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 10,
         "distanceKm": 2,
-        "displayHints": {
-          "duration": "10 мин",
-          "distance": "2 км"
-        }
+        "status": "standard"
       },
       "note": "Проверить открытие и столик.",
       "parking": {
@@ -1473,7 +1530,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "1 ч 20 мин"
+      "durationKind": null
     },
     "2026-08-13-sitia-airbnb-2": {
       "id": "2026-08-13-sitia-airbnb-2",
@@ -1482,19 +1539,16 @@
       "sequence": 4,
       "role": "Возвращение и отдых",
       "timing": {
-        "label": "17:50",
         "start": "17:50",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 95,
         "distanceKm": 52,
-        "displayHints": {
-          "duration": "1 ч 35 мин",
-          "distance": "52 км"
-        }
+        "status": "standard"
       },
       "note": "Inodion подтверждён на 21:00.",
       "parking": {
@@ -1505,7 +1559,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Финиш"
+      "durationKind": "finish"
     },
     "2026-08-14-sitia-airbnb": {
       "id": "2026-08-14-sitia-airbnb",
@@ -1514,19 +1568,16 @@
       "sequence": 0,
       "role": "Выезд",
       "timing": {
-        "label": "09:30",
         "start": "09:30",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": null,
         "distanceKm": null,
-        "displayHints": {
-          "duration": "—",
-          "distance": "—"
-        }
+        "status": "none"
       },
       "note": "Заправиться и взять воду.",
       "parking": {
@@ -1537,7 +1588,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Старт"
+      "durationKind": "start"
     },
     "2026-08-14-zakros-springs-and-water-and-water-power-museum-of-zakros": {
       "id": "2026-08-14-zakros-springs-and-water-and-water-power-museum-of-zakros",
@@ -1546,19 +1597,16 @@
       "sequence": 1,
       "role": "Источники, мельницы, музей и деревня",
       "timing": {
-        "label": "10:30–11:30",
         "start": "10:30",
-        "end": "11:30"
+        "end": "11:30",
+        "approximate": false
       },
       "durationMinutes": 60,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 60,
         "distanceKm": 44,
-        "displayHints": {
-          "duration": "1 ч",
-          "distance": "44 км"
-        }
+        "status": "standard"
       },
       "note": "Короткая прогулка.",
       "parking": {
@@ -1573,7 +1621,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "1 ч"
+      "durationKind": null
     },
     "2026-08-14-minoan-palace-of-zakros": {
       "id": "2026-08-14-minoan-palace-of-zakros",
@@ -1582,19 +1630,16 @@
       "sequence": 2,
       "role": "Археологический участок",
       "timing": {
-        "label": "11:50–13:05",
         "start": "11:50",
-        "end": "13:05"
+        "end": "13:05",
+        "approximate": false
       },
       "durationMinutes": 75,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 20,
         "distanceKm": 8,
-        "displayHints": {
-          "duration": "20 мин",
-          "distance": "8 км"
-        }
+        "status": "standard"
       },
       "note": "Мало тени.",
       "parking": {
@@ -1609,7 +1654,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "1 ч 15 мин"
+      "durationKind": null
     },
     "2026-08-14-kato-zakros-nostos-beach": {
       "id": "2026-08-14-kato-zakros-nostos-beach",
@@ -1618,19 +1663,16 @@
       "sequence": 3,
       "role": "Обед, пляж и купание",
       "timing": {
-        "label": "13:10–16:50",
         "start": "13:10",
-        "end": "16:50"
+        "end": "16:50",
+        "approximate": false
       },
       "durationMinutes": 220,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 5,
         "distanceKm": 1,
-        "displayHints": {
-          "duration": "5 мин",
-          "distance": "1 км"
-        }
+        "status": "standard"
       },
       "note": "Около 17:00 — короткий взгляд на Gorge of the Dead по силам.",
       "parking": {
@@ -1645,7 +1687,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "3 ч 40 мин"
+      "durationKind": null
     },
     "2026-08-14-sitia-airbnb-2": {
       "id": "2026-08-14-sitia-airbnb-2",
@@ -1654,19 +1696,16 @@
       "sequence": 4,
       "role": "Возвращение",
       "timing": {
-        "label": "18:05",
         "start": "18:05",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 75,
         "distanceKm": 45,
-        "displayHints": {
-          "duration": "1 ч 15 мин",
-          "distance": "45 км"
-        }
+        "status": "standard"
       },
       "note": "Kipseli и ужин только по времени и силам.",
       "parking": {
@@ -1677,7 +1716,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Финиш"
+      "durationKind": "finish"
     },
     "2026-08-15-sitia-airbnb": {
       "id": "2026-08-15-sitia-airbnb",
@@ -1686,19 +1725,16 @@
       "sequence": 0,
       "role": "Начало дня",
       "timing": {
-        "label": "08:30",
         "start": "08:30",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": null,
         "distanceKm": null,
-        "displayHints": {
-          "duration": "—",
-          "distance": "—"
-        }
+        "status": "none"
       },
       "note": "После крепости возвращаемся к жилью.",
       "parking": {
@@ -1709,7 +1745,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Старт"
+      "durationKind": "start"
     },
     "2026-08-15-kazarma-fortress": {
       "id": "2026-08-15-kazarma-fortress",
@@ -1718,19 +1754,16 @@
       "sequence": 1,
       "role": "Крепость изнутри",
       "timing": {
-        "label": "08:35–09:20",
         "start": "08:35",
-        "end": "09:20"
+        "end": "09:20",
+        "approximate": false
       },
       "durationMinutes": 45,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 5,
         "distanceKm": 1,
-        "displayHints": {
-          "duration": "5 мин",
-          "distance": "1 км"
-        }
+        "status": "standard"
       },
       "note": "Утренний визит.",
       "parking": {
@@ -1745,7 +1778,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "45 мин"
+      "durationKind": null
     },
     "2026-08-15-sitia-airbnb-2": {
       "id": "2026-08-15-sitia-airbnb-2",
@@ -1754,19 +1787,16 @@
       "sequence": 2,
       "role": "Завтрак, сборы и загрузка",
       "timing": {
-        "label": "09:25–10:40",
         "start": "09:25",
-        "end": "10:40"
+        "end": "10:40",
+        "approximate": false
       },
       "durationMinutes": 75,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 5,
         "distanceKm": 1,
-        "displayHints": {
-          "duration": "5 мин",
-          "distance": "1 км"
-        }
+        "status": "standard"
       },
       "note": "Окончательный выезд около 10:30.",
       "parking": {
@@ -1777,7 +1807,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "1 ч 15 мин"
+      "durationKind": null
     },
     "2026-08-15-mathena-olive-tree-lastros": {
       "id": "2026-08-15-mathena-olive-tree-lastros",
@@ -1786,19 +1816,16 @@
       "sequence": 3,
       "role": "Древняя олива, прогулка и ранний обед",
       "timing": {
-        "label": "11:20–12:45",
         "start": "11:20",
-        "end": "12:45"
+        "end": "12:45",
+        "approximate": false
       },
       "durationMinutes": 85,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 40,
         "distanceKm": 34,
-        "displayHints": {
-          "duration": "40 мин",
-          "distance": "34 км"
-        }
+        "status": "standard"
       },
       "note": "При очередях переносим обед.",
       "parking": {
@@ -1813,7 +1840,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "1 ч 25 мин"
+      "durationKind": null
     },
     "2026-08-15-pomegranate-garden-villa": {
       "id": "2026-08-15-pomegranate-garden-villa",
@@ -1822,19 +1849,16 @@
       "sequence": 4,
       "role": "Заселение и отдых",
       "timing": {
-        "label": "15:15",
         "start": "15:15",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 150,
         "distanceKm": 130,
-        "displayHints": {
-          "duration": "2 ч 30 мин",
-          "distance": "130 км"
-        }
+        "status": "standard"
       },
       "note": "Airbnb в Platanes: Lasithiou 4, Rethymno 741 50, Greece.",
       "parking": {
@@ -1849,7 +1873,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Финиш"
+      "durationKind": "finish"
     },
     "2026-08-16-pomegranate-garden-villa": {
       "id": "2026-08-16-pomegranate-garden-villa",
@@ -1858,19 +1882,16 @@
       "sequence": 0,
       "role": "Спокойное начало дня",
       "timing": {
-        "label": "10:30",
         "start": "10:30",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": null,
         "distanceKm": null,
-        "displayHints": {
-          "duration": "—",
-          "distance": "—"
-        }
+        "status": "none"
       },
       "note": "Без раннего подъёма после переезда.",
       "parking": {
@@ -1881,7 +1902,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Старт"
+      "durationKind": "start"
     },
     "2026-08-16-rethymno-old-town-and-venetian-harbour": {
       "id": "2026-08-16-rethymno-old-town-and-venetian-harbour",
@@ -1890,19 +1911,16 @@
       "sequence": 1,
       "role": "Прогулка, обед и первое знакомство с городом",
       "timing": {
-        "label": "11:00–14:15",
         "start": "11:00",
-        "end": "14:15"
+        "end": "14:15",
+        "approximate": false
       },
       "durationMinutes": 195,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 25,
         "distanceKm": 8,
-        "displayHints": {
-          "duration": "25 мин",
-          "distance": "8 км"
-        }
+        "status": "standard"
       },
       "note": "Короткая прогулка без задачи осмотреть весь старый город.",
       "parking": {
@@ -1913,7 +1931,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "3 ч 15 мин"
+      "durationKind": null
     },
     "2026-08-16-platanes-beach": {
       "id": "2026-08-16-platanes-beach",
@@ -1922,19 +1940,16 @@
       "sequence": 2,
       "role": "Отдых и купание рядом с базой",
       "timing": {
-        "label": "15:00–18:00",
         "start": "15:00",
-        "end": "18:00"
+        "end": "18:00",
+        "approximate": false
       },
       "durationMinutes": 180,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 25,
         "distanceKm": 9,
-        "displayHints": {
-          "duration": "25 мин",
-          "distance": "9 км"
-        }
+        "status": "standard"
       },
       "note": "Главная цель второй половины дня — спокойно отдохнуть.",
       "parking": {
@@ -1945,7 +1960,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "3 ч"
+      "durationKind": null
     },
     "2026-08-16-pomegranate-garden-villa-2": {
       "id": "2026-08-16-pomegranate-garden-villa-2",
@@ -1954,19 +1969,16 @@
       "sequence": 3,
       "role": "Возвращение",
       "timing": {
-        "label": "18:10",
         "start": "18:10",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 10,
         "distanceKm": 3,
-        "displayHints": {
-          "duration": "10 мин",
-          "distance": "3 км"
-        }
+        "status": "standard"
       },
       "note": "Ужин в Platanes или рядом с домом.",
       "parking": {
@@ -1977,7 +1989,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Финиш"
+      "durationKind": "finish"
     },
     "2026-08-17-pomegranate-garden-villa": {
       "id": "2026-08-17-pomegranate-garden-villa",
@@ -1986,19 +1998,16 @@
       "sequence": 0,
       "role": "Выезд",
       "timing": {
-        "label": "09:45",
         "start": "09:45",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": null,
         "distanceKm": null,
-        "displayHints": {
-          "duration": "—",
-          "distance": "—"
-        }
+        "status": "none"
       },
       "note": "Оставляем запас на парковку в Chania.",
       "parking": {
@@ -2009,7 +2018,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Старт"
+      "durationKind": "start"
     },
     "2026-08-17-chania-old-town-and-venetian-port": {
       "id": "2026-08-17-chania-old-town-and-venetian-port",
@@ -2018,19 +2027,16 @@
       "sequence": 1,
       "role": "Город, прогулка и обед",
       "timing": {
-        "label": "10:50–14:10",
         "start": "10:50",
-        "end": "14:10"
+        "end": "14:10",
+        "approximate": false
       },
       "durationMinutes": 200,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 65,
         "distanceKm": 70,
-        "displayHints": {
-          "duration": "1 ч 05 мин",
-          "distance": "70 км"
-        }
+        "status": "standard"
       },
       "note": "Осматриваем компактно, без долгой прогулки по жаре.",
       "parking": {
@@ -2041,7 +2047,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "3 ч 20 мин"
+      "durationKind": null
     },
     "2026-08-17-marathi-beach": {
       "id": "2026-08-17-marathi-beach",
@@ -2050,19 +2056,16 @@
       "sequence": 2,
       "role": "Пляж и купание в бухте",
       "timing": {
-        "label": "14:45–17:45",
         "start": "14:45",
-        "end": "17:45"
+        "end": "17:45",
+        "approximate": false
       },
       "durationMinutes": 180,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 35,
         "distanceKm": 18,
-        "displayHints": {
-          "duration": "35 мин",
-          "distance": "18 км"
-        }
+        "status": "standard"
       },
       "note": "Пляжная часть дня зависит от ветра и состояния моря.",
       "parking": {
@@ -2073,7 +2076,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "3 ч"
+      "durationKind": null
     },
     "2026-08-17-pomegranate-garden-villa-2": {
       "id": "2026-08-17-pomegranate-garden-villa-2",
@@ -2082,19 +2085,16 @@
       "sequence": 3,
       "role": "Возвращение",
       "timing": {
-        "label": "19:15",
         "start": "19:15",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 90,
         "distanceKm": 77,
-        "displayHints": {
-          "duration": "1 ч 30 мин",
-          "distance": "77 км"
-        }
+        "status": "standard"
       },
       "note": "Вечером только лёгкий ужин по аппетиту.",
       "parking": {
@@ -2105,7 +2105,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Финиш"
+      "durationKind": "finish"
     },
     "2026-08-18-pomegranate-garden-villa": {
       "id": "2026-08-18-pomegranate-garden-villa",
@@ -2114,19 +2114,16 @@
       "sequence": 0,
       "role": "Выезд",
       "timing": {
-        "label": "10:00",
         "start": "10:00",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": null,
         "distanceKm": null,
-        "displayHints": {
-          "duration": "—",
-          "distance": "—"
-        }
+        "status": "none"
       },
       "note": "Лёгкий сельский день без раннего старта.",
       "parking": {
@@ -2137,7 +2134,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Старт"
+      "durationKind": "start"
     },
     "2026-08-18-margarites": {
       "id": "2026-08-18-margarites",
@@ -2146,19 +2143,16 @@
       "sequence": 1,
       "role": "Деревня, керамика и короткая прогулка",
       "timing": {
-        "label": "10:40–12:10",
         "start": "10:40",
-        "end": "12:10"
+        "end": "12:10",
+        "approximate": false
       },
       "durationMinutes": 90,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 40,
         "distanceKm": 28,
-        "displayHints": {
-          "duration": "40 мин",
-          "distance": "28 км"
-        }
+        "status": "standard"
       },
       "note": "Не пытаемся зайти во все мастерские.",
       "parking": {
@@ -2169,7 +2163,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "1 ч 30 мин"
+      "durationKind": null
     },
     "2026-08-18-eleftherna": {
       "id": "2026-08-18-eleftherna",
@@ -2178,19 +2172,16 @@
       "sequence": 2,
       "role": "История региона и короткая остановка",
       "timing": {
-        "label": "12:25–13:45",
         "start": "12:25",
-        "end": "13:45"
+        "end": "13:45",
+        "approximate": false
       },
       "durationMinutes": 80,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 15,
         "distanceKm": 8,
-        "displayHints": {
-          "duration": "15 мин",
-          "distance": "8 км"
-        }
+        "status": "standard"
       },
       "note": "Формат посещения уточним после проверки часов работы и жары.",
       "parking": {
@@ -2201,7 +2192,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "1 ч 20 мин"
+      "durationKind": null
     },
     "2026-08-18-panormo": {
       "id": "2026-08-18-panormo",
@@ -2210,19 +2201,16 @@
       "sequence": 3,
       "role": "Поздний обед, деревня и купание",
       "timing": {
-        "label": "14:20–18:00",
         "start": "14:20",
-        "end": "18:00"
+        "end": "18:00",
+        "approximate": false
       },
       "durationMinutes": 220,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 35,
         "distanceKm": 25,
-        "displayHints": {
-          "duration": "35 мин",
-          "distance": "25 км"
-        }
+        "status": "standard"
       },
       "note": "Главная спокойная остановка второй половины дня.",
       "parking": {
@@ -2233,7 +2221,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "3 ч 40 мин"
+      "durationKind": null
     },
     "2026-08-18-pomegranate-garden-villa-2": {
       "id": "2026-08-18-pomegranate-garden-villa-2",
@@ -2242,19 +2230,16 @@
       "sequence": 4,
       "role": "Возвращение",
       "timing": {
-        "label": "18:25",
         "start": "18:25",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 25,
         "distanceKm": 19,
-        "displayHints": {
-          "duration": "25 мин",
-          "distance": "19 км"
-        }
+        "status": "standard"
       },
       "note": "Свободный вечер.",
       "parking": {
@@ -2265,7 +2250,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Финиш"
+      "durationKind": "finish"
     },
     "2026-08-19-pomegranate-garden-villa": {
       "id": "2026-08-19-pomegranate-garden-villa",
@@ -2274,19 +2259,16 @@
       "sequence": 0,
       "role": "Выезд на юг",
       "timing": {
-        "label": "09:45",
         "start": "09:45",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": null,
         "distanceKm": null,
-        "displayHints": {
-          "duration": "—",
-          "distance": "—"
-        }
+        "status": "none"
       },
       "note": "Перед выездом проверить ветер и пожарные ограничения.",
       "parking": {
@@ -2297,7 +2279,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Старт"
+      "durationKind": "start"
     },
     "2026-08-19-plakias": {
       "id": "2026-08-19-plakias",
@@ -2306,19 +2288,16 @@
       "sequence": 1,
       "role": "Живописная дорога, обед, пляж и купание",
       "timing": {
-        "label": "10:45–17:10",
         "start": "10:45",
-        "end": "17:10"
+        "end": "17:10",
+        "approximate": false
       },
       "durationMinutes": 385,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 60,
         "distanceKm": 47,
-        "displayHints": {
-          "duration": "1 ч",
-          "distance": "47 км"
-        }
+        "status": "standard"
       },
       "note": "Один основной пляж без гонки между бухтами.",
       "parking": {
@@ -2329,7 +2308,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "6 ч 25 мин"
+      "durationKind": null
     },
     "2026-08-19-pomegranate-garden-villa-2": {
       "id": "2026-08-19-pomegranate-garden-villa-2",
@@ -2338,19 +2317,16 @@
       "sequence": 2,
       "role": "Возвращение",
       "timing": {
-        "label": "18:10",
         "start": "18:10",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 60,
         "distanceKm": 47,
-        "displayHints": {
-          "duration": "1 ч",
-          "distance": "47 км"
-        }
+        "status": "standard"
       },
       "note": "Свободный вечер после горной дороги.",
       "parking": {
@@ -2361,7 +2337,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Финиш"
+      "durationKind": "finish"
     },
     "2026-08-20-pomegranate-garden-villa": {
       "id": "2026-08-20-pomegranate-garden-villa",
@@ -2370,19 +2346,16 @@
       "sequence": 0,
       "role": "Выезд на запад",
       "timing": {
-        "label": "09:00",
         "start": "09:00",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": null,
         "distanceKm": null,
-        "displayHints": {
-          "duration": "—",
-          "distance": "—"
-        }
+        "status": "none"
       },
       "note": "Самый длинный автомобильный день западной части.",
       "parking": {
@@ -2393,7 +2366,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Старт"
+      "durationKind": "start"
     },
     "2026-08-20-falassarna-beach": {
       "id": "2026-08-20-falassarna-beach",
@@ -2402,19 +2375,16 @@
       "sequence": 1,
       "role": "Главный западный пляж и долгий отдых",
       "timing": {
-        "label": "11:05–17:20",
         "start": "11:05",
-        "end": "17:20"
+        "end": "17:20",
+        "approximate": false
       },
       "durationMinutes": 375,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 125,
         "distanceKm": 140,
-        "displayHints": {
-          "duration": "2 ч 05 мин",
-          "distance": "140 км"
-        }
+        "status": "standard"
       },
       "note": "Едем только при подходящем ветре и нормальном состоянии моря.",
       "parking": {
@@ -2425,7 +2395,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "6 ч 15 мин"
+      "durationKind": null
     },
     "2026-08-20-pomegranate-garden-villa-2": {
       "id": "2026-08-20-pomegranate-garden-villa-2",
@@ -2434,19 +2404,16 @@
       "sequence": 2,
       "role": "Возвращение",
       "timing": {
-        "label": "19:25",
         "start": "19:25",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 125,
         "distanceKm": 140,
-        "displayHints": {
-          "duration": "2 ч 05 мин",
-          "distance": "140 км"
-        }
+        "status": "standard"
       },
       "note": "После возвращения не планируем обязательных дел.",
       "parking": {
@@ -2457,7 +2424,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Финиш"
+      "durationKind": "finish"
     },
     "2026-08-21-pomegranate-garden-villa": {
       "id": "2026-08-21-pomegranate-garden-villa",
@@ -2466,19 +2433,16 @@
       "sequence": 0,
       "role": "Гибкий старт",
       "timing": {
-        "label": "10:00",
         "start": "10:00",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": null,
         "distanceKm": null,
-        "displayHints": {
-          "duration": "—",
-          "distance": "—"
-        }
+        "status": "none"
       },
       "note": "Можно полностью заменить отдыхом у базы или перенесённой поездкой.",
       "parking": {
@@ -2489,7 +2453,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Старт"
+      "durationKind": "start"
     },
     "2026-08-21-lake-kournas": {
       "id": "2026-08-21-lake-kournas",
@@ -2498,19 +2462,16 @@
       "sequence": 1,
       "role": "Озеро и спокойная утренняя остановка",
       "timing": {
-        "label": "10:45–13:00",
         "start": "10:45",
-        "end": "13:00"
+        "end": "13:00",
+        "approximate": false
       },
       "durationMinutes": 135,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 45,
         "distanceKm": 45,
-        "displayHints": {
-          "duration": "45 мин",
-          "distance": "45 км"
-        }
+        "status": "standard"
       },
       "note": "Необязательная часть резервного дня.",
       "parking": {
@@ -2521,7 +2482,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "2 ч 15 мин"
+      "durationKind": null
     },
     "2026-08-21-georgioupoli": {
       "id": "2026-08-21-georgioupoli",
@@ -2530,19 +2491,16 @@
       "sequence": 2,
       "role": "Обед, пляж и купание",
       "timing": {
-        "label": "13:20–17:30",
         "start": "13:20",
-        "end": "17:30"
+        "end": "17:30",
+        "approximate": false
       },
       "durationMinutes": 250,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 20,
         "distanceKm": 8,
-        "displayHints": {
-          "duration": "20 мин",
-          "distance": "8 км"
-        }
+        "status": "standard"
       },
       "note": "Лёгкая длинная остановка перед финальным днём поездки.",
       "parking": {
@@ -2553,7 +2511,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "4 ч 10 мин"
+      "durationKind": null
     },
     "2026-08-21-pomegranate-garden-villa-2": {
       "id": "2026-08-21-pomegranate-garden-villa-2",
@@ -2562,19 +2520,16 @@
       "sequence": 3,
       "role": "Возвращение и сборы",
       "timing": {
-        "label": "18:15",
         "start": "18:15",
-        "end": null
+        "end": null,
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 45,
         "distanceKm": 49,
-        "displayHints": {
-          "duration": "45 мин",
-          "distance": "49 км"
-        }
+        "status": "standard"
       },
       "note": "Вечером спокойно собрать вещи перед аэропортом.",
       "parking": {
@@ -2585,7 +2540,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Финиш"
+      "durationKind": "finish"
     },
     "2026-08-22-pomegranate-garden-villa": {
       "id": "2026-08-22-pomegranate-garden-villa",
@@ -2594,19 +2549,16 @@
       "sequence": 0,
       "role": "Выселение и выезд",
       "timing": {
-        "label": "10:30–10:45",
         "start": "10:30",
-        "end": "10:45"
+        "end": "10:45",
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": null,
         "distanceKm": null,
-        "displayHints": {
-          "duration": "—",
-          "distance": "—"
-        }
+        "status": "none"
       },
       "note": "Выселение до 11:00; выезжаем раньше предельного времени.",
       "parking": {
@@ -2617,7 +2569,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Старт"
+      "durationKind": "start"
     },
     "2026-08-22-gomega-car-rentals-heraklion": {
       "id": "2026-08-22-gomega-car-rentals-heraklion",
@@ -2626,19 +2578,16 @@
       "sequence": 1,
       "role": "Дозаправка по пути, возврат автомобиля и шаттл",
       "timing": {
-        "label": "12:15–13:30",
         "start": "12:15",
-        "end": "13:30"
+        "end": "13:30",
+        "approximate": false
       },
       "durationMinutes": 75,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 75,
         "distanceKm": 80,
-        "displayHints": {
-          "duration": "1 ч 15 мин",
-          "distance": "80 км"
-        }
+        "status": "standard"
       },
       "note": "Точный порядок возврата подтвердить у прокатчика при получении машины.",
       "parking": {
@@ -2649,7 +2598,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "1 ч 15 мин"
+      "durationKind": null
     },
     "2026-08-22-heraklion-international-airport-n-kazantzakis": {
       "id": "2026-08-22-heraklion-international-airport-n-kazantzakis",
@@ -2658,19 +2607,16 @@
       "sequence": 2,
       "role": "Багаж, регистрация и вылет",
       "timing": {
-        "label": "около 13:30–17:55",
         "start": "13:30",
-        "end": "17:55"
+        "end": "17:55",
+        "approximate": true
       },
       "durationMinutes": null,
       "inboundTravel": {
         "mode": "flight",
         "durationMinutes": null,
         "distanceKm": null,
-        "displayHints": {
-          "duration": "шаттл прокатчика",
-          "distance": "несколько минут"
-        }
+        "status": "rental-shuttle"
       },
       "note": "Рейс HN 2322 вылетает в 17:55.",
       "parking": {
@@ -2681,7 +2627,7 @@
       "map": {
         "visible": true
       },
-      "durationDisplayHint": "Аэропорт"
+      "durationKind": "airport"
     }
   },
   "routes": {

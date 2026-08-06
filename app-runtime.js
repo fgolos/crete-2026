@@ -1074,10 +1074,12 @@
     const record = partOverviewMaps.get(partId);
     if (!record?.map || !record.bounds?.isValid()) return;
     record.map.invalidateSize({ pan:false });
+    record.autoFitting = true;
     record.map.fitBounds(record.bounds, {
       padding: mobileViewport.matches ? [18, 18] : [28, 28],
       animate:false
     });
+    record.autoFitting = false;
   }
 
   function syncPartOverviewState(partId) {
@@ -1179,10 +1181,19 @@
         record.label = label;
         syncPartOverviewState(partId);
         schedulePartRouteLabelLayout(partId);
+        const overview = partOverviewMaps.get(partId);
+        if (overview && !overview.userInteracted) {
+          roadCoordinates.forEach(point => overview.bounds.extend(point));
+          fitPartOverview(partId);
+        }
       });
     });
 
-    partOverviewMaps.set(partId, { map, bounds, days, hoveredDayId:null });
+    partOverviewMaps.set(partId, { map, bounds, days, hoveredDayId:null, userInteracted:false, autoFitting:false });
+    map.on('movestart', () => {
+      const overview = partOverviewMaps.get(partId);
+      if (overview && !overview.autoFitting) overview.userInteracted = true;
+    });
     map.on('zoomend', () => schedulePartRouteLabelLayout(partId));
     fitPartOverview(partId);
   }

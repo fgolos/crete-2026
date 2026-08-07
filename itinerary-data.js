@@ -3024,7 +3024,7 @@
       "map": {
         "visible": true
       },
-      "durationKind": "airport"
+      "durationKind": null
     },
     "2026-08-22-vilnius-airport": {
       "id": "2026-08-22-vilnius-airport",
@@ -3053,7 +3053,7 @@
       "map": {
         "visible": false
       },
-      "durationKind": null
+      "durationKind": "finish"
     }
   },
   "routes": {

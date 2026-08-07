@@ -71,13 +71,14 @@
       const day = model.getDay(dayId);
       if (!day) return null;
       const route = model.getRoute(day.routeId);
+      const visits = day.visitIds.map(visitId => model.getVisit(visitId)).filter(Boolean);
       return {
         id: day.id,
         short: formatters.formatShortDateEn(day.id),
         date: formatters.formatLongDate(day.id),
         title: day.title,
         status: day.status,
-        meta: formatters.buildDayMeta(day),
+        meta: formatters.buildDayMeta(day, visits),
         stops: day.visitIds.map(visitView).filter(Boolean),
         routeVisitIds: [...(route?.visitIds || [])],
         sections: Object.fromEntries(Object.entries(day.sections || {}).map(([key, section]) => [key, {

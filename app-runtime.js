@@ -892,7 +892,7 @@
 
   function renderDay(day) {
     const timelineData = renderTimeline(day);
-    const metaOrder = ['выезд', 'финиш', 'расстояние', 'вождение', 'купание', 'питание'];
+    const metaOrder = ['дорога', 'время', 'питание', 'купание', 'логистика'];
     const normalizeLabel = value => value.trim().toLowerCase();
     const metaItems = Array.isArray(day.meta) ? [...day.meta] : [];
     const hasExplicitFood = metaItems.some(item => normalizeLabel(item.label) === 'питание');
@@ -912,13 +912,26 @@
       })
       .map(({ item }) => item);
 
-    const meta = orderedMeta.map((item,index) => `<div class="meta-item ${index < 4 ? 'primary' : 'secondary'}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`).join('');
+    const metaLayoutClass = new Map([
+      ['дорога', 'meta-road'],
+      ['время', 'meta-time'],
+      ['купание', 'meta-swimming'],
+      ['питание', 'meta-food'],
+      ['логистика', 'meta-logistics']
+    ]);
+    const coreMetaLabels = new Set(['дорога', 'время']);
+    const meta = orderedMeta.map(item => {
+      const label = normalizeLabel(item.label);
+      const emphasisClass = coreMetaLabels.has(label) ? 'primary' : 'secondary';
+      const layoutClass = metaLayoutClass.get(label) || 'meta-extra';
+      return `<div class="meta-item ${emphasisClass} ${layoutClass}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`;
+    }).join('');
     const rows = day.stops.map(stop => {
       const flexible = isFlexibleStop(day, stop);
       const stopDuration = stop.duration && stop.duration !== '—' && stop.duration !== '-' ? stop.duration : '';
       return `<tr class="route-row${flexible?' is-flexible':''}" tabindex="0" data-day-id="${day.id}" data-visit-id="${stop.id}" data-mode="${escapeHtml(stop.mode || 'stop')}" aria-label="Показать ${escapeHtml(stop.name)} на карте">
         <td class="stop-order">${stop.order}</td><td class="stop-name"><strong>${escapeHtml(stop.name)}</strong>${flexible?'<span class="flexible-label">Гибко</span>':''}<span class="role">${escapeHtml(stop.role)}</span></td>
-        <td data-label="Расстояние">${escapeHtml(stop.distance)}<span class="drive-time">${escapeHtml(stop.drive)}</span></td><td data-label="Время">${escapeHtml(stop.time)}${stopDuration ? `<span class="stop-time">${escapeHtml(stopDuration)}</span>` : ''}</td></tr>`;
+        <td data-label="Дорога">${escapeHtml(stop.distance)}<span class="drive-time">${escapeHtml(stop.drive)}</span></td><td data-label="Время">${escapeHtml(stop.time)}${stopDuration ? `<span class="stop-time">${escapeHtml(stopDuration)}</span>` : ''}</td></tr>`;
     }).join('');
     const sections = ['essentials','food','practical'].map(key => {
       const section = day.sections[key];
@@ -939,7 +952,7 @@
             ${timelineData.ruler}
             ${timelineData.timeline}
           </div>
-          <table class="route-table"><thead><tr><th>№</th><th>Точка</th><th>Км / В пути</th><th>Время</th></tr></thead><tbody>${rows}</tbody></table>
+          <table class="route-table"><thead><tr><th>№</th><th>Точка</th><th>Дорога</th><th>Время</th></tr></thead><tbody>${rows}</tbody></table>
         </aside>
         <div class="map-wrap">
           <div id="map-${day.id}" class="map"></div>

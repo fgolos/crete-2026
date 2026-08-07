@@ -734,7 +734,8 @@
         "2026-08-22-fodele-village",
         "2026-08-22-litinos-fodele",
         "2026-08-22-gomega-car-rentals-heraklion",
-        "2026-08-22-heraklion-international-airport-n-kazantzakis"
+        "2026-08-22-heraklion-international-airport-n-kazantzakis",
+        "2026-08-22-vilnius-airport"
       ],
       "routeId": "route-2026-08-22",
       "sections": {
@@ -3001,20 +3002,20 @@
       "dayId": "2026-08-22",
       "placeId": "heraklion-international-airport-n-kazantzakis",
       "sequence": 4,
-      "role": "Шаттл, регистрация и вылет в Vilnius",
+      "role": "Регистрация и вылет в Vilnius",
       "timing": {
         "start": "15:25",
-        "end": null,
+        "end": "17:55",
         "approximate": false
       },
-      "durationMinutes": null,
+      "durationMinutes": 150,
       "inboundTravel": {
         "mode": "rental-shuttle",
         "durationMinutes": 10,
         "distanceKm": 2,
         "status": "standard"
       },
-      "note": "Шаттл, регистрация и вылет HN 2322 в 17:55.",
+      "note": "Регистрация, контроль и посадка на рейс HN 2322. Вылет в 17:55.",
       "parking": {
         "primaryId": null,
         "primaryOverrides": null,
@@ -3024,6 +3025,35 @@
         "visible": true
       },
       "durationKind": "airport"
+    },
+    "2026-08-22-vilnius-airport": {
+      "id": "2026-08-22-vilnius-airport",
+      "dayId": "2026-08-22",
+      "placeId": "vilnius-airport",
+      "sequence": 5,
+      "role": "Прилёт в Vilnius",
+      "timing": {
+        "start": "21:20",
+        "end": null,
+        "approximate": false
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "flight",
+        "durationMinutes": 205,
+        "distanceKm": 2144,
+        "status": "standard"
+      },
+      "note": "HN 2322 Heraklion → Vilnius. Прилёт в 21:20.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": false
+      },
+      "durationKind": null
     }
   },
   "routes": {

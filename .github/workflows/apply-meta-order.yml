@@ -1,0 +1,63 @@
+name: Apply final meta row order
+
+on:
+  push:
+    branches:
+      - 'ui/meta-grid-road-first'
+    paths:
+      - '.github/workflows/apply-meta-order.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ui/meta-grid-road-first
+          fetch-depth: 0
+
+      - name: Reorder meta rows
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          runtime = Path('app-runtime.js')
+          text = runtime.read_text(encoding='utf-8')
+          old = "const metaOrder = ['дорога', 'время', 'купание', 'питание', 'логистика'];"
+          new = "const metaOrder = ['дорога', 'время', 'питание', 'купание', 'логистика'];"
+          if text.count(old) != 1:
+              raise SystemExit(f'app-runtime.js: expected one metaOrder match, got {text.count(old)}')
+          runtime.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          sw = Path('service-worker.js')
+          sw_text = sw.read_text(encoding='utf-8')
+          old_cache = "const CACHE_VERSION = 'crete-2026-v44';"
+          new_cache = "const CACHE_VERSION = 'crete-2026-v45';"
+          if sw_text.count(old_cache) != 1:
+              raise SystemExit(f'service-worker.js: expected v44 once, got {sw_text.count(old_cache)}')
+          sw.write_text(sw_text.replace(old_cache, new_cache, 1), encoding='utf-8')
+          PY
+
+      - name: Validate
+        run: |
+          node --check app-runtime.js
+          node scripts/validate-itinerary.mjs
+          node scripts/check-runtime-contract.mjs
+          node scripts/check-audio-source-contract.mjs
+          node scripts/smoke-browser.mjs
+
+      - name: Commit clean patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/apply-meta-order.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app-runtime.js service-worker.js .github/workflows/apply-meta-order.yml
+          git commit -m 'Order persistent meta rows first'
+          git push origin HEAD:ui/meta-grid-road-first

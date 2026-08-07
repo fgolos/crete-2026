@@ -7,6 +7,7 @@
     }
 
     const values = object => Object.values(object || {});
+    const roadRoutableModes = new Set(['driving', 'transit']);
 
     function parkingView(parkingId, overrides = null) {
       const parking = parkingId ? model.getParking(parkingId) : null;
@@ -44,6 +45,7 @@
       const alternatives = (visit.parking?.alternatives || [])
         .map(item => parkingView(item.id, item.overrides))
         .filter(Boolean);
+      const inboundMode = visit.inboundTravel.mode;
       return {
         id: visit.id,
         order: visit.sequence,
@@ -58,7 +60,9 @@
         lon: place.coordinates.lon,
         navigationQuery: place.navigationQuery,
         mapVisible: visit.map.visible,
-        mode: visit.inboundTravel.mode === 'driving' ? undefined : visit.inboundTravel.mode,
+        // app-runtime treats an omitted mode as road-routable overview geometry.
+        // Transit legs also follow the road network; walking and flight remain explicit.
+        mode: roadRoutableModes.has(inboundMode) ? undefined : inboundMode,
         parking: primary || alternatives.length ? { primary, alternatives } : undefined
       };
     }

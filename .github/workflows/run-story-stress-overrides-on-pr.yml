@@ -51,10 +51,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -f .github/workflows/apply-story-stress-overrides.yml
-          rm -f .github/workflows/run-story-stress-overrides-on-pr.yml
+          # The job token may update ordinary repository files but not workflow files.
+          # Revert the staged CI workflow edit here; it will be applied separately via the GitHub connector.
+          git checkout -- .github/workflows/validate-itinerary.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
+          git add README.md package.json pronunciations-data.js scripts/generate-audio.mjs scripts/check-audio-source-contract.mjs scripts/check-speech-overrides.mjs
           git commit -m 'Add SSML stress overrides for story audio'
           git push origin feature/story-stress-overrides

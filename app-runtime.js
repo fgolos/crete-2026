@@ -874,9 +874,12 @@
     // Render timeline segments with proper wall-clock positioning
     const segmentHtml = segments.map(seg => {
       // Calculate position and width based on wall-clock time
-      const offsetStart = (seg.clockStart - startMinutes) / totalMinutes * 100;
-      const offsetEnd = (seg.clockEnd - startMinutes) / totalMinutes * 100;
-      const width = offsetEnd - offsetStart;
+      const visibleStart = Math.max(seg.clockStart, startMinutes);
+      const visibleEnd = Math.min(seg.clockEnd, maxEndTime);
+      if (visibleEnd <= visibleStart) return '';
+      const offsetStart = (visibleStart - startMinutes) / totalMinutes * 100;
+      const offsetEnd = (visibleEnd - startMinutes) / totalMinutes * 100;
+      const width = Math.max(0, offsetEnd - offsetStart);
       
       const fullTooltip = `${seg.description} (${escapeHtml(seg.fullLabel)})`;
       return `<div class="timeline-segment timeline-${seg.type}" data-visit-id="${seg.visitId}" data-segment-type="${seg.type}" data-width-percent="${width}" tabindex="0" role="button" aria-label="${seg.type === 'flight' ? 'Перелёт' : seg.type === 'drive' ? 'Вождение' : 'Остановка'}: ${fullTooltip}" title="${fullTooltip}" style="left:${offsetStart}%; width:${width}%;"><span class="timeline-time">${escapeHtml(seg.shortLabel)}</span></div>`;

@@ -1,0 +1,196 @@
+name: Update Aug 19 itinerary once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-aug19-once.yml'
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Update only 19 August
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import json, re
+          from pathlib import Path
+
+          path = Path('itinerary-data.js')
+          text = path.read_text(encoding='utf-8')
+          match = re.search(r'window\.CRETE_DATA = deepFreeze\((\{.*\})\);\s*\}\)\(\);\s*$', text, re.S)
+          if not match:
+              raise SystemExit('Could not locate CRETE_DATA payload')
+          data = json.loads(match.group(1))
+
+          day_id = '2026-08-19'
+          day = data['days'].get(day_id)
+          if not day or day.get('title') != 'Organic Farmers’ Market или Akrotiri':
+              raise SystemExit('19 August changed since planning; refusing to overwrite current main')
+
+          visits = data['visits']
+          routes = data['routes']
+          places = data['places']
+
+          required_places = [
+              'pomegranate-garden-villa',
+              'organic-farmers-market-rethymno',
+              'stavros-beach',
+              'kouzina-epe',
+              'marathi-beach',
+          ]
+          missing = [p for p in required_places if p not in places]
+          if missing:
+              raise SystemExit('Missing places: ' + ', '.join(missing))
+
+          for key in list(visits):
+              if key.startswith(day_id + '-'):
+                  del visits[key]
+
+          def add(pid, suffix, seq, role, start, end=None, duration=None,
+                  travel_status='standard', travel_mode='driving', travel_minutes=0,
+                  distance=0, note='', duration_kind=None):
+              vid = f'{day_id}-{suffix}'
+              visits[vid] = {
+                  'id': vid,
+                  'dayId': day_id,
+                  'placeId': pid,
+                  'sequence': seq,
+                  'role': role,
+                  'timing': {'start': start, 'end': end, 'approximate': True},
+                  'durationMinutes': duration,
+                  'inboundTravel': {
+                      'mode': travel_mode,
+                      'durationMinutes': None if travel_status == 'none' else travel_minutes,
+                      'distanceKm': None if travel_status == 'none' else distance,
+                      'status': travel_status,
+                  },
+                  'note': note,
+                  'parking': {'primaryId': None, 'primaryOverrides': None, 'alternatives': []},
+                  'map': {'visible': True},
+                  'durationKind': duration_kind,
+              }
+              return vid
+
+          ids = [
+              add('pomegranate-garden-villa', 'pomegranate-garden-villa-start', 0,
+                  'Выезд на Organic Farmers’ Market', '10:20', None, None,
+                  travel_status='none', note='Основной план дня начинается с рынка.', duration_kind='start'),
+              add('organic-farmers-market-rethymno', 'organic-farmers-market-rethymno', 1,
+                  'Organic Farmers’ Market', '10:45', '11:45', 60,
+                  travel_minutes=25, distance=8,
+                  note='Рынок желательный. После него по настроению можно отменить дальнюю часть дня, вернуться домой и тюленить на Platanes Beach.'),
+              add('stavros-beach', 'stavros-beach', 2,
+                  'Stavros Beach — место съёмок «Грека Зорбы»', '13:10', '14:25', 75,
+                  travel_minutes=85, distance=70,
+                  note='Основной план: после рынка едем на Akrotiri. Купание и короткая прогулка без длинной жары.'),
+              add('kouzina-epe', 'kouzina-epe', 3,
+                  'Обязательный обед в Kouzina EPE', '14:50', '16:20', 90,
+                  travel_minutes=25, distance=15,
+                  note='Если продолжаем маршрут на Akrotiri, Kouzina EPE — обязательная часть дня.'),
+              add('marathi-beach', 'marathi-beach', 4,
+                  'Купание и отдых на Marathi Beach', '16:50', '19:30', 160,
+                  travel_minutes=30, distance=17,
+                  note='Спокойное завершение дальнего дня у моря.'),
+              add('pomegranate-garden-villa', 'pomegranate-garden-villa-end', 5,
+                  'Возвращение в Platanes', '20:50', None, None,
+                  travel_minutes=80, distance=72,
+                  note='После возвращения никаких дополнительных планов.', duration_kind='finish'),
+          ]
+
+          data['days'][day_id] = {
+              'id': day_id,
+              'title': 'Organic Farmers’ Market, Stavros и Marathi',
+              'status': 'confirmed',
+              'visitIds': ids,
+              'routeId': 'route-2026-08-19',
+              'sections': {
+                  'essentials': {'items': [
+                      'Основной план: Organic Farmers’ Market → Stavros Beach → Kouzina EPE → Marathi Beach.',
+                      'После Organic Farmers’ Market можно по настроению свернуть дальнюю часть дня: вернуться в Airbnb и провести остаток дня на Platanes Beach.',
+                      'Если едем на Akrotiri, обед в Kouzina EPE обязателен.'
+                  ]},
+                  'food': {'items': [
+                      'На Organic Farmers’ Market — свежие продукты по желанию.',
+                      'Основной обед — Kouzina EPE.',
+                      'При раннем возвращении после рынка — еда дома или возле Platanes Beach.'
+                  ]},
+                  'practical': {'items': [
+                      'Решение продолжать ли после рынка на Akrotiri принимаем на месте по настроению, погоде и покупкам.',
+                      'Если купили много скоропортящихся овощей и фруктов, разумнее вернуться домой и убрать их в холодильник.',
+                      'Полный вариант — дальний день: ориентировочно около 180 км и примерно четыре часа транспортного времени.',
+                      'Не добавляем прогулку по Chania: город уже хорошо знаком и не является целью этого дня.'
+                  ]}
+              },
+              'mealSummary': 'Organic Farmers’ Market; обед в Kouzina EPE; при сокращении дня — еда у базы',
+              'schedule': {
+                  'departure': {'start': '10:20', 'end': None, 'approximate': True},
+                  'finish': {'start': '20:50', 'end': None, 'approximate': True},
+                  'carReturnDeadline': None,
+                  'flight': None
+              },
+              'travelTotals': {
+                  'drivingDurationMinutes': 245,
+                  'distanceKm': 182,
+                  'approximate': True
+              },
+              'swimming': 'Stavros Beach и Marathi Beach; Platanes Beach при сокращении дня'
+          }
+          routes['route-2026-08-19'] = {
+              'id': 'route-2026-08-19',
+              'dayId': day_id,
+              'visitIds': ids
+          }
+
+          payload = json.dumps(data, ensure_ascii=False, indent=2)
+          path.write_text(text[:match.start(1)] + payload + text[match.end(1):], encoding='utf-8')
+
+          sw = Path('service-worker.js')
+          sw_text = sw.read_text(encoding='utf-8')
+          sw_text, count = re.subn(
+              r"const CACHE_VERSION = 'crete-2026-v(\d+)';",
+              lambda m: f"const CACHE_VERSION = 'crete-2026-v{int(m.group(1)) + 1}';",
+              sw_text,
+              count=1
+          )
+          if count != 1:
+              raise SystemExit('Could not bump service worker cache')
+          sw.write_text(sw_text, encoding='utf-8')
+          PY
+
+      - name: Validate data
+        run: |
+          node --check itinerary-data.js
+          node - <<'NODE'
+          global.window = {};
+          require('./itinerary-data.js');
+          require('./data-validation.js');
+          const result = window.CRETE_VALIDATION_API.validate(window.CRETE_DATA);
+          if (!result.valid) {
+            console.error(result.errors.join('\n'));
+            process.exit(1);
+          }
+          const day = window.CRETE_DATA.days['2026-08-19'];
+          if (day.title !== 'Organic Farmers’ Market, Stavros и Marathi') process.exit(2);
+          console.log('19 August validated:', day.visitIds.join(' -> '));
+          NODE
+
+      - name: Commit update and remove one-shot workflow
+        run: |
+          rm .github/workflows/update-aug19-once.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add itinerary-data.js service-worker.js .github/workflows/update-aug19-once.yml
+          git commit -m 'Update 19 August itinerary'
+          git push

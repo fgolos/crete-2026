@@ -892,7 +892,7 @@
 
   function renderDay(day) {
     const timelineData = renderTimeline(day);
-    const metaOrder = ['дорога', 'время', 'купание', 'питание', 'логистика'];
+    const metaOrder = ['дорога', 'время', 'питание', 'купание', 'логистика'];
     const normalizeLabel = value => value.trim().toLowerCase();
     const metaItems = Array.isArray(day.meta) ? [...day.meta] : [];
     const hasExplicitFood = metaItems.some(item => normalizeLabel(item.label) === 'питание');

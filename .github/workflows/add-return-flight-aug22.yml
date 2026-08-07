@@ -1,0 +1,111 @@
+name: Add return flight to Aug 22
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/add-return-flight-aug22.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Add return flight
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import json, re
+          from pathlib import Path
+
+          path = Path('itinerary-data.js')
+          text = path.read_text(encoding='utf-8')
+          m = re.search(r'window\.CRETE_DATA = deepFreeze\((\{.*\})\);\s*\}\)\(\);\s*$', text, re.S)
+          if not m:
+              raise SystemExit('CRETE_DATA payload not found')
+          data = json.loads(m.group(1))
+          d = '2026-08-22'
+          day = data['days'][d]
+          visits = data['visits']
+
+          her_id = '2026-08-22-heraklion-international-airport-n-kazantzakis'
+          if her_id not in visits:
+              raise SystemExit('Heraklion Airport visit missing')
+
+          # Registration / airport wait ends exactly at scheduled departure.
+          her = visits[her_id]
+          her['sequence'] = 4
+          her['role'] = 'Шаттл, регистрация и вылет в Vilnius'
+          her['timing'] = {'start': '15:25', 'end': '17:55', 'approximate': False}
+          her['durationMinutes'] = 150
+          her['durationKind'] = 'airport'
+          her['note'] = 'Регистрация, контроль и посадка на рейс HN 2322. Вылет в 17:55.'
+
+          vno_id = '2026-08-22-vilnius-airport'
+          visits[vno_id] = {
+              'id': vno_id,
+              'dayId': d,
+              'placeId': 'vilnius-airport',
+              'sequence': 5,
+              'role': 'Прилёт в Vilnius',
+              'timing': {'start': '21:20', 'end': None, 'approximate': False},
+              'durationMinutes': None,
+              'inboundTravel': {
+                  'mode': 'flight',
+                  'durationMinutes': 205,
+                  'distanceKm': 2144,
+                  'status': 'standard'
+              },
+              'note': 'HN 2322 Heraklion → Vilnius. Прилёт в 21:20.',
+              'parking': {'primaryId': None, 'primaryOverrides': None, 'alternatives': []},
+              'map': {'visible': False},
+              'durationKind': 'arrival'
+          }
+
+          ids = list(day['visitIds'])
+          if vno_id not in ids:
+              ids.append(vno_id)
+          day['visitIds'] = ids
+          # Keep driving route ending at Heraklion Airport; flight destination is not a road waypoint.
+          route = data['routes'][day['routeId']]
+          route['visitIds'] = [x for x in route['visitIds'] if x != vno_id]
+
+          payload = json.dumps(data, ensure_ascii=False, indent=2)
+          path.write_text(text[:m.start(1)] + payload + text[m.end(1):], encoding='utf-8')
+
+          sw = Path('service-worker.js')
+          sw_text = sw.read_text(encoding='utf-8')
+          sw_text, n = re.subn(r"const CACHE_VERSION = 'crete-2026-v(\d+)';", lambda x: f"const CACHE_VERSION = 'crete-2026-v{int(x.group(1))+1}';", sw_text, count=1)
+          if n != 1:
+              raise SystemExit('Cache version not found')
+          sw.write_text(sw_text, encoding='utf-8')
+          PY
+
+      - name: Validate
+        run: |
+          node --check itinerary-data.js
+          node - <<'NODE'
+          global.window = {};
+          require('./itinerary-data.js');
+          require('./data-validation.js');
+          const result = window.CRETE_VALIDATION_API.validate(window.CRETE_DATA);
+          if (!result.valid) {
+            console.error(result.errors.join('\n'));
+            process.exit(1);
+          }
+          const d = window.CRETE_DATA.days['2026-08-22'];
+          if (!d.visitIds.includes('2026-08-22-vilnius-airport')) process.exit(2);
+          console.log('Aug 22 return flight validated');
+          NODE
+
+      - name: Commit and clean up
+        run: |
+          rm .github/workflows/add-return-flight-aug22.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add itinerary-data.js service-worker.js .github/workflows/add-return-flight-aug22.yml
+          git commit -m 'Add return flight to Aug 22'
+          git push

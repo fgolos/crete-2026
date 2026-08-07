@@ -1,0 +1,128 @@
+name: Format meta grid patch
+
+on:
+  push:
+    branches:
+      - 'ui/meta-grid-road-first'
+    paths:
+      - '.github/workflows/format-meta-grid-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ui/meta-grid-road-first
+          fetch-depth: 0
+
+      - name: Normalize indentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('formatters.js')
+          text = p.read_text(encoding='utf-8')
+          replacement = '''  function buildDayMeta(day) {
+            const items = [];
+
+            const distanceKm = day.travelTotals?.distanceKm;
+            const drivingMinutes = day.travelTotals?.drivingDurationMinutes;
+            if (Number.isFinite(distanceKm) || Number.isFinite(drivingMinutes)) {
+              let roadValue;
+              if (distanceKm === 0 && drivingMinutes === 0) {
+                roadValue = 'без машины';
+              } else {
+                const roadParts = [
+                  Number.isFinite(distanceKm) ? formatDistance(distanceKm) : '',
+                  Number.isFinite(drivingMinutes) ? formatDuration(drivingMinutes) : ''
+                ].filter(Boolean);
+                roadValue = roadParts.join(' · ');
+                if (day.travelTotals?.approximate && roadValue) roadValue = `около ${roadValue}`;
+              }
+              if (roadValue) items.push({ label: 'Дорога', value: roadValue });
+            }
+
+            const departure = day.schedule?.departure?.start || null;
+            const finish = day.schedule?.finish?.start || null;
+            if (departure || finish) {
+              const timeValue = departure && finish ? `${departure} → ${finish}` : departure || finish;
+              items.push({ label: 'Время', value: timeValue });
+            }
+
+            if (day.swimming) items.push({ label: 'Купание', value: day.swimming });
+            if (day.mealSummary) items.push({ label: 'Питание', value: day.mealSummary });
+
+            const logistics = [];
+            if (day.status !== 'confirmed') logistics.push(`Статус: ${statusLabel(day.status)}`);
+            if (day.schedule?.carReturnDeadline) logistics.push(`Машину вернуть до ${day.schedule.carReturnDeadline}`);
+            if (day.schedule?.flight) logistics.push(`Рейс ${day.schedule.flight.number} · ${day.schedule.flight.departureTime}`);
+            if (logistics.length) items.push({ label: 'Логистика', value: logistics.join(' · ') });
+
+            return items;
+          }
+
+          function formatReservationWhen(reservation) {'''
+          text, count = re.subn(
+              r'  function buildDayMeta\(day\) \{.*?\n(?:  )?function formatReservationWhen\(reservation\) \{',
+              replacement,
+              text,
+              count=1,
+              flags=re.S
+          )
+          if count != 1:
+              raise SystemExit(f'formatters.js replacement count {count}')
+          p.write_text(text, encoding='utf-8')
+
+          p = Path('app-runtime.js')
+          text = p.read_text(encoding='utf-8')
+          replacement = '''    const metaLayoutClass = new Map([
+              ['дорога', 'meta-road'],
+              ['время', 'meta-time'],
+              ['купание', 'meta-swimming'],
+              ['питание', 'meta-food'],
+              ['логистика', 'meta-logistics']
+            ]);
+            const coreMetaLabels = new Set(['дорога', 'время', 'купание']);
+            const meta = orderedMeta.map(item => {
+              const label = normalizeLabel(item.label);
+              const emphasisClass = coreMetaLabels.has(label) ? 'primary' : 'secondary';
+              const layoutClass = metaLayoutClass.get(label) || 'meta-extra';
+              return `<div class="meta-item ${emphasisClass} ${layoutClass}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`;
+            }).join('');'''
+          text, count = re.subn(
+              r'    const metaLayoutClass = new Map\(\[.*?\n\s*\}\)\.join\(\'\'\);',
+              replacement,
+              text,
+              count=1,
+              flags=re.S
+          )
+          if count != 1:
+              raise SystemExit(f'app-runtime.js replacement count {count}')
+          p.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validate
+        run: |
+          node --check formatters.js
+          node --check app-runtime.js
+          node scripts/validate-itinerary.mjs
+          node scripts/check-runtime-contract.mjs
+          node scripts/smoke-browser.mjs
+
+      - name: Commit clean formatting
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/format-meta-grid-patch.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add formatters.js app-runtime.js .github/workflows/format-meta-grid-patch.yml
+          git commit -m 'Format meta grid implementation'
+          git push origin HEAD:ui/meta-grid-road-first

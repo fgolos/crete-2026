@@ -110,6 +110,7 @@ window.CRETE_PRONUNCIATIONS = {
 };
 
 window.CRETE_PHONEMES = {
+  'храмовым': 'ˈxra.mə.vɨm',
   'храмовом': 'ˈxra.mə.vəm',
   'маскаронов': 'mə.skɐ.ˈro.nəf',
   'некрополь': 'nʲɪ.ˈkro.pəlʲ',
@@ -134,6 +135,7 @@ window.CRETE_PHONEMES = {
   'Николаос': 'nʲi.ˈko.la.os',
   'Георгиос': 'gʲe.ˈor.gʲi.os',
   'Гурния': 'gur.ˈnʲi.ja',
+  'Гурнией': 'gur.ˈnʲi.jəj',
   'Топлу': 'to.ˈplu',
   'Хиона': 'xʲi.ˈo.na',
   'Палекастро': 'pa.ˈlʲe.ka.stro',

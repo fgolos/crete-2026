@@ -913,19 +913,19 @@
       .map(({ item }) => item);
 
     const metaLayoutClass = new Map([
-    ['дорога', 'meta-road'],
-    ['время', 'meta-time'],
-    ['купание', 'meta-swimming'],
-    ['питание', 'meta-food'],
-    ['логистика', 'meta-logistics']
-  ]);
-  const coreMetaLabels = new Set(['дорога', 'время', 'купание']);
-  const meta = orderedMeta.map(item => {
-    const label = normalizeLabel(item.label);
-    const emphasisClass = coreMetaLabels.has(label) ? 'primary' : 'secondary';
-    const layoutClass = metaLayoutClass.get(label) || 'meta-extra';
-    return `<div class="meta-item ${emphasisClass} ${layoutClass}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`;
-  }).join('');
+      ['дорога', 'meta-road'],
+      ['время', 'meta-time'],
+      ['купание', 'meta-swimming'],
+      ['питание', 'meta-food'],
+      ['логистика', 'meta-logistics']
+    ]);
+    const coreMetaLabels = new Set(['дорога', 'время', 'купание']);
+    const meta = orderedMeta.map(item => {
+      const label = normalizeLabel(item.label);
+      const emphasisClass = coreMetaLabels.has(label) ? 'primary' : 'secondary';
+      const layoutClass = metaLayoutClass.get(label) || 'meta-extra';
+      return `<div class="meta-item ${emphasisClass} ${layoutClass}"><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`;
+    }).join('');
     const rows = day.stops.map(stop => {
       const flexible = isFlexibleStop(day, stop);
       const stopDuration = stop.duration && stop.duration !== '—' && stop.duration !== '-' ? stop.duration : '';

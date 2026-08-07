@@ -76,47 +76,46 @@
   function statusLabel(status) {
     return ({ draft: 'Черновик', 'draft-reserve': 'Черновик / резерв', confirmed: 'Подтверждено' })[status] || status;
   }
-
   function buildDayMeta(day) {
-  const items = [];
+    const items = [];
 
-  const distanceKm = day.travelTotals?.distanceKm;
-  const drivingMinutes = day.travelTotals?.drivingDurationMinutes;
-  if (Number.isFinite(distanceKm) || Number.isFinite(drivingMinutes)) {
-    let roadValue;
-    if (distanceKm === 0 && drivingMinutes === 0) {
-      roadValue = 'без машины';
-    } else {
-      const roadParts = [
-        Number.isFinite(distanceKm) ? formatDistance(distanceKm) : '',
-        Number.isFinite(drivingMinutes) ? formatDuration(drivingMinutes) : ''
-      ].filter(Boolean);
-      roadValue = roadParts.join(' · ');
-      if (day.travelTotals?.approximate && roadValue) roadValue = `около ${roadValue}`;
+    const distanceKm = day.travelTotals?.distanceKm;
+    const drivingMinutes = day.travelTotals?.drivingDurationMinutes;
+    if (Number.isFinite(distanceKm) || Number.isFinite(drivingMinutes)) {
+      let roadValue;
+      if (distanceKm === 0 && drivingMinutes === 0) {
+        roadValue = 'без машины';
+      } else {
+        const roadParts = [
+          Number.isFinite(distanceKm) ? formatDistance(distanceKm) : '',
+          Number.isFinite(drivingMinutes) ? formatDuration(drivingMinutes) : ''
+        ].filter(Boolean);
+        roadValue = roadParts.join(' · ');
+        if (day.travelTotals?.approximate && roadValue) roadValue = `около ${roadValue}`;
+      }
+      if (roadValue) items.push({ label: 'Дорога', value: roadValue });
     }
-    if (roadValue) items.push({ label: 'Дорога', value: roadValue });
+
+    const departure = day.schedule?.departure?.start || null;
+    const finish = day.schedule?.finish?.start || null;
+    if (departure || finish) {
+      const timeValue = departure && finish ? `${departure} → ${finish}` : departure || finish;
+      items.push({ label: 'Время', value: timeValue });
+    }
+
+    if (day.swimming) items.push({ label: 'Купание', value: day.swimming });
+    if (day.mealSummary) items.push({ label: 'Питание', value: day.mealSummary });
+
+    const logistics = [];
+    if (day.status !== 'confirmed') logistics.push(`Статус: ${statusLabel(day.status)}`);
+    if (day.schedule?.carReturnDeadline) logistics.push(`Машину вернуть до ${day.schedule.carReturnDeadline}`);
+    if (day.schedule?.flight) logistics.push(`Рейс ${day.schedule.flight.number} · ${day.schedule.flight.departureTime}`);
+    if (logistics.length) items.push({ label: 'Логистика', value: logistics.join(' · ') });
+
+    return items;
   }
 
-  const departure = day.schedule?.departure?.start || null;
-  const finish = day.schedule?.finish?.start || null;
-  if (departure || finish) {
-    const timeValue = departure && finish ? `${departure} → ${finish}` : departure || finish;
-    items.push({ label: 'Время', value: timeValue });
-  }
-
-  if (day.swimming) items.push({ label: 'Купание', value: day.swimming });
-  if (day.mealSummary) items.push({ label: 'Питание', value: day.mealSummary });
-
-  const logistics = [];
-  if (day.status !== 'confirmed') logistics.push(`Статус: ${statusLabel(day.status)}`);
-  if (day.schedule?.carReturnDeadline) logistics.push(`Машину вернуть до ${day.schedule.carReturnDeadline}`);
-  if (day.schedule?.flight) logistics.push(`Рейс ${day.schedule.flight.number} · ${day.schedule.flight.departureTime}`);
-  if (logistics.length) items.push({ label: 'Логистика', value: logistics.join(' · ') });
-
-  return items;
-}
-
-function formatReservationWhen(reservation) {
+  function formatReservationWhen(reservation) {
     if (reservation.startsAt) {
       const date = reservation.startsAt.slice(0, 10);
       const time = reservation.startsAt.slice(11, 16);

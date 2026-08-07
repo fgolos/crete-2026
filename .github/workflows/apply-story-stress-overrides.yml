@@ -1,0 +1,388 @@
+name: Apply story stress overrides
+
+on:
+  push:
+    branches:
+      - feature/story-stress-overrides
+    paths:
+      - '.github/workflows/apply-story-stress-overrides.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/story-stress-overrides
+          fetch-depth: 0
+
+      - name: Add phoneme support and audited stress overrides
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new, label):
+              text = path.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly one match, found {count}')
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          # 1) Curated stress overrides. Keys are exact spoken word forms; matching is case-insensitive.
+          pron = Path('pronunciations-data.js')
+          text = pron.read_text(encoding='utf-8').rstrip()
+          if 'window.CRETE_PHONEMES' in text:
+              raise SystemExit('CRETE_PHONEMES already exists')
+          phonemes = r'''
+
+window.CRETE_PHONEMES = {
+  'храмовом': 'ˈxra.mə.vəm',
+  'маскаронов': 'mə.skɐ.ˈro.nəf',
+  'некрополь': 'nʲɪ.ˈkro.pəlʲ',
+  'протодворцовому': 'pro.tə.dvɐr.ˈt͡so.və.mu',
+  'раннехристианской': 'ranʲ.nʲɪ.xrʲɪsʲ.tʲɪ.ˈan.skəj',
+  'раки': 'ra.ˈkʲi',
+  'мезе': 'mʲe.ˈzʲe',
+  'сувлаки': 'su.ˈvla.kʲi',
+  'мусака': 'mu.sa.ˈka',
+  'мусаки': 'mu.sa.ˈkʲi',
+  'карбонары': 'kar.bo.ˈna.rɨ',
+  'кафенио': 'ka.fʲe.ˈnʲi.o',
+  'панигири': 'pa.nʲi.ˈgʲi.rʲi',
+  'Лаики': 'la.i.ˈkʲi',
+  'Ираклион': 'i.ˈra.klʲi.on',
+  'Сития': 'sʲi.ˈtʲi.ja',
+  'Мохлос': 'ˈmox.los',
+  'Мирабелло': 'mʲi.ra.ˈbʲel.lo',
+  'Агиос': 'ˈa.gʲi.os',
+  'Айос': 'ˈa.jos',
+  'Айя': 'ˈa.ja',
+  'Николаос': 'nʲi.ˈko.la.os',
+  'Георгиос': 'gʲe.ˈor.gʲi.os',
+  'Гурния': 'gur.ˈnʲi.ja',
+  'Топлу': 'to.ˈplu',
+  'Хиона': 'xʲi.ˈo.na',
+  'Палекастро': 'pa.ˈlʲe.ka.stro',
+  'Итанос': 'ˈi.ta.nos',
+  'Эримуполис': 'e.rʲi.ˈmu.po.lʲis',
+  'Зирос': 'ˈzʲi.ros',
+  'Ксерокамбос': 'kse.ˈro.kam.bos',
+  'Закрос': 'ˈza.kros',
+  'Казарма': 'kɐ.ˈzar.ma',
+  'Ластрос': 'ˈla.stros',
+  'Вицендзос': 'vʲi.ˈt͡sen.dzos',
+  'Корнарос': 'kor.ˈna.ros',
+  'Платанес': 'pla.ta.ˈnʲes',
+  'Платанеса': 'pla.ta.ˈnʲe.sa',
+  'Платанесе': 'pla.ta.ˈnʲe.sʲe',
+  'Ретимно': 'ˈrʲe.tʲim.no',
+  'Фортецца': 'for.ˈtʲet.t͡sa',
+  'Римонди': 'rʲi.ˈmon.dʲi',
+  'АРХЕЛОН': 'ar.xʲɪ.ˈlon',
+  'каретта': 'ka.ˈrʲet.ta',
+  'Амари': 'a.ˈma.rʲi',
+  'Псилоритис': 'psʲi.lo.ˈrʲi.tʲis',
+  'Псилоритиса': 'psʲi.lo.ˈrʲi.tʲi.sa',
+  'Псилоритисом': 'psʲi.lo.ˈrʲi.tʲi.səm',
+  'Кедрос': 'ˈkʲe.dros',
+  'Кедроса': 'ˈkʲe.dro.sa',
+  'Кедросом': 'ˈkʲe.dro.səm',
+  'Платис': 'pla.ˈtʲis',
+  'Апостоли': 'a.ˈpo.sto.lʲi',
+  'Самитос': 'ˈsa.mʲi.tos',
+  'Панагия': 'pa.na.ˈgʲi.ja',
+  'Каллергис': 'ka.ˈlʲer.gʲis',
+  'Опсигьяс': 'op.sʲi.ˈgʲjas',
+  'Монастираки': 'mo.na.stʲi.ˈra.kʲi',
+  'Меронас': 'ˈmʲe.ro.nas',
+  'Меронаса': 'ˈmʲe.ro.na.sa',
+  'Эленес': 'e.ˈlʲe.nʲes',
+  'Геракари': 'gʲe.ra.ˈka.rʲi',
+  'Акротири': 'a.kro.ˈtʲi.rʲi',
+  'Ханья': 'xa.ˈnʲja',
+  'Ханьи': 'xa.ˈnʲjɪ',
+  'Ханье': 'xa.ˈnʲjɪ',
+  'Ханьей': 'xa.ˈnʲjəj',
+  'Суда': 'ˈsu.da',
+  'Судой': 'ˈsu.doj',
+  'Ставрос': 'sta.ˈvros',
+  'Ставроса': 'sta.ˈvro.sa',
+  'Какояннис': 'ka.ko.ˈjan.nʲis',
+  'Казандзакис': 'ka.zan.ˈdza.kʲis',
+  'Казандзакиса': 'ka.zan.ˈdza.kʲi.sa',
+  'Спландзья': 'ˈsplan.dzʲja',
+  'магирио': 'ma.gʲi.ˈrʲi.o',
+  'Марати': 'ma.ˈra.tʲi',
+  'Элефтерна': 'e.ˈlʲef.tʲer.na',
+  'Элефтерны': 'e.ˈlʲef.tʲer.nɨ',
+  'Элефтерне': 'e.ˈlʲef.tʲer.nʲe',
+  'Орти': 'or.ˈtʲi',
+  'Петра': 'ˈpʲe.tra',
+  'Панормо': 'ˈpa.nor.mo',
+  'мельтеми': 'mʲel.ˈtʲe.mʲi',
+  'Коракас': 'ˈko.ra.kas',
+  'Фоделе': 'ˈfo.dʲe.lʲe',
+  'Малевизи': 'ma.le.ˈvʲi.zʲi',
+  'Теотокопулос': 'tʲe.o.to.ˈko.pu.los',
+  'Теотокопулоса': 'tʲe.o.to.ˈko.pu.lo.sa',
+  'Кандия': 'ˈkan.dʲi.ja',
+  'Кандии': 'ˈkan.dʲi.i',
+  'Кандию': 'ˈkan.dʲi.ju',
+  'Греко': 'ˈgrʲe.ko',
+  'Литинос': 'ˈlʲi.tʲi.nos',
+  'антикристо': 'an.tʲi.krʲi.ˈsto',
+  'цигарьясто': 't͡sɨ.ga.rʲja.ˈsto',
+  'гамопилафо': 'ga.mo.ˈpʲi.la.fo'
+};
+'''
+          pron.write_text(text + phonemes, encoding='utf-8')
+
+          # 2) Generator: safe inline <phoneme> markup after ordinary text substitutions.
+          gen = Path('scripts/generate-audio.mjs')
+          apply_block = '''function applyPronunciations(text, dictionary) {
+  return Object.entries(dictionary)
+    .sort(([a], [b]) => b.length - a.length)
+    .reduce((result, [written, spoken]) => result.split(written).join(spoken), text);
+}
+
+'''
+          helper_block = apply_block + r'''function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function createPhonemeRenderer(dictionary) {
+  const entries = Object.entries(dictionary || {})
+    .filter(([written, ipa]) => written && ipa)
+    .sort(([a], [b]) => b.length - a.length);
+  if (!entries.length) return value => escapeXml(value);
+
+  const lookup = new Map(entries.map(([written, ipa]) => [written.toLocaleLowerCase('ru-RU'), ipa]));
+  const alternatives = entries.map(([written]) => escapeRegExp(written)).join('|');
+  const matcher = new RegExp(`(?<![А-Яа-яЁё])(?:${alternatives})(?![А-Яа-яЁё])`, 'giu');
+
+  return value => {
+    const text = String(value);
+    let result = '';
+    let lastIndex = 0;
+    for (const match of text.matchAll(matcher)) {
+      const start = match.index ?? 0;
+      result += escapeXml(text.slice(lastIndex, start));
+      const written = match[0];
+      const ipa = lookup.get(written.toLocaleLowerCase('ru-RU'));
+      result += `<phoneme alphabet="ipa" ph="${escapeXml(ipa)}">${escapeXml(written)}</phoneme>`;
+      lastIndex = start + written.length;
+    }
+    result += escapeXml(text.slice(lastIndex));
+    return result;
+  };
+}
+
+'''
+          replace_once(gen, apply_block, helper_block, 'generator phoneme helper')
+
+          replace_once(gen,
+          '''  spokenLocale = null
+}) {
+  const paragraphs = blocks
+    .map(paragraph => `<p>${escapeXml(paragraph)}</p>`)
+''',
+          '''  spokenLocale = null
+}, phonemes = {}) {
+  const renderSpeechXml = createPhonemeRenderer(phonemes);
+  const paragraphs = blocks
+    .map(paragraph => `<p>${renderSpeechXml(paragraph)}</p>`)
+''', 'buildSsml phoneme rendering')
+
+          replace_once(gen,
+          'async function generateVariantSet({ story, variants, dictionary, dryRun, key, region }) {',
+          'async function generateVariantSet({ story, variants, dictionary, phonemes, dryRun, key, region }) {',
+          'variant function signature')
+          replace_once(gen,
+          '      const ssml = buildSsmlFromBlocks(blocks, variant);',
+          '      const ssml = buildSsmlFromBlocks(blocks, variant, phonemes);',
+          'variant SSML')
+
+          replace_once(gen,
+          "  const { value: pronunciations } = await loadWindowData(PRONUNCIATIONS_FILE, 'CRETE_PRONUNCIATIONS');\n",
+          "  const { value: pronunciations } = await loadWindowData(PRONUNCIATIONS_FILE, 'CRETE_PRONUNCIATIONS');\n  const { value: phonemes } = await loadWindowData(PRONUNCIATIONS_FILE, 'CRETE_PHONEMES');\n",
+          'load phonemes')
+          replace_once(gen,
+          "  const dryRun = hasFlag('--dry-run');\n",
+          "  const dryRun = hasFlag('--dry-run');\n  const printSsml = hasFlag('--print-ssml');\n",
+          'print SSML flag')
+          replace_once(gen,
+          "  if (!dryRun && (!key || !region)) throw new Error('Создайте локальный .env с AZURE_SPEECH_KEY и AZURE_SPEECH_REGION. Ключ в GitHub не коммитим, потому что мы всё-таки стремимся не кормить интернет секретами.');",
+          "  if (!dryRun && !printSsml && (!key || !region)) throw new Error('Создайте локальный .env с AZURE_SPEECH_KEY и AZURE_SPEECH_REGION. Ключ в GitHub не коммитим, потому что мы всё-таки стремимся не кормить интернет секретами.');",
+          'Azure requirement for print mode')
+          replace_once(gen,
+          "  if (!selected.length) throw new Error(`История ${requestedStory} не найдена`);\n",
+          "  if (!selected.length) throw new Error(`История ${requestedStory} не найдена`);\n  if (printSsml && !requestedStory) throw new Error('--print-ssml требует --story <id>, иначе терминал утонет в SSML.');\n",
+          'print mode story requirement')
+
+          replace_once(gen,
+          "    totalCharacters += fullNarration.blocks.join('\\n').length;\n\n    if (previewVariants || previewMai) {",
+          "    totalCharacters += fullNarration.blocks.join('\\n').length;\n\n    if (printSsml) {\n      console.log(buildSsmlFromBlocks(fullNarration.blocks, fullNarration.options, phonemes));\n      continue;\n    }\n\n    if (previewVariants || previewMai) {",
+          'print story SSML')
+          replace_once(gen,
+          '      const results = await generateVariantSet({ story, variants, dictionary: pronunciations, dryRun, key, region });',
+          '      const results = await generateVariantSet({ story, variants, dictionary: pronunciations, phonemes, dryRun, key, region });',
+          'variant phonemes argument')
+          replace_once(gen,
+          '        if (!dryRun) await synthesize({ ssml: buildSsmlFromBlocks(storySpeechText(excerptStory, pronunciations), { voice, rate }), outputFile, key, region });',
+          '        if (!dryRun) await synthesize({ ssml: buildSsmlFromBlocks(storySpeechText(excerptStory, pronunciations), { voice, rate }, phonemes), outputFile, key, region });',
+          'preview phonemes')
+          replace_once(gen,
+          '      const audioBuffer = await synthesize({ ssml: buildSsmlFromBlocks(fullNarration.blocks, fullNarration.options), outputFile, key, region });',
+          '      const audioBuffer = await synthesize({ ssml: buildSsmlFromBlocks(fullNarration.blocks, fullNarration.options, phonemes), outputFile, key, region });',
+          'generation phonemes')
+          replace_once(gen,
+          '  if (!dryRun && !preview && !previewVariants && !previewMai && storiesSource !== originalStoriesSource) {',
+          '  if (!dryRun && !printSsml && !preview && !previewVariants && !previewMai && storiesSource !== originalStoriesSource) {',
+          'do not write in print mode')
+
+          # 3) Stress audit. It validates config and shows which stories actually use each override.
+          audit = Path('scripts/check-speech-overrides.mjs')
+          audit.write_text(r'''import fs from 'node:fs';
+import vm from 'node:vm';
+
+const sandbox = { window: {} };
+vm.createContext(sandbox);
+vm.runInContext(fs.readFileSync('stories-data.js', 'utf8'), sandbox, { filename: 'stories-data.js' });
+vm.runInContext(fs.readFileSync('pronunciations-data.js', 'utf8'), sandbox, { filename: 'pronunciations-data.js' });
+
+const stories = sandbox.window.CRETE_STORIES || [];
+const phonemes = sandbox.window.CRETE_PHONEMES || {};
+const CYRILLIC = /[А-Яа-яЁё]/;
+const LATIN = /[A-Za-z]/;
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function narratableText(story) {
+  return [
+    story.title,
+    ...(story.text || []),
+    ...(story.lookFor || []),
+    ...(story.narration?.blocks || [])
+  ].filter(Boolean).join('\n');
+}
+
+if (!stories.length) throw new Error('No stories loaded');
+if (!Object.keys(phonemes).length) throw new Error('CRETE_PHONEMES is empty');
+
+const corpus = stories.map(story => ({ id: story.id, text: narratableText(story) }));
+let used = 0;
+let unused = 0;
+
+for (const [written, ipa] of Object.entries(phonemes)) {
+  if (!CYRILLIC.test(written) || LATIN.test(written)) throw new Error(`Invalid spoken key: ${written}`);
+  if (!ipa.includes('ˈ')) throw new Error(`Primary stress marker missing for ${written}: ${ipa}`);
+  if (/[<>"&]/.test(ipa)) throw new Error(`Unsafe IPA value for ${written}: ${ipa}`);
+
+  const matcher = new RegExp(`(?<![А-Яа-яЁё])${escapeRegExp(written)}(?![А-Яа-яЁё])`, 'giu');
+  const storyIds = corpus.filter(story => matcher.test(story.text)).map(story => story.id);
+  matcher.lastIndex = 0;
+  if (storyIds.length) {
+    used += 1;
+    console.log(`✓ ${written.padEnd(22)} ${ipa.padEnd(26)} ${storyIds.join(', ')}`);
+  } else {
+    unused += 1;
+    console.log(`· ${written.padEnd(22)} ${ipa.padEnd(26)} пока не встречается в озвучиваемом тексте`);
+  }
+}
+
+if (!Object.prototype.hasOwnProperty.call(phonemes, 'храмовом')) throw new Error('Regression override for храмовом is missing');
+console.log(`Stress audit: ${used} используемых overrides, ${unused} резервных/неиспользуемых, ${stories.length} stories.`);
+''', encoding='utf-8')
+
+          # 4) Audio contract should explicitly require phoneme-aware generator.
+          contract = Path('scripts/check-audio-source-contract.mjs')
+          contract_text = contract.read_text(encoding='utf-8')
+          marker = "if (!generatorSource.includes('[\"\\']?id[\"\\']?')) {\n  throw new Error('Audio generator does not support quoted story object keys');\n}\n"
+          addition = marker + "if (!generatorSource.includes('CRETE_PHONEMES') || !generatorSource.includes('<phoneme alphabet=\\\"ipa\\\"')) {\n  throw new Error('Audio generator does not support curated SSML phoneme overrides');\n}\n"
+          if marker not in contract_text:
+              raise SystemExit('audio contract marker not found')
+          contract.write_text(contract_text.replace(marker, addition, 1), encoding='utf-8')
+
+          # 5) package command.
+          package = Path('package.json')
+          replace_once(package,
+          '    "audio:dry-run": "node scripts/generate-audio.mjs --dry-run",\n',
+          '    "audio:dry-run": "node scripts/generate-audio.mjs --dry-run",\n    "audio:stress-audit": "node scripts/check-speech-overrides.mjs",\n',
+          'package stress audit')
+
+          # 6) CI checks the new script and data.
+          workflow = Path('.github/workflows/validate-itinerary.yml')
+          replace_once(workflow,
+          '          node --check scripts/check-audio-source-contract.mjs\n',
+          '          node --check scripts/check-audio-source-contract.mjs\n          node --check scripts/check-speech-overrides.mjs\n          node --check pronunciations-data.js\n',
+          'CI syntax checks')
+          replace_once(workflow,
+          '      - name: Check audio source update contract\n        run: node scripts/check-audio-source-contract.mjs\n',
+          '      - name: Check audio source update contract\n        run: node scripts/check-audio-source-contract.mjs\n      - name: Check speech stress overrides\n        run: node scripts/check-speech-overrides.mjs\n',
+          'CI stress audit')
+
+          # 7) Document local verification and SSML inspection.
+          readme = Path('README.md')
+          target = '''Useful targeted commands:
+
+```bash
+node scripts/generate-audio.mjs --story mochlos
+node scripts/generate-audio.mjs --story mochlos --force
+node scripts/generate-audio.mjs --story mochlos --voice ru-RU-SvetlanaNeural
+```
+
+The generator sends SSML to Azure Speech, writes `audio/<story-id>.mp3`, measures the resulting MP3, and updates both `audio` and `durationSeconds` in `stories-data.js`. Existing MP3 files are skipped unless `--force` is used, but their duration is still measured and synchronized when the generator encounters them.
+'''
+          replacement = '''Useful targeted commands:
+
+```bash
+node scripts/generate-audio.mjs --story mochlos
+node scripts/generate-audio.mjs --story mochlos --force
+node scripts/generate-audio.mjs --story mochlos --voice ru-RU-SvetlanaNeural
+```
+
+Pronunciation and stress overrides live in `pronunciations-data.js`. Ordinary text substitutions use `CRETE_PRONUNCIATIONS`; exact spoken word forms that need forced stress use `CRETE_PHONEMES` with Azure-compatible IPA. The visible story text stays normal Cyrillic.
+
+Audit the curated stress list and inspect the exact SSML for one story without calling Azure:
+
+```bash
+npm run audio:stress-audit
+node scripts/generate-audio.mjs --story panigiri-august15 --print-ssml
+```
+
+The printed SSML should contain inline `<phoneme alphabet="ipa" ...>` elements for configured words such as `храмовом`. Microsoft requires the IPA primary-stress marker `ˈ`; the audit fails when an override omits it.
+
+The generator sends SSML to Azure Speech, writes `audio/<story-id>.mp3`, measures the resulting MP3, and updates both `audio` and `durationSeconds` in `stories-data.js`. Existing MP3 files are skipped unless `--force` is used, but their duration is still measured and synchronized when the generator encounters them.
+'''
+          replace_once(readme, target, replacement, 'README pronunciation section')
+          PY
+
+      - name: Validate implementation
+        run: |
+          node --check pronunciations-data.js
+          node --check scripts/generate-audio.mjs
+          node --check scripts/check-audio-source-contract.mjs
+          node --check scripts/check-speech-overrides.mjs
+          node scripts/check-speech-overrides.mjs
+          node scripts/check-audio-source-contract.mjs
+          node scripts/validate-itinerary.mjs
+          node scripts/check-runtime-contract.mjs
+          node scripts/generate-audio.mjs --story panigiri-august15 --print-ssml | grep -q '<phoneme alphabet="ipa"'
+
+      - name: Commit implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/apply-story-stress-overrides.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Add SSML stress overrides for story audio'
+          git push origin feature/story-stress-overrides

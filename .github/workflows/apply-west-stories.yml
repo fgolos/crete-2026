@@ -1,0 +1,107 @@
+name: Apply West stories 15-22 August
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.tmp/west-stories-trigger.txt'
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Merge West stories and pronunciations
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import json, re
+          from pathlib import Path
+
+          story_files = sorted(Path('.tmp').glob('west-stories-*.json'))
+          if not story_files:
+              raise SystemExit('No West story payload files found')
+
+          incoming = []
+          for file in story_files:
+              payload = json.loads(file.read_text(encoding='utf-8'))
+              if not isinstance(payload, list):
+                  raise SystemExit(f'{file}: expected JSON array')
+              incoming.extend(payload)
+
+          stories_path = Path('stories-data.js')
+          stories_source = stories_path.read_text(encoding='utf-8')
+          existing_ids = set(re.findall(r'["\']id["\']\s*:\s*["\']([^"\']+)["\']', stories_source))
+          new_stories = [story for story in incoming if story.get('id') not in existing_ids]
+          duplicate_incoming = [story.get('id') for story in incoming if story.get('id') in existing_ids]
+
+          if new_stories:
+              stripped = stories_source.rstrip()
+              if not stripped.endswith('];'):
+                  raise SystemExit('Unexpected stories-data.js ending')
+              prefix = stripped[:-2].rstrip()
+              if not prefix.endswith('}'):
+                  raise SystemExit('Unexpected stories-data.js array body')
+              serialized = ',\n'.join(
+                  json.dumps(story, ensure_ascii=False, indent=2)
+                  for story in new_stories
+              )
+              stories_source = prefix + ',\n' + serialized + '\n];\n'
+              stories_path.write_text(stories_source, encoding='utf-8')
+
+          pron_path = Path('pronunciations-data.js')
+          pron_source = pron_path.read_text(encoding='utf-8')
+          pron_payload = json.loads(Path('.tmp/west-pronunciations.json').read_text(encoding='utf-8'))
+          existing_pron = set(re.findall(r'^\s*["\']([^"\']+)["\']\s*:', pron_source, re.M))
+          missing = [(key, value) for key, value in pron_payload.items() if key not in existing_pron]
+          if missing:
+              stripped = pron_source.rstrip()
+              if not stripped.endswith('};'):
+                  raise SystemExit('Unexpected pronunciations-data.js ending')
+              prefix = stripped[:-2].rstrip()
+              separator = '\n' if prefix.endswith(',') else ',\n'
+              lines = ',\n'.join(
+                  f'  {json.dumps(key, ensure_ascii=False)}: {json.dumps(value, ensure_ascii=False)}'
+                  for key, value in missing
+              )
+              pron_path.write_text(prefix + separator + lines + '\n};\n', encoding='utf-8')
+
+          print(f'Incoming stories: {len(incoming)}')
+          print(f'Added stories: {len(new_stories)}')
+          if duplicate_incoming:
+              print('Already present: ' + ', '.join(duplicate_incoming))
+          print(f'Added pronunciations: {len(missing)}')
+          PY
+
+      - name: Validate stories and itinerary
+        run: |
+          node --check stories-data.js
+          node --check pronunciations-data.js
+          node scripts/check-audio-source-contract.mjs
+          node scripts/validate-itinerary.mjs
+
+      - name: Commit generated source stories
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .tmp/west-stories-*.json .tmp/west-pronunciations.json .tmp/west-stories-trigger.txt
+          rm -f .github/workflows/apply-west-stories.yml
+          rmdir .tmp 2>/dev/null || true
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git commit -m 'Add West Crete stories for Aug 15-22'
+          git push

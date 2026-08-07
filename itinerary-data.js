@@ -328,14 +328,15 @@
     },
     "2026-08-15": {
       "id": "2026-08-15",
-      "title": "Kazarma Fortress, Lastros и переезд в Platanes",
+      "title": "Kazarma, Lastros, переезд в Platanes и panigiri",
       "status": "confirmed",
       "visitIds": [
         "2026-08-15-sitia-airbnb",
         "2026-08-15-kazarma-fortress",
         "2026-08-15-sitia-airbnb-2",
         "2026-08-15-mathena-olive-tree-lastros",
-        "2026-08-15-pomegranate-garden-villa"
+        "2026-08-15-pomegranate-garden-villa",
+        "2026-08-15-panigiri-village-tbd"
       ],
       "routeId": "route-2026-08-15",
       "sections": {
@@ -343,14 +344,16 @@
           "items": [
             "Главное: Kazarma Fortress, Mathena Olive Tree Lastros и переезд.",
             "Lastros — финальная остановка восточной части, но обед не задерживает трансфер.",
-            "После Platanes — только заселение и отдых."
+            "После Platanes — только заселение и отдых.",
+            "Вечером — традиционный критский panigiri; конкретную деревню выберем ближе к дате."
           ]
         },
         "food": {
           "items": [
             "09:15–10:30: завтрак и завершение сборов в Sitia.",
             "Lastros: ранний обед в деревне.",
-            "15 августа — большой праздник; при переполненных тавернах переносим обед дальше."
+            "15 августа — большой праздник; при переполненных тавернах переносим обед дальше.",
+            "На panigiri рассчитываем на деревенский ужин; перед выездом достаточно лёгкого перекуса."
           ]
         },
         "practical": {
@@ -358,11 +361,13 @@
             "Kazarma посещаем до окончательной загрузки машины.",
             "После крепости возвращаемся к жилью на завтрак и сборы.",
             "Mathena Olive Tree Lastros — точная промежуточная точка.",
-            "Не задерживать переезд ради необязательных остановок."
+            "Не задерживать переезд ради необязательных остановок.",
+            "После заселения оставить несколько часов на отдых перед вечерним panigiri.",
+            "Водитель не пьёт раки; точную афишу и парковку перепроверить за несколько дней."
           ]
         }
       },
-      "mealSummary": "завтрак в Sitia; ранний обед в Lastros",
+      "mealSummary": "завтрак в Sitia; ранний обед в Lastros; ужин на panigiri",
       "schedule": {
         "departure": {
           "start": "08:30",
@@ -370,9 +375,9 @@
           "approximate": false
         },
         "finish": {
-          "start": "15:15",
+          "start": "23:59",
           "end": null,
-          "approximate": false
+          "approximate": true
         },
         "carReturnDeadline": null,
         "flight": null
@@ -380,44 +385,210 @@
       "travelTotals": {
         "drivingDurationMinutes": 200,
         "distanceKm": 166,
-        "approximate": false
+        "approximate": true
       },
       "swimming": "без пляжной остановки"
     },
     "2026-08-16": {
       "id": "2026-08-16",
-      "title": "Rethymno и спокойный день у моря",
-      "status": "draft",
+      "title": "Поздний Rethymno и пляж",
+      "status": "confirmed",
       "visitIds": [
-        "2026-08-16-pomegranate-garden-villa",
+        "2026-08-16-pomegranate-garden-villa-start",
         "2026-08-16-rethymno-old-town-and-venetian-harbour",
         "2026-08-16-platanes-beach",
-        "2026-08-16-pomegranate-garden-villa-2"
+        "2026-08-16-pomegranate-garden-villa-end"
       ],
       "routeId": "route-2026-08-16",
       "sections": {
         "essentials": {
           "items": [
-            "Черновой лёгкий день: Rethymno, обед и пляж у базы.",
-            "Fortezza и дополнительные музеи пока не являются обязательными.",
-            "При усталости сокращаем город и раньше переходим к пляжу."
+            "Начало дня около 12:00.",
+            "Rethymno — обед, знакомый город и море без гонки по достопримечательностям.",
+            "Если покупок немного и не жарко — вернуться в Platanes пешком вдоль пляжа."
           ]
         },
         "food": {
           "items": [
-            "Обед — в Rethymno Old Town или у Venetian Harbour.",
-            "Ужин — свободно в Platanes, без брони на этом этапе."
+            "Обед в Rethymno.",
+            "Ужин свободно возле жилья."
           ]
         },
         "practical": {
           "items": [
-            "16 августа — воскресенье: обычные крупные супермаркеты, вероятнее всего, закрыты; рассчитываем на mini market и туристические магазины.",
-            "Полноценную закупку разумнее сделать в понедельник 17 августа.",
-            "Парковку для Rethymno уточним при детальном планировании."
+            "Логичнее ехать в город автобусом.",
+            "Керамические лавки можно посмотреть в Old Town вместо повторной поездки в Margarites.",
+            "Пеший возврат зависит от жары, ветра и количества покупок."
           ]
         }
       },
-      "mealSummary": "обед в Rethymno; ужин свободно в Platanes",
+      "mealSummary": "обед в Rethymno; ужин у базы",
+      "schedule": {
+        "departure": {
+          "start": "12:00",
+          "end": null,
+          "approximate": true
+        },
+        "finish": {
+          "start": "20:05",
+          "end": null,
+          "approximate": true
+        },
+        "carReturnDeadline": null,
+        "flight": null
+      },
+      "travelTotals": {
+        "drivingDurationMinutes": 0,
+        "distanceKm": 0,
+        "approximate": true
+      },
+      "swimming": "Platanes Beach"
+    },
+    "2026-08-17": {
+      "id": "2026-08-17",
+      "title": "Полный пляжный день №1",
+      "status": "confirmed",
+      "visitIds": [
+        "2026-08-17-pomegranate-garden-villa-start",
+        "2026-08-17-platanes-beach",
+        "2026-08-17-pomegranate-garden-villa-end"
+      ],
+      "routeId": "route-2026-08-17",
+      "sections": {
+        "essentials": {
+          "items": [
+            "Весь день провести на пляже возле Airbnb.",
+            "Без машины, экскурсий и дополнительных задач.",
+            "Это один из двух защищённых пляжных дней."
+          ]
+        },
+        "food": {
+          "items": [
+            "Обед и напитки — на пляже или рядом.",
+            "Ужин после возвращения домой."
+          ]
+        },
+        "practical": {
+          "items": [
+            "Утром занять лежаки.",
+            "Если у Platanes красный флаг, южный маршрут через Sellia → Kato Rodakino → Korakas Beach остаётся только погодным запасным вариантом, а не экскурсией ради галочки."
+          ]
+        }
+      },
+      "mealSummary": "обед на пляже; ужин у базы",
+      "schedule": {
+        "departure": {
+          "start": "09:15",
+          "end": null,
+          "approximate": true
+        },
+        "finish": {
+          "start": "19:10",
+          "end": null,
+          "approximate": true
+        },
+        "carReturnDeadline": null,
+        "flight": null
+      },
+      "travelTotals": {
+        "drivingDurationMinutes": 0,
+        "distanceKm": 0,
+        "approximate": true
+      },
+      "swimming": "Platanes Beach"
+    },
+    "2026-08-18": {
+      "id": "2026-08-18",
+      "title": "Горные деревни Amari",
+      "status": "confirmed",
+      "visitIds": [
+        "2026-08-18-pomegranate-garden-villa-start",
+        "2026-08-18-apostoloi-amari",
+        "2026-08-18-nefs-amari",
+        "2026-08-18-opsigias",
+        "2026-08-18-monastiraki-amari",
+        "2026-08-18-meronas",
+        "2026-08-18-elenes",
+        "2026-08-18-gerakari",
+        "2026-08-18-pomegranate-garden-villa-end"
+      ],
+      "routeId": "route-2026-08-18",
+      "sections": {
+        "essentials": {
+          "items": [
+            "Маршрут: Apostoloi → Nefs Amari → Opsigias → Monastiraki → Meronas → Elenes → Gerakari.",
+            "Цель — жилой, нетуристический Крит: кафенио, разговоры и небольшие деревенские остановки.",
+            "Ищем домашнее оливковое масло, раки, травы, мёд и другие локальные продукты."
+          ]
+        },
+        "food": {
+          "items": [
+            "Обед — в Meronas или другой деревне, где найдётся живое подходящее место.",
+            "Кофе и небольшие покупки — по ситуации, без жёстких броней."
+          ]
+        },
+        "practical": {
+          "items": [
+            "Не ждать, что в каждой деревне будут магазины и производители открыты.",
+            "Маршрут по времени приблизительный; любую промежуточную деревню можно пропустить, если день начинает превращаться в чек-лист."
+          ]
+        }
+      },
+      "mealSummary": "деревенский обед; кофе и локальные продукты по пути",
+      "schedule": {
+        "departure": {
+          "start": "09:30",
+          "end": null,
+          "approximate": true
+        },
+        "finish": {
+          "start": "18:15",
+          "end": null,
+          "approximate": true
+        },
+        "carReturnDeadline": null,
+        "flight": null
+      },
+      "travelTotals": {
+        "drivingDurationMinutes": 180,
+        "distanceKm": 109,
+        "approximate": true
+      },
+      "swimming": null
+    },
+    "2026-08-19": {
+      "id": "2026-08-19",
+      "title": "Organic Farmers’ Market или Akrotiri",
+      "status": "confirmed",
+      "visitIds": [
+        "2026-08-19-pomegranate-garden-villa-start",
+        "2026-08-19-organic-farmers-market-rethymno",
+        "2026-08-19-pomegranate-garden-villa-end"
+      ],
+      "routeId": "route-2026-08-19",
+      "sections": {
+        "essentials": {
+          "items": [
+            "План A: Organic Farmers’ Market, затем сразу домой со свежими покупками.",
+            "План Б, если рынок пропускаем: Stavros Beach → обязательный обед в Kouzina EPE → Marathi Beach.",
+            "Akrotiri остаётся потенциальным дальним днём, а не обязанностью."
+          ]
+        },
+        "food": {
+          "items": [
+            "После рынка — обед и отдых у базы.",
+            "При плане Б обед в Kouzina EPE обязателен."
+          ]
+        },
+        "practical": {
+          "items": [
+            "Решение между рынком и Akrotiri принять по настроению и погоде.",
+            "Akrotiri — примерно 175–180 км и около четырёх часов транспортного времени.",
+            "Не пытаться совместить Organic Farmers’ Market и Akrotiri в один день."
+          ]
+        }
+      },
+      "mealSummary": "план A: еда дома; план Б: Kouzina EPE",
       "schedule": {
         "departure": {
           "start": "10:30",
@@ -425,7 +596,7 @@
           "approximate": true
         },
         "finish": {
-          "start": "18:15",
+          "start": "12:35",
           "end": null,
           "approximate": true
         },
@@ -433,218 +604,55 @@
         "flight": null
       },
       "travelTotals": {
-        "drivingDurationMinutes": 50,
-        "distanceKm": 25,
+        "drivingDurationMinutes": 40,
+        "distanceKm": 14,
         "approximate": true
       },
-      "swimming": "Platanes Beach"
-    },
-    "2026-08-17": {
-      "id": "2026-08-17",
-      "title": "Chania и Marathi",
-      "status": "draft",
-      "visitIds": [
-        "2026-08-17-pomegranate-garden-villa",
-        "2026-08-17-chania-old-town-and-venetian-port",
-        "2026-08-17-marathi-beach",
-        "2026-08-17-pomegranate-garden-villa-2"
-      ],
-      "routeId": "route-2026-08-17",
-      "sections": {
-        "essentials": {
-          "items": [
-            "Главное: Chania Old Town, Venetian Port и купание в Marathi.",
-            "При жаре сокращаем прогулку по Chania, а не пляжную паузу.",
-            "При сильном ветре день можно поменять местами с деревнями или резервным днём."
-          ]
-        },
-        "food": {
-          "items": [
-            "Основной обед — в Chania.",
-            "На пляж взять воду; дополнительную таверну пока не фиксируем."
-          ]
-        },
-        "practical": {
-          "items": [
-            "Нужно отдельно выбрать удобную парковку у Chania Old Town.",
-            "Marathi остаётся рабочим пляжным кандидатом; окончательный выбор зависит от ветра.",
-            "Полноценную закупку продуктов можно сделать утром или вечером 17 августа."
-          ]
-        }
-      },
-      "mealSummary": "обед в Chania; вечером лёгкий ужин у базы",
-      "schedule": {
-        "departure": {
-          "start": "09:45",
-          "end": null,
-          "approximate": true
-        },
-        "finish": {
-          "start": "19:15",
-          "end": null,
-          "approximate": true
-        },
-        "carReturnDeadline": null,
-        "flight": null
-      },
-      "travelTotals": {
-        "drivingDurationMinutes": 165,
-        "distanceKm": 165,
-        "approximate": true
-      },
-      "swimming": "Marathi Beach"
-    },
-    "2026-08-18": {
-      "id": "2026-08-18",
-      "title": "Margarites, Eleftherna и Panormo",
-      "status": "draft",
-      "visitIds": [
-        "2026-08-18-pomegranate-garden-villa",
-        "2026-08-18-margarites",
-        "2026-08-18-eleftherna",
-        "2026-08-18-panormo",
-        "2026-08-18-pomegranate-garden-villa-2"
-      ],
-      "routeId": "route-2026-08-18",
-      "sections": {
-        "essentials": {
-          "items": [
-            "Главное: Margarites и длинная остановка в Panormo.",
-            "Eleftherna остаётся гибкой: музей, археологический участок или короткая остановка в районе.",
-            "При жаре сокращаем историческую часть и раньше едем к морю."
-          ]
-        },
-        "food": {
-          "items": [
-            "Кофе или лёгкий перекус — в Margarites.",
-            "Основной поздний обед — в Panormo."
-          ]
-        },
-        "practical": {
-          "items": [
-            "Парковки и точный формат Eleftherna уточним в детальной версии.",
-            "День подходит для ветреной погоды лучше, чем Falassarna.",
-            "Не добавляем Arkadi Monastery: семья уже была там раньше."
-          ]
-        }
-      },
-      "mealSummary": "перекус в Margarites; поздний обед в Panormo",
-      "schedule": {
-        "departure": {
-          "start": "10:00",
-          "end": null,
-          "approximate": true
-        },
-        "finish": {
-          "start": "18:30",
-          "end": null,
-          "approximate": true
-        },
-        "carReturnDeadline": null,
-        "flight": null
-      },
-      "travelTotals": {
-        "drivingDurationMinutes": 120,
-        "distanceKm": 80,
-        "approximate": true
-      },
-      "swimming": "Panormo"
-    },
-    "2026-08-19": {
-      "id": "2026-08-19",
-      "title": "Plakias и южное побережье",
-      "status": "draft",
-      "visitIds": [
-        "2026-08-19-pomegranate-garden-villa",
-        "2026-08-19-plakias",
-        "2026-08-19-pomegranate-garden-villa-2"
-      ],
-      "routeId": "route-2026-08-19",
-      "sections": {
-        "essentials": {
-          "items": [
-            "Главное: сама дорога через внутренний Крит и длинная остановка в Plakias.",
-            "Второй пляж пока не добавляем.",
-            "День можно менять местами с Falassarna или резервным днём по погоде."
-          ]
-        },
-        "food": {
-          "items": [
-            "Обед — в Plakias рядом с пляжем.",
-            "Воду и небольшой перекус взять с собой в машину."
-          ]
-        },
-        "practical": {
-          "items": [
-            "Маршрут и безопасные места для коротких фотоостановок уточним отдельно.",
-            "При сильной жаре не добавляем прогулки и ущелья.",
-            "Перед поездкой проверить ветер, дорожную обстановку и сообщения 112."
-          ]
-        }
-      },
-      "mealSummary": "обед в Plakias; ужин свободно у базы",
-      "schedule": {
-        "departure": {
-          "start": "09:45",
-          "end": null,
-          "approximate": true
-        },
-        "finish": {
-          "start": "18:15",
-          "end": null,
-          "approximate": true
-        },
-        "carReturnDeadline": null,
-        "flight": null
-      },
-      "travelTotals": {
-        "drivingDurationMinutes": 120,
-        "distanceKm": 95,
-        "approximate": true
-      },
-      "swimming": "Plakias Beach"
+      "swimming": "Platanes Beach после рынка; Marathi Beach при плане Б"
     },
     "2026-08-20": {
       "id": "2026-08-20",
-      "title": "Falassarna",
-      "status": "draft",
+      "title": "Laiki, Eleutherna и Panormo по желанию",
+      "status": "confirmed",
       "visitIds": [
-        "2026-08-20-pomegranate-garden-villa",
-        "2026-08-20-falassarna-beach",
-        "2026-08-20-pomegranate-garden-villa-2"
+        "2026-08-20-pomegranate-garden-villa-start",
+        "2026-08-20-laiki-market-rethymno",
+        "2026-08-20-eleftherna",
+        "2026-08-20-panormo",
+        "2026-08-20-pomegranate-garden-villa-end"
       ],
       "routeId": "route-2026-08-20",
       "sections": {
         "essentials": {
           "items": [
-            "Один дальний выезд и одна главная остановка: Falassarna.",
-            "Не добавляем Chania, Kissamos или другие пункты по дороге только ради количества.",
-            "При плохом ветре переносим день, а не пытаемся победить море силой расписания."
+            "Laiki Market обязателен: приехать рано и оставить нескоропортящиеся покупки в машине.",
+            "Eleutherna Archaeological Museum — главная культурная остановка дня.",
+            "Panormo — только короткая необязательная проверка, не цель путешествия."
           ]
         },
         "food": {
           "items": [
-            "Обед — на пляже или рядом с Falassarna.",
-            "Взять воду и запасной перекус на дорогу."
+            "После Laiki можно ехать дальше без возвращения домой.",
+            "Обед — после музея или в Panormo по ситуации."
           ]
         },
         "practical": {
           "items": [
-            "Это единственный действительно тяжёлый автомобильный день варианта 1.",
-            "Парковку и конкретный сектор пляжа уточним после выбора окончательной точки.",
-            "День свободно меняется местами с 17 или 21 августа."
+            "Margarites и Arkadi Monastery исключены: семья уже была.",
+            "Вечером начать сборы и убрать большую часть вещей.",
+            "Не оставлять упаковку чемоданов на 22 августа."
           ]
         }
       },
-      "mealSummary": "обед у Falassarna; вечером отдых у базы",
+      "mealSummary": "обед после музея или в Panormo",
       "schedule": {
         "departure": {
-          "start": "09:00",
+          "start": "07:45",
           "end": null,
           "approximate": true
         },
         "finish": {
-          "start": "19:30",
+          "start": "16:45",
           "end": null,
           "approximate": true
         },
@@ -652,54 +660,53 @@
         "flight": null
       },
       "travelTotals": {
-        "drivingDurationMinutes": 250,
-        "distanceKm": 280,
+        "drivingDurationMinutes": 140,
+        "distanceKm": 85,
         "approximate": true
       },
-      "swimming": "Falassarna"
+      "swimming": "Panormo по желанию"
     },
     "2026-08-21": {
       "id": "2026-08-21",
-      "title": "Lake Kournas и Georgioupoli",
-      "status": "draft-reserve",
+      "title": "Полный пляжный день №2",
+      "status": "confirmed",
       "visitIds": [
-        "2026-08-21-pomegranate-garden-villa",
-        "2026-08-21-lake-kournas",
-        "2026-08-21-georgioupoli",
-        "2026-08-21-pomegranate-garden-villa-2"
+        "2026-08-21-pomegranate-garden-villa-start",
+        "2026-08-21-platanes-beach",
+        "2026-08-21-pomegranate-garden-villa-end"
       ],
       "routeId": "route-2026-08-21",
       "sections": {
         "essentials": {
           "items": [
-            "Это резервный день, а не обязательная экскурсионная программа.",
-            "Lake Kournas и Georgioupoli — базовый лёгкий сценарий.",
-            "День может принять на себя Falassarna, Plakias или другой маршрут, перенесённый из-за погоды."
+            "Утром практически закончить сборы.",
+            "После 09:00 — пляж возле Airbnb до вечера.",
+            "Без машины, поездок и переноса сюда несостоявшихся экскурсий."
           ]
         },
         "food": {
           "items": [
-            "Основной обед — в Georgioupoli.",
-            "Ужин — рядом с домом после сборов."
+            "Обед на пляже или рядом.",
+            "Последний ужин — спокойно возле жилья."
           ]
         },
         "practical": {
           "items": [
-            "Не бронировать ничего невозвратного до проверки погоды.",
-            "При накопившейся усталости остаёмся в Platanes / Rethymno без чувства долга перед картой.",
-            "Вечером проверить заправку, документы, багаж и порядок возврата машины."
+            "К вечеру 20 августа уже должна быть собрана основная часть вещей.",
+            "Оставить отдельную компактную сумку на последнее утро и дорогу.",
+            "При красном флаге южный Korakas Beach остаётся только погодным резервом."
           ]
         }
       },
-      "mealSummary": "обед в Georgioupoli; вечером ужин и сборы у базы",
+      "mealSummary": "обед на пляже; последний ужин у базы",
       "schedule": {
         "departure": {
-          "start": "10:00",
+          "start": "08:00",
           "end": null,
           "approximate": true
         },
         "finish": {
-          "start": "18:15",
+          "start": "19:10",
           "end": null,
           "approximate": true
         },
@@ -707,16 +714,16 @@
         "flight": null
       },
       "travelTotals": {
-        "drivingDurationMinutes": 105,
-        "distanceKm": 105,
+        "drivingDurationMinutes": 0,
+        "distanceKm": 0,
         "approximate": true
       },
-      "swimming": "Georgioupoli"
+      "swimming": "Platanes Beach"
     },
     "2026-08-22": {
       "id": "2026-08-22",
-      "title": "Выезд в Heraklion Airport",
-      "status": "draft",
+      "title": "Расслабленное утро и вылет",
+      "status": "confirmed",
       "visitIds": [
         "2026-08-22-pomegranate-garden-villa",
         "2026-08-22-gomega-car-rentals-heraklion",
@@ -726,22 +733,23 @@
       "sections": {
         "essentials": {
           "items": [
+            "Утро оставить спокойным: завтрак и расслабон без больших сборов.",
             "Выезд из Platanes около 10:30–10:45.",
-            "Автомобиль нужно вернуть до 14:00.",
-            "Рейс Heraklion → Vilnius вылетает в 17:55."
+            "Автомобиль вернуть до 14:00; рейс HN 2322 вылетает в 17:55."
           ]
         },
         "food": {
           "items": [
-            "Нормальный завтрак дома перед выездом.",
-            "В аэропорту предусмотреть перекус после возврата машины."
+            "Нормальный завтрак дома.",
+            "Перекус после возврата машины или в аэропорту."
           ]
         },
         "practical": {
           "items": [
-            "Заложен запас на дорогу, дозаправку, возврат машины, шаттл и багаж.",
-            "Не планируем остановки и достопримечательности по пути в аэропорт.",
-            "Накануне уточнить у GoMega точную точку и процедуру возврата."
+            "Основные сборы закончены утром 21 августа.",
+            "Перед выездом проверить только документы, ручную кладь, холодильник и зарядки.",
+            "Не планировать остановки и достопримечательности по пути в аэропорт.",
+            "Накануне уточнить у GoMega точную процедуру возврата."
           ]
         }
       },
@@ -958,44 +966,24 @@
       "navigationQuery": "Platanes Beach, Rethymno, Greece",
       "transportMode": "driving"
     },
-    "chania-old-town-and-venetian-port": {
-      "id": "chania-old-town-and-venetian-port",
-      "name": "Chania Old Town & Venetian Port",
-      "coordinates": {
-        "lat": 35.5156,
-        "lon": 24.0173
-      },
-      "navigationQuery": "Chania Old Town, Greece",
-      "transportMode": "driving"
-    },
     "marathi-beach": {
       "id": "marathi-beach",
       "name": "Marathi Beach",
       "coordinates": {
-        "lat": 35.5059,
-        "lon": 24.1738
+        "lat": 35.5057,
+        "lon": 24.1691
       },
-      "navigationQuery": "Marathi Beach, Chania, Greece",
-      "transportMode": "driving"
-    },
-    "margarites": {
-      "id": "margarites",
-      "name": "Margarites",
-      "coordinates": {
-        "lat": 35.3408,
-        "lon": 24.6862
-      },
-      "navigationQuery": "Margarites, Rethymno, Greece",
+      "navigationQuery": "Marathi Beach, Crete, Greece",
       "transportMode": "driving"
     },
     "eleftherna": {
       "id": "eleftherna",
-      "name": "Eleftherna",
+      "name": "Eleutherna Archaeological Museum",
       "coordinates": {
-        "lat": 35.3263,
-        "lon": 24.6774
+        "lat": 35.3246,
+        "lon": 24.6754
       },
-      "navigationQuery": "Ancient Eleftherna, Crete, Greece",
+      "navigationQuery": "Museum of Ancient Eleutherna, Crete, Greece",
       "transportMode": "driving"
     },
     "panormo": {
@@ -1006,46 +994,6 @@
         "lon": 24.6912
       },
       "navigationQuery": "Panormo, Rethymno, Greece",
-      "transportMode": "driving"
-    },
-    "plakias": {
-      "id": "plakias",
-      "name": "Plakias",
-      "coordinates": {
-        "lat": 35.1907,
-        "lon": 24.3943
-      },
-      "navigationQuery": "Plakias Beach, Crete, Greece",
-      "transportMode": "driving"
-    },
-    "falassarna-beach": {
-      "id": "falassarna-beach",
-      "name": "Falassarna Beach",
-      "coordinates": {
-        "lat": 35.4947,
-        "lon": 23.5797
-      },
-      "navigationQuery": "Falassarna Beach, Crete, Greece",
-      "transportMode": "driving"
-    },
-    "lake-kournas": {
-      "id": "lake-kournas",
-      "name": "Lake Kournas",
-      "coordinates": {
-        "lat": 35.3312,
-        "lon": 24.2769
-      },
-      "navigationQuery": "Lake Kournas, Crete, Greece",
-      "transportMode": "driving"
-    },
-    "georgioupoli": {
-      "id": "georgioupoli",
-      "name": "Georgioupoli",
-      "coordinates": {
-        "lat": 35.3629,
-        "lon": 24.2606
-      },
-      "navigationQuery": "Georgioupoli Beach, Crete, Greece",
       "transportMode": "driving"
     },
     "gomega-car-rentals-heraklion": {
@@ -1086,6 +1034,126 @@
         "lon": null
       },
       "navigationQuery": "Inodion",
+      "transportMode": "driving"
+    },
+    "panigiri-village-tbd": {
+      "id": "panigiri-village-tbd",
+      "name": "Panigiri — деревня уточняется",
+      "coordinates": {
+        "lat": null,
+        "lon": null
+      },
+      "navigationQuery": "Rethymno panigiri 15 August 2026",
+      "transportMode": "driving"
+    },
+    "organic-farmers-market-rethymno": {
+      "id": "organic-farmers-market-rethymno",
+      "name": "Organic Farmers’ Market Rethymno",
+      "coordinates": {
+        "lat": 35.366,
+        "lon": 24.471
+      },
+      "navigationQuery": "Koumoundourou Street, Rethymno, Greece",
+      "transportMode": "driving"
+    },
+    "laiki-market-rethymno": {
+      "id": "laiki-market-rethymno",
+      "name": "Laiki Market Rethymno",
+      "coordinates": {
+        "lat": 35.366,
+        "lon": 24.4718
+      },
+      "navigationQuery": "Municipal Garden, Rethymno, Greece",
+      "transportMode": "driving"
+    },
+    "stavros-beach": {
+      "id": "stavros-beach",
+      "name": "Stavros Beach",
+      "coordinates": {
+        "lat": 35.5914,
+        "lon": 24.0955
+      },
+      "navigationQuery": "Stavros Beach, Akrotiri, Crete, Greece",
+      "transportMode": "driving"
+    },
+    "kouzina-epe": {
+      "id": "kouzina-epe",
+      "name": "Kouzina EPE",
+      "coordinates": {
+        "lat": null,
+        "lon": null
+      },
+      "navigationQuery": "Kouzina EPE, Chania, Greece",
+      "transportMode": "driving"
+    },
+    "apostoloi-amari": {
+      "id": "apostoloi-amari",
+      "name": "Apostoloi",
+      "coordinates": {
+        "lat": 35.25455,
+        "lon": 24.62762
+      },
+      "navigationQuery": "Apostoloi, Amari, Crete, Greece",
+      "transportMode": "driving"
+    },
+    "nefs-amari": {
+      "id": "nefs-amari",
+      "name": "Nefs Amari",
+      "coordinates": {
+        "lat": 35.23333,
+        "lon": 24.65
+      },
+      "navigationQuery": "Nefs Amari, Crete, Greece",
+      "transportMode": "driving"
+    },
+    "opsigias": {
+      "id": "opsigias",
+      "name": "Opsigias",
+      "coordinates": {
+        "lat": 35.22732,
+        "lon": 24.65987
+      },
+      "navigationQuery": "Opsigias, Amari, Crete, Greece",
+      "transportMode": "driving"
+    },
+    "monastiraki-amari": {
+      "id": "monastiraki-amari",
+      "name": "Monastiraki",
+      "coordinates": {
+        "lat": 35.22788,
+        "lon": 24.66781
+      },
+      "navigationQuery": "Monastiraki, Amari, Crete, Greece",
+      "transportMode": "driving"
+    },
+    "meronas": {
+      "id": "meronas",
+      "name": "Meronas",
+      "coordinates": {
+        "lat": 35.23379,
+        "lon": 24.6292
+      },
+      "navigationQuery": "Meronas, Amari, Crete, Greece",
+      "transportMode": "driving"
+    },
+    "elenes": {
+      "id": "elenes",
+      "name": "Elenes",
+      "coordinates": {
+        "lat": 35.2198,
+        "lon": 24.61411
+      },
+      "navigationQuery": "Elenes, Amari, Crete, Greece",
+      "transportMode": "driving"
+    },
+    "gerakari": {
+      "id": "gerakari",
+      "name": "Gerakari",
+      "coordinates": {
+        "lat": 35.21422,
+        "lon": 24.60925
+      },
+      "navigationQuery": "Gerakari, Amari, Crete, Greece",
       "transportMode": "driving"
     }
   },
@@ -1875,673 +1943,6 @@
       },
       "durationKind": "finish"
     },
-    "2026-08-16-pomegranate-garden-villa": {
-      "id": "2026-08-16-pomegranate-garden-villa",
-      "dayId": "2026-08-16",
-      "placeId": "pomegranate-garden-villa",
-      "sequence": 0,
-      "role": "Спокойное начало дня",
-      "timing": {
-        "start": "10:30",
-        "end": null,
-        "approximate": false
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": null,
-        "distanceKm": null,
-        "status": "none"
-      },
-      "note": "Без раннего подъёма после переезда.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "start"
-    },
-    "2026-08-16-rethymno-old-town-and-venetian-harbour": {
-      "id": "2026-08-16-rethymno-old-town-and-venetian-harbour",
-      "dayId": "2026-08-16",
-      "placeId": "rethymno-old-town-and-venetian-harbour",
-      "sequence": 1,
-      "role": "Прогулка, обед и первое знакомство с городом",
-      "timing": {
-        "start": "11:00",
-        "end": "14:15",
-        "approximate": false
-      },
-      "durationMinutes": 195,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 25,
-        "distanceKm": 8,
-        "status": "standard"
-      },
-      "note": "Короткая прогулка без задачи осмотреть весь старый город.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": null
-    },
-    "2026-08-16-platanes-beach": {
-      "id": "2026-08-16-platanes-beach",
-      "dayId": "2026-08-16",
-      "placeId": "platanes-beach",
-      "sequence": 2,
-      "role": "Отдых и купание рядом с базой",
-      "timing": {
-        "start": "15:00",
-        "end": "18:00",
-        "approximate": false
-      },
-      "durationMinutes": 180,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 25,
-        "distanceKm": 9,
-        "status": "standard"
-      },
-      "note": "Главная цель второй половины дня — спокойно отдохнуть.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": null
-    },
-    "2026-08-16-pomegranate-garden-villa-2": {
-      "id": "2026-08-16-pomegranate-garden-villa-2",
-      "dayId": "2026-08-16",
-      "placeId": "pomegranate-garden-villa",
-      "sequence": 3,
-      "role": "Возвращение",
-      "timing": {
-        "start": "18:10",
-        "end": null,
-        "approximate": false
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 10,
-        "distanceKm": 3,
-        "status": "standard"
-      },
-      "note": "Ужин в Platanes или рядом с домом.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "finish"
-    },
-    "2026-08-17-pomegranate-garden-villa": {
-      "id": "2026-08-17-pomegranate-garden-villa",
-      "dayId": "2026-08-17",
-      "placeId": "pomegranate-garden-villa",
-      "sequence": 0,
-      "role": "Выезд",
-      "timing": {
-        "start": "09:45",
-        "end": null,
-        "approximate": false
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": null,
-        "distanceKm": null,
-        "status": "none"
-      },
-      "note": "Оставляем запас на парковку в Chania.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "start"
-    },
-    "2026-08-17-chania-old-town-and-venetian-port": {
-      "id": "2026-08-17-chania-old-town-and-venetian-port",
-      "dayId": "2026-08-17",
-      "placeId": "chania-old-town-and-venetian-port",
-      "sequence": 1,
-      "role": "Город, прогулка и обед",
-      "timing": {
-        "start": "10:50",
-        "end": "14:10",
-        "approximate": false
-      },
-      "durationMinutes": 200,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 65,
-        "distanceKm": 70,
-        "status": "standard"
-      },
-      "note": "Осматриваем компактно, без долгой прогулки по жаре.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": null
-    },
-    "2026-08-17-marathi-beach": {
-      "id": "2026-08-17-marathi-beach",
-      "dayId": "2026-08-17",
-      "placeId": "marathi-beach",
-      "sequence": 2,
-      "role": "Пляж и купание в бухте",
-      "timing": {
-        "start": "14:45",
-        "end": "17:45",
-        "approximate": false
-      },
-      "durationMinutes": 180,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 35,
-        "distanceKm": 18,
-        "status": "standard"
-      },
-      "note": "Пляжная часть дня зависит от ветра и состояния моря.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": null
-    },
-    "2026-08-17-pomegranate-garden-villa-2": {
-      "id": "2026-08-17-pomegranate-garden-villa-2",
-      "dayId": "2026-08-17",
-      "placeId": "pomegranate-garden-villa",
-      "sequence": 3,
-      "role": "Возвращение",
-      "timing": {
-        "start": "19:15",
-        "end": null,
-        "approximate": false
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 90,
-        "distanceKm": 77,
-        "status": "standard"
-      },
-      "note": "Вечером только лёгкий ужин по аппетиту.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "finish"
-    },
-    "2026-08-18-pomegranate-garden-villa": {
-      "id": "2026-08-18-pomegranate-garden-villa",
-      "dayId": "2026-08-18",
-      "placeId": "pomegranate-garden-villa",
-      "sequence": 0,
-      "role": "Выезд",
-      "timing": {
-        "start": "10:00",
-        "end": null,
-        "approximate": false
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": null,
-        "distanceKm": null,
-        "status": "none"
-      },
-      "note": "Лёгкий сельский день без раннего старта.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "start"
-    },
-    "2026-08-18-margarites": {
-      "id": "2026-08-18-margarites",
-      "dayId": "2026-08-18",
-      "placeId": "margarites",
-      "sequence": 1,
-      "role": "Деревня, керамика и короткая прогулка",
-      "timing": {
-        "start": "10:40",
-        "end": "12:10",
-        "approximate": false
-      },
-      "durationMinutes": 90,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 40,
-        "distanceKm": 28,
-        "status": "standard"
-      },
-      "note": "Не пытаемся зайти во все мастерские.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": null
-    },
-    "2026-08-18-eleftherna": {
-      "id": "2026-08-18-eleftherna",
-      "dayId": "2026-08-18",
-      "placeId": "eleftherna",
-      "sequence": 2,
-      "role": "История региона и короткая остановка",
-      "timing": {
-        "start": "12:25",
-        "end": "13:45",
-        "approximate": false
-      },
-      "durationMinutes": 80,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 15,
-        "distanceKm": 8,
-        "status": "standard"
-      },
-      "note": "Формат посещения уточним после проверки часов работы и жары.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": null
-    },
-    "2026-08-18-panormo": {
-      "id": "2026-08-18-panormo",
-      "dayId": "2026-08-18",
-      "placeId": "panormo",
-      "sequence": 3,
-      "role": "Поздний обед, деревня и купание",
-      "timing": {
-        "start": "14:20",
-        "end": "18:00",
-        "approximate": false
-      },
-      "durationMinutes": 220,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 35,
-        "distanceKm": 25,
-        "status": "standard"
-      },
-      "note": "Главная спокойная остановка второй половины дня.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": null
-    },
-    "2026-08-18-pomegranate-garden-villa-2": {
-      "id": "2026-08-18-pomegranate-garden-villa-2",
-      "dayId": "2026-08-18",
-      "placeId": "pomegranate-garden-villa",
-      "sequence": 4,
-      "role": "Возвращение",
-      "timing": {
-        "start": "18:25",
-        "end": null,
-        "approximate": false
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 25,
-        "distanceKm": 19,
-        "status": "standard"
-      },
-      "note": "Свободный вечер.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "finish"
-    },
-    "2026-08-19-pomegranate-garden-villa": {
-      "id": "2026-08-19-pomegranate-garden-villa",
-      "dayId": "2026-08-19",
-      "placeId": "pomegranate-garden-villa",
-      "sequence": 0,
-      "role": "Выезд на юг",
-      "timing": {
-        "start": "09:45",
-        "end": null,
-        "approximate": false
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": null,
-        "distanceKm": null,
-        "status": "none"
-      },
-      "note": "Перед выездом проверить ветер и пожарные ограничения.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "start"
-    },
-    "2026-08-19-plakias": {
-      "id": "2026-08-19-plakias",
-      "dayId": "2026-08-19",
-      "placeId": "plakias",
-      "sequence": 1,
-      "role": "Живописная дорога, обед, пляж и купание",
-      "timing": {
-        "start": "10:45",
-        "end": "17:10",
-        "approximate": false
-      },
-      "durationMinutes": 385,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 60,
-        "distanceKm": 47,
-        "status": "standard"
-      },
-      "note": "Один основной пляж без гонки между бухтами.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": null
-    },
-    "2026-08-19-pomegranate-garden-villa-2": {
-      "id": "2026-08-19-pomegranate-garden-villa-2",
-      "dayId": "2026-08-19",
-      "placeId": "pomegranate-garden-villa",
-      "sequence": 2,
-      "role": "Возвращение",
-      "timing": {
-        "start": "18:10",
-        "end": null,
-        "approximate": false
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 60,
-        "distanceKm": 47,
-        "status": "standard"
-      },
-      "note": "Свободный вечер после горной дороги.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "finish"
-    },
-    "2026-08-20-pomegranate-garden-villa": {
-      "id": "2026-08-20-pomegranate-garden-villa",
-      "dayId": "2026-08-20",
-      "placeId": "pomegranate-garden-villa",
-      "sequence": 0,
-      "role": "Выезд на запад",
-      "timing": {
-        "start": "09:00",
-        "end": null,
-        "approximate": false
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": null,
-        "distanceKm": null,
-        "status": "none"
-      },
-      "note": "Самый длинный автомобильный день западной части.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "start"
-    },
-    "2026-08-20-falassarna-beach": {
-      "id": "2026-08-20-falassarna-beach",
-      "dayId": "2026-08-20",
-      "placeId": "falassarna-beach",
-      "sequence": 1,
-      "role": "Главный западный пляж и долгий отдых",
-      "timing": {
-        "start": "11:05",
-        "end": "17:20",
-        "approximate": false
-      },
-      "durationMinutes": 375,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 125,
-        "distanceKm": 140,
-        "status": "standard"
-      },
-      "note": "Едем только при подходящем ветре и нормальном состоянии моря.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": null
-    },
-    "2026-08-20-pomegranate-garden-villa-2": {
-      "id": "2026-08-20-pomegranate-garden-villa-2",
-      "dayId": "2026-08-20",
-      "placeId": "pomegranate-garden-villa",
-      "sequence": 2,
-      "role": "Возвращение",
-      "timing": {
-        "start": "19:25",
-        "end": null,
-        "approximate": false
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 125,
-        "distanceKm": 140,
-        "status": "standard"
-      },
-      "note": "После возвращения не планируем обязательных дел.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "finish"
-    },
-    "2026-08-21-pomegranate-garden-villa": {
-      "id": "2026-08-21-pomegranate-garden-villa",
-      "dayId": "2026-08-21",
-      "placeId": "pomegranate-garden-villa",
-      "sequence": 0,
-      "role": "Гибкий старт",
-      "timing": {
-        "start": "10:00",
-        "end": null,
-        "approximate": false
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": null,
-        "distanceKm": null,
-        "status": "none"
-      },
-      "note": "Можно полностью заменить отдыхом у базы или перенесённой поездкой.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "start"
-    },
-    "2026-08-21-lake-kournas": {
-      "id": "2026-08-21-lake-kournas",
-      "dayId": "2026-08-21",
-      "placeId": "lake-kournas",
-      "sequence": 1,
-      "role": "Озеро и спокойная утренняя остановка",
-      "timing": {
-        "start": "10:45",
-        "end": "13:00",
-        "approximate": false
-      },
-      "durationMinutes": 135,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 45,
-        "distanceKm": 45,
-        "status": "standard"
-      },
-      "note": "Необязательная часть резервного дня.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": null
-    },
-    "2026-08-21-georgioupoli": {
-      "id": "2026-08-21-georgioupoli",
-      "dayId": "2026-08-21",
-      "placeId": "georgioupoli",
-      "sequence": 2,
-      "role": "Обед, пляж и купание",
-      "timing": {
-        "start": "13:20",
-        "end": "17:30",
-        "approximate": false
-      },
-      "durationMinutes": 250,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 20,
-        "distanceKm": 8,
-        "status": "standard"
-      },
-      "note": "Лёгкая длинная остановка перед финальным днём поездки.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": null
-    },
-    "2026-08-21-pomegranate-garden-villa-2": {
-      "id": "2026-08-21-pomegranate-garden-villa-2",
-      "dayId": "2026-08-21",
-      "placeId": "pomegranate-garden-villa",
-      "sequence": 3,
-      "role": "Возвращение и сборы",
-      "timing": {
-        "start": "18:15",
-        "end": null,
-        "approximate": false
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 45,
-        "distanceKm": 49,
-        "status": "standard"
-      },
-      "note": "Вечером спокойно собрать вещи перед аэропортом.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "finish"
-    },
     "2026-08-22-pomegranate-garden-villa": {
       "id": "2026-08-22-pomegranate-garden-villa",
       "dayId": "2026-08-22",
@@ -2628,6 +2029,818 @@
         "visible": true
       },
       "durationKind": "airport"
+    },
+    "2026-08-15-panigiri-village-tbd": {
+      "id": "2026-08-15-panigiri-village-tbd",
+      "dayId": "2026-08-15",
+      "placeId": "panigiri-village-tbd",
+      "sequence": 5,
+      "role": "Традиционный критский panigiri",
+      "timing": {
+        "start": "21:00",
+        "end": null,
+        "approximate": true
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 30,
+        "distanceKm": 20,
+        "status": "standard"
+      },
+      "note": "Конкретную деревню, парковку и необходимость бронирования стола уточнить ближе к дате. Вечерний пробег пока ориентировочный.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": false
+      },
+      "durationKind": "finish"
+    },
+    "2026-08-16-pomegranate-garden-villa-start": {
+      "id": "2026-08-16-pomegranate-garden-villa-start",
+      "dayId": "2026-08-16",
+      "placeId": "pomegranate-garden-villa",
+      "sequence": 0,
+      "role": "Позднее спокойное начало",
+      "timing": {
+        "start": "12:00",
+        "end": null,
+        "approximate": true
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "walking",
+        "durationMinutes": null,
+        "distanceKm": null,
+        "status": "none"
+      },
+      "note": "После panigiri никаких ранних подвигов.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": "start"
+    },
+    "2026-08-16-rethymno-old-town-and-venetian-harbour": {
+      "id": "2026-08-16-rethymno-old-town-and-venetian-harbour",
+      "dayId": "2026-08-16",
+      "placeId": "rethymno-old-town-and-venetian-harbour",
+      "sequence": 1,
+      "role": "Обед и неспешный Rethymno",
+      "timing": {
+        "start": "13:00",
+        "end": "17:00",
+        "approximate": true
+      },
+      "durationMinutes": 240,
+      "inboundTravel": {
+        "mode": "transit",
+        "durationMinutes": 25,
+        "distanceKm": 7,
+        "status": "standard"
+      },
+      "note": "Лучше приехать автобусом; без обязательных музеев и повторного туристического марафона.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-16-platanes-beach": {
+      "id": "2026-08-16-platanes-beach",
+      "dayId": "2026-08-16",
+      "placeId": "platanes-beach",
+      "sequence": 2,
+      "role": "Пляж и возможный пеший возврат вдоль моря",
+      "timing": {
+        "start": "17:30",
+        "end": "20:00",
+        "approximate": true
+      },
+      "durationMinutes": 150,
+      "inboundTravel": {
+        "mode": "walking",
+        "durationMinutes": 75,
+        "distanceKm": 6,
+        "status": "standard"
+      },
+      "note": "Пешком только если не накупили тележку сувениров.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-16-pomegranate-garden-villa-end": {
+      "id": "2026-08-16-pomegranate-garden-villa-end",
+      "dayId": "2026-08-16",
+      "placeId": "pomegranate-garden-villa",
+      "sequence": 3,
+      "role": "Свободный вечер",
+      "timing": {
+        "start": "20:05",
+        "end": null,
+        "approximate": true
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "walking",
+        "durationMinutes": 5,
+        "distanceKm": 0.4,
+        "status": "standard"
+      },
+      "note": "",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": "finish"
+    },
+    "2026-08-17-pomegranate-garden-villa-start": {
+      "id": "2026-08-17-pomegranate-garden-villa-start",
+      "dayId": "2026-08-17",
+      "placeId": "pomegranate-garden-villa",
+      "sequence": 0,
+      "role": "Выход на пляж без машины",
+      "timing": {
+        "start": "09:15",
+        "end": null,
+        "approximate": true
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "walking",
+        "durationMinutes": null,
+        "distanceKm": null,
+        "status": "none"
+      },
+      "note": "",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": "start"
+    },
+    "2026-08-17-platanes-beach": {
+      "id": "2026-08-17-platanes-beach",
+      "dayId": "2026-08-17",
+      "placeId": "platanes-beach",
+      "sequence": 1,
+      "role": "Полный пляжный день",
+      "timing": {
+        "start": "09:25",
+        "end": "19:00",
+        "approximate": true
+      },
+      "durationMinutes": 575,
+      "inboundTravel": {
+        "mode": "walking",
+        "durationMinutes": 10,
+        "distanceKm": 0.7,
+        "status": "standard"
+      },
+      "note": "Утром занять лежаки; никаких поездок и «маленьких остановок».",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-17-pomegranate-garden-villa-end": {
+      "id": "2026-08-17-pomegranate-garden-villa-end",
+      "dayId": "2026-08-17",
+      "placeId": "pomegranate-garden-villa",
+      "sequence": 2,
+      "role": "Возвращение домой",
+      "timing": {
+        "start": "19:10",
+        "end": null,
+        "approximate": true
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "walking",
+        "durationMinutes": 10,
+        "distanceKm": 0.7,
+        "status": "standard"
+      },
+      "note": "",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": "finish"
+    },
+    "2026-08-18-pomegranate-garden-villa-start": {
+      "id": "2026-08-18-pomegranate-garden-villa-start",
+      "dayId": "2026-08-18",
+      "placeId": "pomegranate-garden-villa",
+      "sequence": 0,
+      "role": "Выезд из Platanes",
+      "timing": {
+        "start": "09:30",
+        "end": null,
+        "approximate": true
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": null,
+        "distanceKm": null,
+        "status": "none"
+      },
+      "note": "Остановка гибкая: важнее атмосфера, открытое кафенио и разговоры, чем выполнение списка.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": "start"
+    },
+    "2026-08-18-apostoloi-amari": {
+      "id": "2026-08-18-apostoloi-amari",
+      "dayId": "2026-08-18",
+      "placeId": "apostoloi-amari",
+      "sequence": 1,
+      "role": "Первая деревенская остановка",
+      "timing": {
+        "start": "10:30",
+        "end": "11:10",
+        "approximate": true
+      },
+      "durationMinutes": 40,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 60,
+        "distanceKm": 45,
+        "status": "standard"
+      },
+      "note": "Остановка гибкая: важнее атмосфера, открытое кафенио и разговоры, чем выполнение списка.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-18-nefs-amari": {
+      "id": "2026-08-18-nefs-amari",
+      "dayId": "2026-08-18",
+      "placeId": "nefs-amari",
+      "sequence": 2,
+      "role": "Кафенио и знакомство с долиной Amari",
+      "timing": {
+        "start": "11:25",
+        "end": "12:05",
+        "approximate": true
+      },
+      "durationMinutes": 40,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 15,
+        "distanceKm": 7,
+        "status": "standard"
+      },
+      "note": "Остановка гибкая: важнее атмосфера, открытое кафенио и разговоры, чем выполнение списка.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-18-opsigias": {
+      "id": "2026-08-18-opsigias",
+      "dayId": "2026-08-18",
+      "placeId": "opsigias",
+      "sequence": 3,
+      "role": "Короткая остановка без формальной программы",
+      "timing": {
+        "start": "12:10",
+        "end": "12:35",
+        "approximate": true
+      },
+      "durationMinutes": 25,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 5,
+        "distanceKm": 2,
+        "status": "standard"
+      },
+      "note": "Остановка гибкая: важнее атмосфера, открытое кафенио и разговоры, чем выполнение списка.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-18-monastiraki-amari": {
+      "id": "2026-08-18-monastiraki-amari",
+      "dayId": "2026-08-18",
+      "placeId": "monastiraki-amari",
+      "sequence": 4,
+      "role": "Деревня и поиск локальных продуктов",
+      "timing": {
+        "start": "12:45",
+        "end": "13:20",
+        "approximate": true
+      },
+      "durationMinutes": 35,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 10,
+        "distanceKm": 4,
+        "status": "standard"
+      },
+      "note": "Остановка гибкая: важнее атмосфера, открытое кафенио и разговоры, чем выполнение списка.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-18-meronas": {
+      "id": "2026-08-18-meronas",
+      "dayId": "2026-08-18",
+      "placeId": "meronas",
+      "sequence": 5,
+      "role": "Главная остановка и обед",
+      "timing": {
+        "start": "13:35",
+        "end": "15:30",
+        "approximate": true
+      },
+      "durationMinutes": 115,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 15,
+        "distanceKm": 6,
+        "status": "standard"
+      },
+      "note": "Остановка гибкая: важнее атмосфера, открытое кафенио и разговоры, чем выполнение списка.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-18-elenes": {
+      "id": "2026-08-18-elenes",
+      "dayId": "2026-08-18",
+      "placeId": "elenes",
+      "sequence": 6,
+      "role": "Небольшая деревенская пауза",
+      "timing": {
+        "start": "15:40",
+        "end": "16:10",
+        "approximate": true
+      },
+      "durationMinutes": 30,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 10,
+        "distanceKm": 4,
+        "status": "standard"
+      },
+      "note": "Остановка гибкая: важнее атмосфера, открытое кафенио и разговоры, чем выполнение списка.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-18-gerakari": {
+      "id": "2026-08-18-gerakari",
+      "dayId": "2026-08-18",
+      "placeId": "gerakari",
+      "sequence": 7,
+      "role": "Финальная остановка: травы, раки, масло",
+      "timing": {
+        "start": "16:20",
+        "end": "17:20",
+        "approximate": true
+      },
+      "durationMinutes": 60,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 10,
+        "distanceKm": 3,
+        "status": "standard"
+      },
+      "note": "Остановка гибкая: важнее атмосфера, открытое кафенио и разговоры, чем выполнение списка.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-18-pomegranate-garden-villa-end": {
+      "id": "2026-08-18-pomegranate-garden-villa-end",
+      "dayId": "2026-08-18",
+      "placeId": "pomegranate-garden-villa",
+      "sequence": 8,
+      "role": "Возвращение в Platanes",
+      "timing": {
+        "start": "18:15",
+        "end": null,
+        "approximate": true
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 55,
+        "distanceKm": 38,
+        "status": "standard"
+      },
+      "note": "Остановка гибкая: важнее атмосфера, открытое кафенио и разговоры, чем выполнение списка.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": "finish"
+    },
+    "2026-08-19-pomegranate-garden-villa-start": {
+      "id": "2026-08-19-pomegranate-garden-villa-start",
+      "dayId": "2026-08-19",
+      "placeId": "pomegranate-garden-villa",
+      "sequence": 0,
+      "role": "Выезд на Organic Farmers’ Market",
+      "timing": {
+        "start": "10:30",
+        "end": null,
+        "approximate": true
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": null,
+        "distanceKm": null,
+        "status": "none"
+      },
+      "note": "",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": "start"
+    },
+    "2026-08-19-organic-farmers-market-rethymno": {
+      "id": "2026-08-19-organic-farmers-market-rethymno",
+      "dayId": "2026-08-19",
+      "placeId": "organic-farmers-market-rethymno",
+      "sequence": 1,
+      "role": "Свежие овощи, фрукты и местные продукты",
+      "timing": {
+        "start": "11:00",
+        "end": "12:15",
+        "approximate": true
+      },
+      "durationMinutes": 75,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 20,
+        "distanceKm": 7,
+        "status": "standard"
+      },
+      "note": "Рынок желательный, но не обязательный.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-19-pomegranate-garden-villa-end": {
+      "id": "2026-08-19-pomegranate-garden-villa-end",
+      "dayId": "2026-08-19",
+      "placeId": "pomegranate-garden-villa",
+      "sequence": 2,
+      "role": "Сразу вернуть свежие покупки домой",
+      "timing": {
+        "start": "12:35",
+        "end": null,
+        "approximate": true
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 20,
+        "distanceKm": 7,
+        "status": "standard"
+      },
+      "note": "После рынка — холодильник и полный расслабон.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": "finish"
+    },
+    "2026-08-20-pomegranate-garden-villa-start": {
+      "id": "2026-08-20-pomegranate-garden-villa-start",
+      "dayId": "2026-08-20",
+      "placeId": "pomegranate-garden-villa",
+      "sequence": 0,
+      "role": "Ранний выезд на Laiki",
+      "timing": {
+        "start": "07:45",
+        "end": null,
+        "approximate": true
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": null,
+        "distanceKm": null,
+        "status": "none"
+      },
+      "note": "",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": "start"
+    },
+    "2026-08-20-laiki-market-rethymno": {
+      "id": "2026-08-20-laiki-market-rethymno",
+      "dayId": "2026-08-20",
+      "placeId": "laiki-market-rethymno",
+      "sequence": 1,
+      "role": "Обязательный Laiki Market",
+      "timing": {
+        "start": "08:10",
+        "end": "10:10",
+        "approximate": true
+      },
+      "durationMinutes": 120,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 25,
+        "distanceKm": 8,
+        "status": "standard"
+      },
+      "note": "Приехать пораньше на машине; майки и оливковое масло смогут ждать в машине.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-20-eleftherna": {
+      "id": "2026-08-20-eleftherna",
+      "dayId": "2026-08-20",
+      "placeId": "eleftherna",
+      "sequence": 2,
+      "role": "Eleutherna Archaeological Museum",
+      "timing": {
+        "start": "11:00",
+        "end": "13:00",
+        "approximate": true
+      },
+      "durationMinutes": 120,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 50,
+        "distanceKm": 30,
+        "status": "standard"
+      },
+      "note": "Музей обязателен; во вторник он закрыт.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-20-panormo": {
+      "id": "2026-08-20-panormo",
+      "dayId": "2026-08-20",
+      "placeId": "panormo",
+      "sequence": 3,
+      "role": "Panormo по желанию",
+      "timing": {
+        "start": "13:35",
+        "end": "16:15",
+        "approximate": true
+      },
+      "durationMinutes": 160,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 35,
+        "distanceKm": 25,
+        "status": "standard"
+      },
+      "note": "Короткая прогулка, обед или купание. Если атмосфера не нравится — уехать без чувства долга.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-20-pomegranate-garden-villa-end": {
+      "id": "2026-08-20-pomegranate-garden-villa-end",
+      "dayId": "2026-08-20",
+      "placeId": "pomegranate-garden-villa",
+      "sequence": 4,
+      "role": "Возвращение и начало сборов",
+      "timing": {
+        "start": "16:45",
+        "end": null,
+        "approximate": true
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 30,
+        "distanceKm": 22,
+        "status": "standard"
+      },
+      "note": "Вечером начать собирать чемоданы.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": "finish"
+    },
+    "2026-08-21-pomegranate-garden-villa-start": {
+      "id": "2026-08-21-pomegranate-garden-villa-start",
+      "dayId": "2026-08-21",
+      "placeId": "pomegranate-garden-villa",
+      "sequence": 0,
+      "role": "Практически закончить сборы",
+      "timing": {
+        "start": "08:00",
+        "end": "09:00",
+        "approximate": true
+      },
+      "durationMinutes": 60,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": null,
+        "distanceKm": null,
+        "status": "none"
+      },
+      "note": "Оставить снаружи только купальные вещи, одежду на дорогу и необходимые мелочи.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-21-platanes-beach": {
+      "id": "2026-08-21-platanes-beach",
+      "dayId": "2026-08-21",
+      "placeId": "platanes-beach",
+      "sequence": 1,
+      "role": "Полный расслабленный день на пляже",
+      "timing": {
+        "start": "09:15",
+        "end": "19:00",
+        "approximate": true
+      },
+      "durationMinutes": 585,
+      "inboundTravel": {
+        "mode": "walking",
+        "durationMinutes": 10,
+        "distanceKm": 0.7,
+        "status": "standard"
+      },
+      "note": "После утренних сборов день полностью принадлежит пляжу.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-21-pomegranate-garden-villa-end": {
+      "id": "2026-08-21-pomegranate-garden-villa-end",
+      "dayId": "2026-08-21",
+      "placeId": "pomegranate-garden-villa",
+      "sequence": 2,
+      "role": "Последний спокойный вечер",
+      "timing": {
+        "start": "19:10",
+        "end": null,
+        "approximate": true
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "walking",
+        "durationMinutes": 10,
+        "distanceKm": 0.7,
+        "status": "standard"
+      },
+      "note": "",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": "finish"
     }
   },
   "routes": {
@@ -2687,72 +2900,8 @@
         "2026-08-15-kazarma-fortress",
         "2026-08-15-sitia-airbnb-2",
         "2026-08-15-mathena-olive-tree-lastros",
-        "2026-08-15-pomegranate-garden-villa"
-      ]
-    },
-    "route-2026-08-16": {
-      "id": "route-2026-08-16",
-      "dayId": "2026-08-16",
-      "mode": "driving",
-      "visitIds": [
-        "2026-08-16-pomegranate-garden-villa",
-        "2026-08-16-rethymno-old-town-and-venetian-harbour",
-        "2026-08-16-platanes-beach",
-        "2026-08-16-pomegranate-garden-villa-2"
-      ]
-    },
-    "route-2026-08-17": {
-      "id": "route-2026-08-17",
-      "dayId": "2026-08-17",
-      "mode": "driving",
-      "visitIds": [
-        "2026-08-17-pomegranate-garden-villa",
-        "2026-08-17-chania-old-town-and-venetian-port",
-        "2026-08-17-marathi-beach",
-        "2026-08-17-pomegranate-garden-villa-2"
-      ]
-    },
-    "route-2026-08-18": {
-      "id": "route-2026-08-18",
-      "dayId": "2026-08-18",
-      "mode": "driving",
-      "visitIds": [
-        "2026-08-18-pomegranate-garden-villa",
-        "2026-08-18-margarites",
-        "2026-08-18-eleftherna",
-        "2026-08-18-panormo",
-        "2026-08-18-pomegranate-garden-villa-2"
-      ]
-    },
-    "route-2026-08-19": {
-      "id": "route-2026-08-19",
-      "dayId": "2026-08-19",
-      "mode": "driving",
-      "visitIds": [
-        "2026-08-19-pomegranate-garden-villa",
-        "2026-08-19-plakias",
-        "2026-08-19-pomegranate-garden-villa-2"
-      ]
-    },
-    "route-2026-08-20": {
-      "id": "route-2026-08-20",
-      "dayId": "2026-08-20",
-      "mode": "driving",
-      "visitIds": [
-        "2026-08-20-pomegranate-garden-villa",
-        "2026-08-20-falassarna-beach",
-        "2026-08-20-pomegranate-garden-villa-2"
-      ]
-    },
-    "route-2026-08-21": {
-      "id": "route-2026-08-21",
-      "dayId": "2026-08-21",
-      "mode": "driving",
-      "visitIds": [
-        "2026-08-21-pomegranate-garden-villa",
-        "2026-08-21-lake-kournas",
-        "2026-08-21-georgioupoli",
-        "2026-08-21-pomegranate-garden-villa-2"
+        "2026-08-15-pomegranate-garden-villa",
+        "2026-08-15-panigiri-village-tbd"
       ]
     },
     "route-2026-08-22": {
@@ -2762,6 +2911,69 @@
       "visitIds": [
         "2026-08-22-pomegranate-garden-villa",
         "2026-08-22-gomega-car-rentals-heraklion"
+      ]
+    },
+    "route-2026-08-16": {
+      "id": "route-2026-08-16",
+      "dayId": "2026-08-16",
+      "visitIds": [
+        "2026-08-16-pomegranate-garden-villa-start",
+        "2026-08-16-rethymno-old-town-and-venetian-harbour",
+        "2026-08-16-platanes-beach",
+        "2026-08-16-pomegranate-garden-villa-end"
+      ]
+    },
+    "route-2026-08-17": {
+      "id": "route-2026-08-17",
+      "dayId": "2026-08-17",
+      "visitIds": [
+        "2026-08-17-pomegranate-garden-villa-start",
+        "2026-08-17-platanes-beach",
+        "2026-08-17-pomegranate-garden-villa-end"
+      ]
+    },
+    "route-2026-08-18": {
+      "id": "route-2026-08-18",
+      "dayId": "2026-08-18",
+      "visitIds": [
+        "2026-08-18-pomegranate-garden-villa-start",
+        "2026-08-18-apostoloi-amari",
+        "2026-08-18-nefs-amari",
+        "2026-08-18-opsigias",
+        "2026-08-18-monastiraki-amari",
+        "2026-08-18-meronas",
+        "2026-08-18-elenes",
+        "2026-08-18-gerakari",
+        "2026-08-18-pomegranate-garden-villa-end"
+      ]
+    },
+    "route-2026-08-19": {
+      "id": "route-2026-08-19",
+      "dayId": "2026-08-19",
+      "visitIds": [
+        "2026-08-19-pomegranate-garden-villa-start",
+        "2026-08-19-organic-farmers-market-rethymno",
+        "2026-08-19-pomegranate-garden-villa-end"
+      ]
+    },
+    "route-2026-08-20": {
+      "id": "route-2026-08-20",
+      "dayId": "2026-08-20",
+      "visitIds": [
+        "2026-08-20-pomegranate-garden-villa-start",
+        "2026-08-20-laiki-market-rethymno",
+        "2026-08-20-eleftherna",
+        "2026-08-20-panormo",
+        "2026-08-20-pomegranate-garden-villa-end"
+      ]
+    },
+    "route-2026-08-21": {
+      "id": "route-2026-08-21",
+      "dayId": "2026-08-21",
+      "visitIds": [
+        "2026-08-21-pomegranate-garden-villa-start",
+        "2026-08-21-platanes-beach",
+        "2026-08-21-pomegranate-garden-villa-end"
       ]
     }
   },

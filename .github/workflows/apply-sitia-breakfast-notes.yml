@@ -1,0 +1,117 @@
+name: Apply Sitia breakfast notes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-sitia-breakfast-notes.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Patch itinerary data
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          path = Path('itinerary-data.js')
+          s = path.read_text(encoding='utf-8')
+
+          def replace_once(old, new, label):
+              global s
+              count = s.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly 1 match, found {count}')
+              s = s.replace(old, new, 1)
+
+          def replace_in_segment(start_marker, end_marker, old, new, label):
+              global s
+              start = s.find(start_marker)
+              if start < 0:
+                  raise SystemExit(f'{label}: start marker not found')
+              end = s.find(end_marker, start + len(start_marker))
+              if end < 0:
+                  raise SystemExit(f'{label}: end marker not found')
+              segment = s[start:end]
+              count = segment.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly 1 match in segment, found {count}')
+              segment = segment.replace(old, new, 1)
+              s = s[:start] + segment + s[end:]
+
+          breakfast = '"Завтрак: основной сценарий — дома в Airbnb. Если захочется выйти на завтрак или кофе, рядом есть Mitsakakis, Bistrot Krema Kanela и Kalamia All Day Beach Bar.",\n            '
+
+          replace_once(
+              '            "Завтраки 12–15 августа: основной сценарий — дома в Airbnb. Если захочется выйти на завтрак или кофе, ближайший shortlist: Mitsakakis, Bistrot Krema Kanela и Kalamia All Day Beach Bar.",\n',
+              '',
+              'remove misplaced day11 breakfast note'
+          )
+
+          for day, next_day, first_food, old_summary, new_summary in [
+              ('2026-08-12', '2026-08-13', '"Toplou Fabrica: local food platter для всей семьи за €8 включён в подтверждённый план.",',
+               '"mealSummary": "Toplou Fabrica; обед: Hiona / ELENA; ужин по аппетиту: Stin Ygeiá Mas / To Limani"',
+               '"mealSummary": "завтрак дома или кафе рядом; Toplou Fabrica; обед: Hiona / ELENA; ужин по аппетиту: Stin Ygeiá Mas / To Limani"'),
+              ('2026-08-13', '2026-08-14', '"Ziros: кофе и короткая остановка.",',
+               '"mealSummary": "кофе в Ziros; обед: Taverna Kostas / Tavern Dolphin; Inodion 21:00, backup Stin Ygeiá Mas"',
+               '"mealSummary": "завтрак дома или кафе рядом; кофе в Ziros; обед: Taverna Kostas / Tavern Dolphin; Inodion 21:00, backup Stin Ygeiá Mas"'),
+              ('2026-08-14', '2026-08-15', '"Долгий обед в Kato Zakros: основной вариант — Nostos; запасной — Anamnesia. Оба находятся у моря, поэтому переход к plan B не требует отдельного переезда.",',
+               '"mealSummary": "обед: Nostos / Anamnesia; ужин по желанию: To Limani / KRITIKO SPITI"',
+               '"mealSummary": "завтрак дома или кафе рядом; обед: Nostos / Anamnesia; ужин по желанию: To Limani / KRITIKO SPITI"')
+          ]:
+              start = f'    "{day}": {{'
+              end = f'    "{next_day}": {{'
+              replace_in_segment(start, end, first_food, breakfast + first_food, f'{day} breakfast note')
+              replace_in_segment(start, end, old_summary, new_summary, f'{day} meal summary')
+
+          day15_start = '    "2026-08-15": {'
+          day15_end = '    "2026-08-16": {'
+          replace_in_segment(
+              day15_start, day15_end,
+              '"09:15–10:30: завтрак дома и завершение сборов в Sitia."',
+              '"09:15–10:30: завтрак дома и завершение сборов в Sitia. Если захочется взять кофе или выпечку рядом, можно зайти в Mitsakakis, Bistrot Krema Kanela или Kalamia All Day Beach Bar."',
+              'day15 breakfast note'
+          )
+          replace_in_segment(
+              day15_start, day15_end,
+              '"mealSummary": "завтрак дома; Lastros: Erotokritos или обед дальше по маршруту; вечером panigiri, Lakis Beach Bar по желанию"',
+              '"mealSummary": "завтрак дома или кофе рядом; Lastros: Erotokritos или обед дальше по маршруту; вечером panigiri, Lakis Beach Bar по желанию"',
+              'day15 meal summary'
+          )
+
+          path.write_text(s, encoding='utf-8')
+
+          sw = Path('service-worker.js')
+          w = sw.read_text(encoding='utf-8')
+          old = "const CACHE_VERSION = 'crete-2026-v39';"
+          new = "const CACHE_VERSION = 'crete-2026-v40';"
+          if w.count(old) != 1:
+              raise SystemExit(f'cache version: expected 1 match, found {w.count(old)}')
+          sw.write_text(w.replace(old, new, 1), encoding='utf-8')
+          PY
+
+      - name: Validate itinerary
+        run: |
+          node --check itinerary-data.js
+          node scripts/validate-itinerary.mjs
+
+      - name: Commit changes and remove one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/apply-sitia-breakfast-notes.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add itinerary-data.js service-worker.js .github/workflows/apply-sitia-breakfast-notes.yml
+          git commit -m 'Show Sitia breakfast recommendations on Aug 12-15'
+          git push origin main

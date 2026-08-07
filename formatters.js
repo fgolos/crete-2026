@@ -76,7 +76,7 @@
   function statusLabel(status) {
     return ({ draft: 'Черновик', 'draft-reserve': 'Черновик / резерв', confirmed: 'Подтверждено' })[status] || status;
   }
-  function buildDayMeta(day) {
+  function buildDayMeta(day, visits = []) {
     const items = [];
 
     const distanceKm = day.travelTotals?.distanceKm;
@@ -96,8 +96,9 @@
       if (roadValue) items.push({ label: 'Дорога', value: roadValue });
     }
 
-    const departure = day.schedule?.departure?.start || null;
-    const finish = day.schedule?.finish?.start || null;
+    const visitTimes = visits.map(visit => visit?.timing?.start).filter(Boolean);
+    const departure = visitTimes[0] || day.schedule?.departure?.start || null;
+    const finish = visitTimes[visitTimes.length - 1] || day.schedule?.finish?.start || null;
     if (departure || finish) {
       const timeValue = departure && finish ? `${departure} → ${finish}` : departure || finish;
       items.push({ label: 'Время', value: timeValue });

@@ -108,6 +108,17 @@ node scripts/generate-audio.mjs --story mochlos --force
 node scripts/generate-audio.mjs --story mochlos --voice ru-RU-SvetlanaNeural
 ```
 
+Pronunciation and stress overrides live in `pronunciations-data.js`. Ordinary text substitutions use `CRETE_PRONUNCIATIONS`; exact spoken word forms that need forced stress use `CRETE_PHONEMES` with Azure-compatible IPA. The visible story text stays normal Cyrillic.
+
+Audit the curated stress list and inspect the exact SSML for one story without calling Azure:
+
+```bash
+npm run audio:stress-audit
+node scripts/generate-audio.mjs --story panigiri-august15 --print-ssml
+```
+
+The printed SSML should contain inline `<phoneme alphabet="ipa" ...>` elements for configured words such as `храмовом`. Microsoft requires the IPA primary-stress marker `ˈ`; the audit fails when an override omits it.
+
 The generator sends SSML to Azure Speech, writes `audio/<story-id>.mp3`, measures the resulting MP3, and updates both `audio` and `durationSeconds` in `stories-data.js`. Existing MP3 files are skipped unless `--force` is used, but their duration is still measured and synchronized when the generator encounters them.
 
 Before an MP3 exists, the interface estimates listening time from the title, story text, and `lookFor` content and marks the value with `≈`. Once an MP3 has been generated, the compact button still shows rounded minutes while the player shows the exact `m:ss` duration.

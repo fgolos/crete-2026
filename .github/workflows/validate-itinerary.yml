@@ -41,6 +41,8 @@ jobs:
       - name: Check audio source update contract
         run: node scripts/check-audio-source-contract.mjs
       - name: Check speech stress overrides
-        run: node scripts/check-speech-overrides.mjs
+        run: |
+          node scripts/check-speech-overrides.mjs
+          node scripts/generate-audio.mjs --story panigiri-august15 --print-ssml | grep -q '>храмовым</phoneme>'
       - name: Smoke test rendered application
         run: node scripts/smoke-browser.mjs

@@ -19,6 +19,25 @@ function replaceStoryField(source, storyId, field, valuePattern, replacement) {
 }
 
 if (!stories.length) throw new Error('No stories were loaded');
+const LATIN = /[A-Za-z]/;
+function narrationStrings(story) {
+  return [
+    ['buttonLabel', story.buttonLabel],
+    ['title', story.title],
+    ...(story.text || []).map((value, index) => [`text[${index}]`, value]),
+    ...(story.lookFor || []).map((value, index) => [`lookFor[${index}]`, value]),
+    ...((story.narration?.blocks || []).map((value, index) => [`narration.blocks[${index}]`, value]))
+  ];
+}
+
+for (const story of stories) {
+  for (const [field, value] of narrationStrings(story)) {
+    if (typeof value === 'string' && LATIN.test(value)) {
+      throw new Error(`Latin letters in narratable field ${story.id}.${field}: ${value}`);
+    }
+  }
+}
+
 if (!generatorSource.includes('["\']?id["\']?')) {
   throw new Error('Audio generator does not support quoted story object keys');
 }

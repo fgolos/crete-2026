@@ -919,7 +919,7 @@
       ['питание', 'meta-food'],
       ['логистика', 'meta-logistics']
     ]);
-    const coreMetaLabels = new Set(['дорога', 'время', 'купание']);
+    const coreMetaLabels = new Set(['дорога', 'время']);
     const meta = orderedMeta.map(item => {
       const label = normalizeLabel(item.label);
       const emphasisClass = coreMetaLabels.has(label) ? 'primary' : 'secondary';

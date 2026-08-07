@@ -1,0 +1,61 @@
+name: Final Cyrillic story polish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/final-cyrillic-story-polish.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  polish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Apply final language fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          p = Path('stories-data.js')
+          s = p.read_text(encoding='utf-8')
+          fixes = [
+            ('Высокие стены Псилоритис на восточной стороне долины.', 'Высокие стены Псилоритиса на восточной стороне долины.'),
+            ('на северных склонах Псилоритис,', 'на северных склонах Псилоритиса,'),
+            ('направлением бухта Суда.', 'направлением бухты Суда.'),
+            ('возможности Куиннаа', 'возможности Куинна'),
+            ('туристический сайт Ханья прямо отмечает', 'туристический сайт Ханьи прямо отмечает'),
+            ('Музей древней Элефтерны — первый на Крите археологический музей, созданный специально для находок с расположенного рядом древнего города. Он построен для находок многолетних раскопок самого древнего города и показывает историю территории', 'Музей древней Элефтерны — первый на Крите археологический музей, созданный специально для находок многолетних раскопок расположенного рядом древнего города. Экспозиция показывает историю территории'),
+            ('указывают местом рождения художника Кандию, нынешний Ираклион', 'указывают в качестве места рождения художника Кандию, нынешний Ираклион'),
+            ('"фонтан Римонди и три львиных маскарона.', '"Фонтан Римонди и три львиных маскарона.'),
+          ]
+          changed = 0
+          for old, new in fixes:
+              if old in s:
+                  changed += s.count(old)
+                  s = s.replace(old, new)
+          p.write_text(s, encoding='utf-8')
+          print(f'Applied {changed} final fixes')
+          PY
+      - name: Validate
+        run: |
+          node --check stories-data.js
+          node scripts/check-audio-source-contract.mjs
+          node scripts/validate-itinerary.mjs
+          node scripts/check-runtime-contract.mjs
+      - name: Commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/final-cyrillic-story-polish.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add stories-data.js .github/workflows/final-cyrillic-story-polish.yml
+          git commit -m 'Finalize Cyrillic story narration'
+          git push

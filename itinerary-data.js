@@ -42,7 +42,7 @@
         "category": "Station Wagon Manual",
         "pickupAt": "2026-08-11T10:00:00+03:00",
         "pickupApproximate": true,
-        "returnDeadline": "2026-08-22T14:00:00+03:00"
+        "returnDeadline": "2026-08-22T15:00:00+03:00"
       },
       "accommodations": [
         {
@@ -377,7 +377,7 @@
         "finish": {
           "start": "23:59",
           "end": null,
-          "approximate": true
+          "approximate": false
         },
         "carReturnDeadline": null,
         "flight": null
@@ -385,7 +385,7 @@
       "travelTotals": {
         "drivingDurationMinutes": 200,
         "distanceKm": 166,
-        "approximate": true
+        "approximate": false
       },
       "swimming": "без пляжной остановки"
     },
@@ -403,7 +403,7 @@
       "sections": {
         "essentials": {
           "items": [
-            "Начало дня около 12:00.",
+            "Начало дня в 12:00.",
             "Rethymno — обед, знакомый город и море без гонки по достопримечательностям.",
             "Если покупок немного и не жарко — вернуться в Platanes пешком вдоль пляжа."
           ]
@@ -427,12 +427,12 @@
         "departure": {
           "start": "12:00",
           "end": null,
-          "approximate": true
+          "approximate": false
         },
         "finish": {
           "start": "20:05",
           "end": null,
-          "approximate": true
+          "approximate": false
         },
         "carReturnDeadline": null,
         "flight": null
@@ -440,7 +440,7 @@
       "travelTotals": {
         "drivingDurationMinutes": 0,
         "distanceKm": 0,
-        "approximate": true
+        "approximate": false
       },
       "swimming": "Platanes Beach"
     },
@@ -480,12 +480,12 @@
         "departure": {
           "start": "09:15",
           "end": null,
-          "approximate": true
+          "approximate": false
         },
         "finish": {
           "start": "19:10",
           "end": null,
-          "approximate": true
+          "approximate": false
         },
         "carReturnDeadline": null,
         "flight": null
@@ -493,7 +493,7 @@
       "travelTotals": {
         "drivingDurationMinutes": 0,
         "distanceKm": 0,
-        "approximate": true
+        "approximate": false
       },
       "swimming": "Platanes Beach"
     },
@@ -530,7 +530,7 @@
         "practical": {
           "items": [
             "Не ждать, что в каждой деревне будут магазины и производители открыты.",
-            "Маршрут по времени приблизительный; любую промежуточную деревню можно пропустить, если день начинает превращаться в чек-лист."
+            "Любую промежуточную деревню можно пропустить, если день начинает превращаться в чек-лист."
           ]
         }
       },
@@ -539,12 +539,12 @@
         "departure": {
           "start": "09:30",
           "end": null,
-          "approximate": true
+          "approximate": false
         },
         "finish": {
           "start": "18:15",
           "end": null,
-          "approximate": true
+          "approximate": false
         },
         "carReturnDeadline": null,
         "flight": null
@@ -552,7 +552,7 @@
       "travelTotals": {
         "drivingDurationMinutes": 180,
         "distanceKm": 109,
-        "approximate": true
+        "approximate": false
       },
       "swimming": null
     },
@@ -588,7 +588,7 @@
           "items": [
             "Решение продолжать ли после рынка на Akrotiri принимаем на месте по настроению, погоде и покупкам.",
             "Если купили много скоропортящихся овощей и фруктов, разумнее вернуться домой и убрать их в холодильник.",
-            "Полный вариант — дальний день: ориентировочно около 180 км и примерно четыре часа транспортного времени.",
+            "Полный вариант — дальний день: 182 км и 4 ч 05 мин транспортного времени.",
             "Не добавляем прогулку по Chania: город уже хорошо знаком и не является целью этого дня."
           ]
         }
@@ -598,12 +598,12 @@
         "departure": {
           "start": "10:20",
           "end": null,
-          "approximate": true
+          "approximate": false
         },
         "finish": {
           "start": "20:50",
           "end": null,
-          "approximate": true
+          "approximate": false
         },
         "carReturnDeadline": null,
         "flight": null
@@ -611,7 +611,7 @@
       "travelTotals": {
         "drivingDurationMinutes": 245,
         "distanceKm": 182,
-        "approximate": true
+        "approximate": false
       },
       "swimming": "Stavros Beach и Marathi Beach; Platanes Beach при сокращении дня"
     },
@@ -654,12 +654,12 @@
         "departure": {
           "start": "07:45",
           "end": null,
-          "approximate": true
+          "approximate": false
         },
         "finish": {
           "start": "16:45",
           "end": null,
-          "approximate": true
+          "approximate": false
         },
         "carReturnDeadline": null,
         "flight": null
@@ -667,7 +667,7 @@
       "travelTotals": {
         "drivingDurationMinutes": 140,
         "distanceKm": 85,
-        "approximate": true
+        "approximate": false
       },
       "swimming": "Panormo по желанию"
     },
@@ -708,12 +708,12 @@
         "departure": {
           "start": "08:00",
           "end": null,
-          "approximate": true
+          "approximate": false
         },
         "finish": {
           "start": "19:10",
           "end": null,
-          "approximate": true
+          "approximate": false
         },
         "carReturnDeadline": null,
         "flight": null
@@ -721,7 +721,7 @@
       "travelTotals": {
         "drivingDurationMinutes": 0,
         "distanceKm": 0,
-        "approximate": true
+        "approximate": false
       },
       "swimming": "Platanes Beach"
     },
@@ -741,9 +741,9 @@
         "essentials": {
           "items": [
             "Утро оставить спокойным: завтрак и расслабон без больших сборов.",
-            "После checkout заехать в Fodele на короткую прогулку и последний критский обед.",
+            "В 11:00 выехать из Platanes и заехать в Fodele на короткую прогулку и последний критский обед.",
             "Основной ресторан — Litinos; план Б — Το Giasemi.",
-            "Автомобиль вернуть до 14:00 по текущему ваучеру; рейс HN 2322 вылетает в 17:55."
+            "В 15:00 вернуть автомобиль в GoMega; рейс HN 2322 вылетает в 17:55."
           ]
         },
         "food": {
@@ -756,8 +756,7 @@
         "practical": {
           "items": [
             "Checkout из Pomegranate Garden Villa — до 11:00.",
-            "По ваучеру GoMega Rental End — 14:00, поэтому ориентир прибытия около 13:40–13:45.",
-            "Если GoMega письменно согласует возврат позже, можно сдвинуть Fodele и обед без изменения общей логики дня.",
+            "GoMega подтвердили продление аренды до 15:00.",
             "Перед выездом проверить документы, ручную кладь, холодильник и зарядки."
           ]
         }
@@ -765,21 +764,21 @@
       "mealSummary": "завтрак дома; обед в Litinos (план Б — Το Giasemi)",
       "schedule": {
         "departure": {
-          "start": "10:45",
+          "start": "11:00",
           "end": null,
-          "approximate": true
+          "approximate": false
         },
         "finish": null,
-        "carReturnDeadline": "14:00",
+        "carReturnDeadline": "15:00",
         "flight": {
           "number": "HN 2322",
           "departureTime": "17:55"
         }
       },
       "travelTotals": {
-        "drivingDurationMinutes": 100,
-        "distanceKm": 93,
-        "approximate": true
+        "drivingDurationMinutes": 105,
+        "distanceKm": 91,
+        "approximate": false
       },
       "swimming": null
     }
@@ -1905,7 +1904,7 @@
         "distanceKm": 1,
         "status": "standard"
       },
-      "note": "Окончательный выезд около 10:30.",
+      "note": "Окончательный выезд 10:30.",
       "parking": {
         "primaryId": "sitia-port",
         "primaryOverrides": {},
@@ -1991,7 +1990,7 @@
       "timing": {
         "start": "21:00",
         "end": null,
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
@@ -2000,7 +1999,7 @@
         "distanceKm": 20,
         "status": "standard"
       },
-      "note": "Конкретную деревню, парковку и необходимость бронирования стола уточнить ближе к дате. Вечерний пробег пока ориентировочный.",
+      "note": "Конкретную деревню, парковку и необходимость бронирования стола уточнить ближе к дате.",
       "parking": {
         "primaryId": null,
         "primaryOverrides": null,
@@ -2020,7 +2019,7 @@
       "timing": {
         "start": "12:00",
         "end": null,
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
@@ -2049,7 +2048,7 @@
       "timing": {
         "start": "13:00",
         "end": "17:00",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 240,
       "inboundTravel": {
@@ -2078,7 +2077,7 @@
       "timing": {
         "start": "17:30",
         "end": "20:00",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 150,
       "inboundTravel": {
@@ -2107,7 +2106,7 @@
       "timing": {
         "start": "20:05",
         "end": null,
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
@@ -2136,7 +2135,7 @@
       "timing": {
         "start": "09:15",
         "end": null,
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
@@ -2165,7 +2164,7 @@
       "timing": {
         "start": "09:25",
         "end": "19:00",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 575,
       "inboundTravel": {
@@ -2194,7 +2193,7 @@
       "timing": {
         "start": "19:10",
         "end": null,
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
@@ -2223,7 +2222,7 @@
       "timing": {
         "start": "09:30",
         "end": null,
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
@@ -2252,7 +2251,7 @@
       "timing": {
         "start": "10:30",
         "end": "11:10",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 40,
       "inboundTravel": {
@@ -2281,7 +2280,7 @@
       "timing": {
         "start": "11:25",
         "end": "12:05",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 40,
       "inboundTravel": {
@@ -2310,7 +2309,7 @@
       "timing": {
         "start": "12:10",
         "end": "12:35",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 25,
       "inboundTravel": {
@@ -2339,7 +2338,7 @@
       "timing": {
         "start": "12:45",
         "end": "13:20",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 35,
       "inboundTravel": {
@@ -2368,7 +2367,7 @@
       "timing": {
         "start": "13:35",
         "end": "15:30",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 115,
       "inboundTravel": {
@@ -2397,7 +2396,7 @@
       "timing": {
         "start": "15:40",
         "end": "16:10",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 30,
       "inboundTravel": {
@@ -2426,7 +2425,7 @@
       "timing": {
         "start": "16:20",
         "end": "17:20",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 60,
       "inboundTravel": {
@@ -2455,7 +2454,7 @@
       "timing": {
         "start": "18:15",
         "end": null,
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
@@ -2484,7 +2483,7 @@
       "timing": {
         "start": "07:45",
         "end": null,
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
@@ -2513,7 +2512,7 @@
       "timing": {
         "start": "08:10",
         "end": "10:10",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 120,
       "inboundTravel": {
@@ -2542,7 +2541,7 @@
       "timing": {
         "start": "11:00",
         "end": "13:00",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 120,
       "inboundTravel": {
@@ -2571,7 +2570,7 @@
       "timing": {
         "start": "13:35",
         "end": "16:15",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 160,
       "inboundTravel": {
@@ -2600,7 +2599,7 @@
       "timing": {
         "start": "16:45",
         "end": null,
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
@@ -2629,7 +2628,7 @@
       "timing": {
         "start": "08:00",
         "end": "09:00",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 60,
       "inboundTravel": {
@@ -2658,7 +2657,7 @@
       "timing": {
         "start": "09:15",
         "end": "19:00",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 585,
       "inboundTravel": {
@@ -2687,7 +2686,7 @@
       "timing": {
         "start": "19:10",
         "end": null,
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
@@ -2716,7 +2715,7 @@
       "timing": {
         "start": "10:20",
         "end": null,
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
@@ -2745,7 +2744,7 @@
       "timing": {
         "start": "10:45",
         "end": "11:45",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 60,
       "inboundTravel": {
@@ -2774,7 +2773,7 @@
       "timing": {
         "start": "13:10",
         "end": "14:25",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 75,
       "inboundTravel": {
@@ -2803,7 +2802,7 @@
       "timing": {
         "start": "14:50",
         "end": "16:20",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 90,
       "inboundTravel": {
@@ -2832,7 +2831,7 @@
       "timing": {
         "start": "16:50",
         "end": "19:30",
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": 160,
       "inboundTravel": {
@@ -2861,7 +2860,7 @@
       "timing": {
         "start": "20:50",
         "end": null,
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
@@ -2889,17 +2888,17 @@
       "role": "Спокойное последнее утро и выезд",
       "timing": {
         "start": "08:00",
-        "end": "10:45",
-        "approximate": true
+        "end": "11:00",
+        "approximate": false
       },
-      "durationMinutes": 165,
+      "durationMinutes": 180,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": null,
         "distanceKm": null,
         "status": "none"
       },
-      "note": "Завтрак и расслабон; основные чемоданы собраны заранее. Checkout до 11:00.",
+      "note": "Спокойное последнее утро и checkout; чемоданы уже собраны.",
       "parking": {
         "primaryId": null,
         "primaryOverrides": null,
@@ -2917,9 +2916,9 @@
       "sequence": 1,
       "role": "Короткая остановка в деревне перед обедом",
       "timing": {
-        "start": "11:40",
-        "end": "11:55",
-        "approximate": true
+        "start": "11:55",
+        "end": "12:10",
+        "approximate": false
       },
       "durationMinutes": 15,
       "inboundTravel": {
@@ -2928,7 +2927,7 @@
         "distanceKm": 55,
         "status": "standard"
       },
-      "note": "Небольшая прогулка без экскурсионной программы.",
+      "note": "Короткая прогулка по Fodele без отдельной экскурсионной программы.",
       "parking": {
         "primaryId": null,
         "primaryOverrides": null,
@@ -2946,18 +2945,18 @@
       "sequence": 2,
       "role": "Последний критский обед",
       "timing": {
-        "start": "11:55",
-        "end": "12:55",
-        "approximate": true
+        "start": "12:15",
+        "end": "14:15",
+        "approximate": false
       },
-      "durationMinutes": 60,
+      "durationMinutes": 120,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 5,
         "distanceKm": 1,
         "status": "standard"
       },
-      "note": "Основной вариант — Litinos. План Б: Το Giasemi, если Litinos не подойдёт или будет занят.",
+      "note": "Последний критский обед. Основной вариант — Litinos; план Б — Το Giasemi.",
       "parking": {
         "primaryId": null,
         "primaryOverrides": null,
@@ -2975,9 +2974,9 @@
       "sequence": 3,
       "role": "Возврат автомобиля",
       "timing": {
-        "start": "13:40",
-        "end": "13:55",
-        "approximate": true
+        "start": "15:00",
+        "end": "15:15",
+        "approximate": false
       },
       "durationMinutes": 15,
       "inboundTravel": {
@@ -2986,7 +2985,7 @@
         "distanceKm": 35,
         "status": "standard"
       },
-      "note": "По текущему ваучеру Rental End — 14:00. Не планировать возврат позже без письменного подтверждения GoMega.",
+      "note": "Возврат автомобиля в подтверждённое GoMega время — 15:00.",
       "parking": {
         "primaryId": null,
         "primaryOverrides": null,
@@ -3004,9 +3003,9 @@
       "sequence": 4,
       "role": "Шаттл, регистрация и вылет в Vilnius",
       "timing": {
-        "start": "14:05",
+        "start": "15:25",
         "end": null,
-        "approximate": true
+        "approximate": false
       },
       "durationMinutes": null,
       "inboundTravel": {
@@ -3015,7 +3014,7 @@
         "distanceKm": 2,
         "status": "standard"
       },
-      "note": "Рейс HN 2322 в 17:55; после возврата машины остаётся большой запас времени.",
+      "note": "Шаттл, регистрация и вылет HN 2322 в 17:55.",
       "parking": {
         "primaryId": null,
         "primaryOverrides": null,

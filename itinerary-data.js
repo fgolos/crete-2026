@@ -117,7 +117,6 @@
           "items": [
             "Mochlos, обед: основной вариант — Taverna Mesostrati; запасной — Ta Kochilia. Оба варианта рядом, поэтому смена ресторана не ломает день.",
             "Sitia, ужин: основной вариант — Tavern - Restaurant Me Raki; запасной — To Limani.",
-            "Завтраки 12–15 августа: основной сценарий — дома в Airbnb. Если захочется выйти на завтрак или кофе, ближайший shortlist: Mitsakakis, Bistrot Krema Kanela и Kalamia All Day Beach Bar.",
             "Ориентир на общий ужин с вином для взрослых: около €100–110 с чаевыми."
           ]
         },
@@ -174,6 +173,7 @@
         },
         "food": {
           "items": [
+            "Завтрак: основной сценарий — дома в Airbnb. Если захочется выйти на завтрак или кофе, рядом есть Mitsakakis, Bistrot Krema Kanela и Kalamia All Day Beach Bar.",
             "Toplou Fabrica: local food platter для всей семьи за €8 включён в подтверждённый план.",
             "Поздний обед: основной вариант — Hiona Taverna; запасной — ELENA в Palekastro. Если в Hiona нет подходящего стола или слишком людно, Palekastro остаётся по пути и не ломает маршрут.",
             "После возвращения в Sitia ужин только по аппетиту: основной кандидат — Stin Ygeiá Mas; запасной — To Limani. Жёсткой брони не нужно."
@@ -190,7 +190,7 @@
           ]
         }
       },
-      "mealSummary": "Toplou Fabrica; обед: Hiona / ELENA; ужин по аппетиту: Stin Ygeiá Mas / To Limani",
+      "mealSummary": "завтрак дома или кафе рядом; Toplou Fabrica; обед: Hiona / ELENA; ужин по аппетиту: Stin Ygeiá Mas / To Limani",
       "schedule": {
         "departure": {
           "start": "09:45",
@@ -234,6 +234,7 @@
         },
         "food": {
           "items": [
+            "Завтрак: основной сценарий — дома в Airbnb. Если захочется выйти на завтрак или кофе, рядом есть Mitsakakis, Bistrot Krema Kanela и Kalamia All Day Beach Bar.",
             "Ziros: кофе и короткая остановка.",
             "Поздний обед в Xerokampos: основной вариант — Taverna Kostas; запасной — Tavern Dolphin. Dolphin — практический plan B, если Kostas закрыт или переполнен.",
             "Ужин: Inodion подтверждён на 21:00; если бронь по какой-то причине сорвётся, запасной вариант — Stin Ygeiá Mas. Столы непосредственно у моря в Inodion занимают в порядке живой очереди."
@@ -248,7 +249,7 @@
           ]
         }
       },
-      "mealSummary": "кофе в Ziros; обед: Taverna Kostas / Tavern Dolphin; Inodion 21:00, backup Stin Ygeiá Mas",
+      "mealSummary": "завтрак дома или кафе рядом; кофе в Ziros; обед: Taverna Kostas / Tavern Dolphin; Inodion 21:00, backup Stin Ygeiá Mas",
       "schedule": {
         "departure": {
           "start": "09:30",
@@ -292,6 +293,7 @@
         },
         "food": {
           "items": [
+            "Завтрак: основной сценарий — дома в Airbnb. Если захочется выйти на завтрак или кофе, рядом есть Mitsakakis, Bistrot Krema Kanela и Kalamia All Day Beach Bar.",
             "Долгий обед в Kato Zakros: основной вариант — Nostos; запасной — Anamnesia. Оба находятся у моря, поэтому переход к plan B не требует отдельного переезда.",
             "Ужин в Sitia только если останутся силы и аппетит: основной кандидат — To Limani; запасной — Cretan House KRITIKO SPITI. Жёсткой брони не нужно."
           ]
@@ -305,7 +307,7 @@
           ]
         }
       },
-      "mealSummary": "обед: Nostos / Anamnesia; ужин по желанию: To Limani / KRITIKO SPITI",
+      "mealSummary": "завтрак дома или кафе рядом; обед: Nostos / Anamnesia; ужин по желанию: To Limani / KRITIKO SPITI",
       "schedule": {
         "departure": {
           "start": "09:30",
@@ -351,7 +353,7 @@
         },
         "food": {
           "items": [
-            "09:15–10:30: завтрак дома и завершение сборов в Sitia.",
+            "09:15–10:30: завтрак дома и завершение сборов в Sitia. Если захочется взять кофе или выпечку рядом, можно зайти в Mitsakakis, Bistrot Krema Kanela или Kalamia All Day Beach Bar.",
             "Lastros, ранний обед: основной кандидат — Erotokritos. Для 15 августа обязательно заранее проверить праздничный режим; если ресторан закрыт или переполнен, не теряем время в Lastros и обедаем дальше по маршруту.",
             "Отдельный ресторан на ужин не планируем: основной вечерний план — panigiri. Если до него захочется лёгкой еды или просто заглянуть к старому знакомому месту, можно зайти в Lakis Beach Bar, если кухня в этот день работает."
           ]
@@ -368,7 +370,7 @@
           ]
         }
       },
-      "mealSummary": "завтрак дома; Lastros: Erotokritos или обед дальше по маршруту; вечером panigiri, Lakis Beach Bar по желанию",
+      "mealSummary": "завтрак дома или кофе рядом; Lastros: Erotokritos или обед дальше по маршруту; вечером panigiri, Lakis Beach Bar по желанию",
       "schedule": {
         "departure": {
           "start": "08:30",

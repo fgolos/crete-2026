@@ -1,0 +1,182 @@
+name: Finalize west itinerary
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/finalize-west-itinerary.yml'
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Finalize West Crete plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import json, re
+          from pathlib import Path
+
+          path = Path('itinerary-data.js')
+          text = path.read_text(encoding='utf-8')
+          match = re.search(r'window\.CRETE_DATA = deepFreeze\((\{.*\})\);\s*\}\)\(\);\s*$', text, re.S)
+          if not match:
+              raise SystemExit('Could not locate CRETE_DATA payload')
+          data = json.loads(match.group(1))
+
+          days = data['days']
+          visits = data['visits']
+          routes = data['routes']
+
+          # GoMega confirmed rental extension to 15:00.
+          data['trip']['logistics']['carRental']['returnDeadline'] = '2026-08-22T15:00:00+03:00'
+
+          # Western plan is now considered final: exact planned times/distances in the guide.
+          west_ids = [f'2026-08-{d:02d}' for d in range(15, 23)]
+          for day_id in west_ids:
+              day = days[day_id]
+              departure = day.get('schedule', {}).get('departure')
+              finish = day.get('schedule', {}).get('finish')
+              if isinstance(departure, dict):
+                  departure['approximate'] = False
+              if isinstance(finish, dict):
+                  finish['approximate'] = False
+              if isinstance(day.get('travelTotals'), dict):
+                  day['travelTotals']['approximate'] = False
+              for vid in day.get('visitIds', []):
+                  visit = visits.get(vid)
+                  if visit and isinstance(visit.get('timing'), dict):
+                      visit['timing']['approximate'] = False
+
+          # Clean verbal approximation caveats from West Crete copy.
+          replacements = {
+              'Начало дня около 12:00.': 'Начало дня в 12:00.',
+              'Akrotiri — примерно 175–180 км и около четырёх часов транспортного времени.': 'Полный маршрут Akrotiri — 182 км и 4 ч 05 мин транспортного времени.',
+              'Полный вариант — дальний день: ориентировочно около 180 км и примерно четыре часа транспортного времени.': 'Полный вариант — дальний день: 182 км и 4 ч 05 мин транспортного времени.',
+              'Маршрут по времени приблизительный; любую промежуточную деревню можно пропустить, если день начинает превращаться в чек-лист.': 'Любую промежуточную деревню можно пропустить, если день начинает превращаться в чек-лист.',
+              'Конкретную деревню, парковку и необходимость бронирования стола уточнить ближе к дате. Вечерний пробег пока ориентировочный.': 'Конкретную деревню, парковку и необходимость бронирования стола уточнить ближе к дате.',
+          }
+
+          def clean_value(value):
+              if isinstance(value, str):
+                  value = replacements.get(value, value)
+                  value = re.sub(r'\bоколо\s+(?=\d)', '', value, flags=re.I)
+                  value = re.sub(r'\bпримерно\s+(?=\d)', '', value, flags=re.I)
+                  value = re.sub(r'\bориентировочно\s+(?=\d)', '', value, flags=re.I)
+                  return value
+              if isinstance(value, list):
+                  return [clean_value(v) for v in value]
+              if isinstance(value, dict):
+                  return {k: clean_value(v) for k, v in value.items()}
+              return value
+
+          for day_id in west_ids:
+              days[day_id] = clean_value(days[day_id])
+              for vid in days[day_id].get('visitIds', []):
+                  if vid in visits:
+                      visits[vid] = clean_value(visits[vid])
+
+          # 22 August: final confirmed schedule with 11:00 checkout departure and 15:00 GoMega arrival.
+          d = '2026-08-22'
+          day = days[d]
+          day['sections']['essentials']['items'] = [
+              'Утро оставить спокойным: завтрак и расслабон без больших сборов.',
+              'В 11:00 выехать из Platanes и заехать в Fodele на короткую прогулку и последний критский обед.',
+              'Основной ресторан — Litinos; план Б — Το Giasemi.',
+              'В 15:00 вернуть автомобиль в GoMega; рейс HN 2322 вылетает в 17:55.'
+          ]
+          day['sections']['food']['items'] = [
+              'Нормальный завтрак дома.',
+              'Обед в Litinos в Fodele; Το Giasemi — запасной вариант.',
+              'После возврата машины при необходимости только напиток или лёгкий перекус в аэропорту.'
+          ]
+          day['sections']['practical']['items'] = [
+              'Checkout из Pomegranate Garden Villa — до 11:00.',
+              'GoMega подтвердили продление аренды до 15:00.',
+              'Перед выездом проверить документы, ручную кладь, холодильник и зарядки.'
+          ]
+          day['schedule']['departure'] = {'start':'11:00','end':None,'approximate':False}
+          day['schedule']['carReturnDeadline'] = '15:00'
+          day['travelTotals'] = {'drivingDurationMinutes':105,'distanceKm':91,'approximate':False}
+
+          ids = day['visitIds']
+          expected = [
+              f'{d}-pomegranate-garden-villa',
+              f'{d}-fodele-village',
+              f'{d}-litinos-fodele',
+              f'{d}-gomega-car-rentals-heraklion',
+              f'{d}-heraklion-international-airport-n-kazantzakis',
+          ]
+          if ids != expected:
+              raise SystemExit(f'Unexpected Aug 22 visit structure: {ids}')
+
+          updates = {
+              expected[0]: ('08:00','11:00',180, 'Спокойное последнее утро и checkout; чемоданы уже собраны.'),
+              expected[1]: ('11:55','12:10',15, 'Короткая прогулка по Fodele без отдельной экскурсионной программы.'),
+              expected[2]: ('12:15','14:15',120, 'Последний критский обед. Основной вариант — Litinos; план Б — Το Giasemi.'),
+              expected[3]: ('15:00','15:15',15, 'Возврат автомобиля в подтверждённое GoMega время — 15:00.'),
+              expected[4]: ('15:25',None,None, 'Шаттл, регистрация и вылет HN 2322 в 17:55.'),
+          }
+          for vid, (start, end, duration, note) in updates.items():
+              visits[vid]['timing'] = {'start':start,'end':end,'approximate':False}
+              visits[vid]['durationMinutes'] = duration
+              visits[vid]['note'] = note
+
+          # Preserve exact known leg values and align the last-day timeline.
+          visits[expected[1]]['inboundTravel'].update({'durationMinutes':55,'distanceKm':55,'status':'standard'})
+          visits[expected[2]]['inboundTravel'].update({'durationMinutes':5,'distanceKm':1,'status':'standard'})
+          visits[expected[3]]['inboundTravel'].update({'durationMinutes':45,'distanceKm':35,'status':'standard'})
+          visits[expected[4]]['inboundTravel'].update({'durationMinutes':10,'distanceKm':2,'status':'standard'})
+
+          routes['route-' + d]['visitIds'] = ids
+
+          payload = json.dumps(data, ensure_ascii=False, indent=2)
+          path.write_text(text[:match.start(1)] + payload + text[match.end(1):], encoding='utf-8')
+
+          sw = Path('service-worker.js')
+          sw_text = sw.read_text(encoding='utf-8')
+          sw_text, count = re.subn(r"const CACHE_VERSION = 'crete-2026-v(\d+)';", lambda m: f"const CACHE_VERSION = 'crete-2026-v{int(m.group(1)) + 1}';", sw_text, count=1)
+          if count != 1:
+              raise SystemExit('Could not bump service worker cache')
+          sw.write_text(sw_text, encoding='utf-8')
+          PY
+
+      - name: Validate final itinerary
+        run: |
+          node --check itinerary-data.js
+          node - <<'NODE'
+          global.window = {};
+          require('./itinerary-data.js');
+          require('./data-validation.js');
+          const result = window.CRETE_VALIDATION_API.validate(window.CRETE_DATA);
+          if (!result.valid) {
+            console.error(result.errors.join('\n'));
+            process.exit(1);
+          }
+          const west = Object.values(window.CRETE_DATA.days).filter(day => day.id >= '2026-08-15');
+          for (const day of west) {
+            if (day.schedule?.departure?.approximate) throw new Error(`${day.id}: departure still approximate`);
+            if (day.schedule?.finish?.approximate) throw new Error(`${day.id}: finish still approximate`);
+            if (day.travelTotals?.approximate) throw new Error(`${day.id}: totals still approximate`);
+          }
+          if (window.CRETE_DATA.trip.logistics.carRental.returnDeadline !== '2026-08-22T15:00:00+03:00') throw new Error('Rental deadline not updated');
+          console.log('Validated final West Crete itinerary');
+          NODE
+
+      - name: Commit and remove one-shot workflow
+        run: |
+          rm .github/workflows/finalize-west-itinerary.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add itinerary-data.js service-worker.js .github/workflows/finalize-west-itinerary.yml
+          git commit -m 'Finalize West Crete itinerary'
+          git push

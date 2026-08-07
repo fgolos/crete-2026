@@ -41,6 +41,9 @@ for (const story of stories) {
 if (!generatorSource.includes('["\']?id["\']?')) {
   throw new Error('Audio generator does not support quoted story object keys');
 }
+if (!generatorSource.includes('CRETE_PHONEMES') || !generatorSource.includes('<phoneme alphabet=\"ipa\"')) {
+  throw new Error('Audio generator does not support curated SSML phoneme overrides');
+}
 
 const sample = stories[0];
 let updated = replaceStoryField(storiesSource, sample.id, 'audio', `null|["'][^"']*["']`, `'audio/contract-test.mp3'`);

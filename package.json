@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "audio:dry-run": "node scripts/generate-audio.mjs --dry-run",
+    "audio:stress-audit": "node scripts/check-speech-overrides.mjs",
     "audio:preview": "node scripts/generate-audio.mjs --preview --story mochlos",
     "audio:generate": "node scripts/generate-audio.mjs"
   },

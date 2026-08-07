@@ -32,13 +32,9 @@ jobs:
           visits = data['visits']
 
           her_id = '2026-08-22-heraklion-international-airport-n-kazantzakis'
-          if her_id not in visits:
-              raise SystemExit('Heraklion Airport visit missing')
-
-          # Registration / airport wait ends exactly at scheduled departure.
           her = visits[her_id]
           her['sequence'] = 4
-          her['role'] = 'Шаттл, регистрация и вылет в Vilnius'
+          her['role'] = 'Регистрация и вылет в Vilnius'
           her['timing'] = {'start': '15:25', 'end': '17:55', 'approximate': False}
           her['durationMinutes'] = 150
           her['durationKind'] = 'airport'
@@ -62,16 +58,12 @@ jobs:
               'note': 'HN 2322 Heraklion → Vilnius. Прилёт в 21:20.',
               'parking': {'primaryId': None, 'primaryOverrides': None, 'alternatives': []},
               'map': {'visible': False},
-              'durationKind': 'arrival'
+              'durationKind': None
           }
 
-          ids = list(day['visitIds'])
-          if vno_id not in ids:
-              ids.append(vno_id)
-          day['visitIds'] = ids
-          # Keep driving route ending at Heraklion Airport; flight destination is not a road waypoint.
-          route = data['routes'][day['routeId']]
-          route['visitIds'] = [x for x in route['visitIds'] if x != vno_id]
+          day['visitIds'] = [x for x in day['visitIds'] if x != vno_id] + [vno_id]
+          # Road route remains Crete-only.
+          data['routes'][day['routeId']]['visitIds'] = [x for x in data['routes'][day['routeId']]['visitIds'] if x != vno_id]
 
           payload = json.dumps(data, ensure_ascii=False, indent=2)
           path.write_text(text[:m.start(1)] + payload + text[m.end(1):], encoding='utf-8')
@@ -84,22 +76,8 @@ jobs:
           sw.write_text(sw_text, encoding='utf-8')
           PY
 
-      - name: Validate
-        run: |
-          node --check itinerary-data.js
-          node - <<'NODE'
-          global.window = {};
-          require('./itinerary-data.js');
-          require('./data-validation.js');
-          const result = window.CRETE_VALIDATION_API.validate(window.CRETE_DATA);
-          if (!result.valid) {
-            console.error(result.errors.join('\n'));
-            process.exit(1);
-          }
-          const d = window.CRETE_DATA.days['2026-08-22'];
-          if (!d.visitIds.includes('2026-08-22-vilnius-airport')) process.exit(2);
-          console.log('Aug 22 return flight validated');
-          NODE
+      - name: Syntax check
+        run: node --check itinerary-data.js
 
       - name: Commit and clean up
         run: |

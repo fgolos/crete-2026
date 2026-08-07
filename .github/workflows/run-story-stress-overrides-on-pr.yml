@@ -1,0 +1,60 @@
+name: Run story stress overrides on PR
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.head_ref == 'feature/story-stress-overrides'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/story-stress-overrides
+          fetch-depth: 0
+
+      - name: Execute staged patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          import textwrap
+
+          workflow = Path('.github/workflows/apply-story-stress-overrides.yml').read_text(encoding='utf-8')
+          start_marker = "          python3 <<'PY'\n"
+          end_marker = "\n          PY\n\n      - name: Validate implementation"
+          start = workflow.index(start_marker) + len(start_marker)
+          end = workflow.index(end_marker, start)
+          code = textwrap.dedent(workflow[start:end])
+          exec(compile(code, 'staged-story-stress-patch.py', 'exec'), {})
+          PY
+
+      - name: Validate implementation
+        run: |
+          node --check pronunciations-data.js
+          node --check scripts/generate-audio.mjs
+          node --check scripts/check-audio-source-contract.mjs
+          node --check scripts/check-speech-overrides.mjs
+          node scripts/check-speech-overrides.mjs
+          node scripts/check-audio-source-contract.mjs
+          node scripts/validate-itinerary.mjs
+          node scripts/check-runtime-contract.mjs
+          node scripts/generate-audio.mjs --story panigiri-august15 --print-ssml | grep -q '<phoneme alphabet="ipa"'
+
+      - name: Commit implementation
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/apply-story-stress-overrides.yml
+          rm -f .github/workflows/run-story-stress-overrides-on-pr.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Add SSML stress overrides for story audio'
+          git push origin feature/story-stress-overrides

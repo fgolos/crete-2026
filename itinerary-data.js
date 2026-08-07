@@ -727,10 +727,12 @@
     },
     "2026-08-22": {
       "id": "2026-08-22",
-      "title": "Расслабленное утро и вылет",
+      "title": "Fodele, последний критский обед и вылет",
       "status": "confirmed",
       "visitIds": [
         "2026-08-22-pomegranate-garden-villa",
+        "2026-08-22-fodele-village",
+        "2026-08-22-litinos-fodele",
         "2026-08-22-gomega-car-rentals-heraklion",
         "2026-08-22-heraklion-international-airport-n-kazantzakis"
       ],
@@ -739,31 +741,33 @@
         "essentials": {
           "items": [
             "Утро оставить спокойным: завтрак и расслабон без больших сборов.",
-            "Выезд из Platanes около 10:30–10:45.",
-            "Автомобиль вернуть до 14:00; рейс HN 2322 вылетает в 17:55."
+            "После checkout заехать в Fodele на короткую прогулку и последний критский обед.",
+            "Основной ресторан — Litinos; план Б — Το Giasemi.",
+            "Автомобиль вернуть до 14:00 по текущему ваучеру; рейс HN 2322 вылетает в 17:55."
           ]
         },
         "food": {
           "items": [
             "Нормальный завтрак дома.",
-            "Перекус после возврата машины или в аэропорту."
+            "Обед в Litinos в Fodele; Το Giasemi — запасной вариант.",
+            "После возврата машины при необходимости только напиток или лёгкий перекус в аэропорту."
           ]
         },
         "practical": {
           "items": [
-            "Основные сборы закончены утром 21 августа.",
-            "Перед выездом проверить только документы, ручную кладь, холодильник и зарядки.",
-            "Не планировать остановки и достопримечательности по пути в аэропорт.",
-            "Накануне уточнить у GoMega точную процедуру возврата."
+            "Checkout из Pomegranate Garden Villa — до 11:00.",
+            "По ваучеру GoMega Rental End — 14:00, поэтому ориентир прибытия около 13:40–13:45.",
+            "Если GoMega письменно согласует возврат позже, можно сдвинуть Fodele и обед без изменения общей логики дня.",
+            "Перед выездом проверить документы, ручную кладь, холодильник и зарядки."
           ]
         }
       },
-      "mealSummary": "завтрак дома; перекус в аэропорту",
+      "mealSummary": "завтрак дома; обед в Litinos (план Б — Το Giasemi)",
       "schedule": {
         "departure": {
-          "start": "10:30",
-          "end": "10:45",
-          "approximate": false
+          "start": "10:45",
+          "end": null,
+          "approximate": true
         },
         "finish": null,
         "carReturnDeadline": "14:00",
@@ -773,8 +777,8 @@
         }
       },
       "travelTotals": {
-        "drivingDurationMinutes": 75,
-        "distanceKm": 80,
+        "drivingDurationMinutes": 100,
+        "distanceKm": 93,
         "approximate": true
       },
       "swimming": null
@@ -1159,6 +1163,36 @@
         "lon": 24.60925
       },
       "navigationQuery": "Gerakari, Amari, Crete, Greece",
+      "transportMode": "driving"
+    },
+    "fodele-village": {
+      "id": "fodele-village",
+      "name": "Fodele",
+      "coordinates": {
+        "lat": null,
+        "lon": null
+      },
+      "navigationQuery": "Fodele Village, Crete, Greece",
+      "transportMode": "driving"
+    },
+    "litinos-fodele": {
+      "id": "litinos-fodele",
+      "name": "Litinos",
+      "coordinates": {
+        "lat": null,
+        "lon": null
+      },
+      "navigationQuery": "Litinos, Fodele, Crete, Greece",
+      "transportMode": "driving"
+    },
+    "to-giasemi-fodele": {
+      "id": "to-giasemi-fodele",
+      "name": "Το Giasemi",
+      "coordinates": {
+        "lat": null,
+        "lon": null
+      },
+      "navigationQuery": "Το Giasemi, Fodele, Crete, Greece",
       "transportMode": "driving"
     }
   },
@@ -1947,93 +1981,6 @@
         "visible": true
       },
       "durationKind": "finish"
-    },
-    "2026-08-22-pomegranate-garden-villa": {
-      "id": "2026-08-22-pomegranate-garden-villa",
-      "dayId": "2026-08-22",
-      "placeId": "pomegranate-garden-villa",
-      "sequence": 0,
-      "role": "Выселение и выезд",
-      "timing": {
-        "start": "10:30",
-        "end": "10:45",
-        "approximate": false
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": null,
-        "distanceKm": null,
-        "status": "none"
-      },
-      "note": "Выселение до 11:00; выезжаем раньше предельного времени.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "start"
-    },
-    "2026-08-22-gomega-car-rentals-heraklion": {
-      "id": "2026-08-22-gomega-car-rentals-heraklion",
-      "dayId": "2026-08-22",
-      "placeId": "gomega-car-rentals-heraklion",
-      "sequence": 1,
-      "role": "Дозаправка по пути, возврат автомобиля и шаттл",
-      "timing": {
-        "start": "12:15",
-        "end": "13:30",
-        "approximate": false
-      },
-      "durationMinutes": 75,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 75,
-        "distanceKm": 80,
-        "status": "standard"
-      },
-      "note": "Точный порядок возврата подтвердить у прокатчика при получении машины.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": null
-    },
-    "2026-08-22-heraklion-international-airport-n-kazantzakis": {
-      "id": "2026-08-22-heraklion-international-airport-n-kazantzakis",
-      "dayId": "2026-08-22",
-      "placeId": "heraklion-international-airport-n-kazantzakis",
-      "sequence": 2,
-      "role": "Багаж, регистрация и вылет",
-      "timing": {
-        "start": "13:30",
-        "end": "17:55",
-        "approximate": true
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "flight",
-        "durationMinutes": null,
-        "distanceKm": null,
-        "status": "rental-shuttle"
-      },
-      "note": "Рейс HN 2322 вылетает в 17:55.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "airport"
     },
     "2026-08-15-panigiri-village-tbd": {
       "id": "2026-08-15-panigiri-village-tbd",
@@ -2933,6 +2880,151 @@
         "visible": true
       },
       "durationKind": "finish"
+    },
+    "2026-08-22-pomegranate-garden-villa": {
+      "id": "2026-08-22-pomegranate-garden-villa",
+      "dayId": "2026-08-22",
+      "placeId": "pomegranate-garden-villa",
+      "sequence": 0,
+      "role": "Спокойное последнее утро и выезд",
+      "timing": {
+        "start": "08:00",
+        "end": "10:45",
+        "approximate": true
+      },
+      "durationMinutes": 165,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": null,
+        "distanceKm": null,
+        "status": "none"
+      },
+      "note": "Завтрак и расслабон; основные чемоданы собраны заранее. Checkout до 11:00.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-22-fodele-village": {
+      "id": "2026-08-22-fodele-village",
+      "dayId": "2026-08-22",
+      "placeId": "fodele-village",
+      "sequence": 1,
+      "role": "Короткая остановка в деревне перед обедом",
+      "timing": {
+        "start": "11:40",
+        "end": "11:55",
+        "approximate": true
+      },
+      "durationMinutes": 15,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 55,
+        "distanceKm": 55,
+        "status": "standard"
+      },
+      "note": "Небольшая прогулка без экскурсионной программы.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-22-litinos-fodele": {
+      "id": "2026-08-22-litinos-fodele",
+      "dayId": "2026-08-22",
+      "placeId": "litinos-fodele",
+      "sequence": 2,
+      "role": "Последний критский обед",
+      "timing": {
+        "start": "11:55",
+        "end": "12:55",
+        "approximate": true
+      },
+      "durationMinutes": 60,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 5,
+        "distanceKm": 1,
+        "status": "standard"
+      },
+      "note": "Основной вариант — Litinos. План Б: Το Giasemi, если Litinos не подойдёт или будет занят.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-22-gomega-car-rentals-heraklion": {
+      "id": "2026-08-22-gomega-car-rentals-heraklion",
+      "dayId": "2026-08-22",
+      "placeId": "gomega-car-rentals-heraklion",
+      "sequence": 3,
+      "role": "Возврат автомобиля",
+      "timing": {
+        "start": "13:40",
+        "end": "13:55",
+        "approximate": true
+      },
+      "durationMinutes": 15,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 45,
+        "distanceKm": 35,
+        "status": "standard"
+      },
+      "note": "По текущему ваучеру Rental End — 14:00. Не планировать возврат позже без письменного подтверждения GoMega.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-22-heraklion-international-airport-n-kazantzakis": {
+      "id": "2026-08-22-heraklion-international-airport-n-kazantzakis",
+      "dayId": "2026-08-22",
+      "placeId": "heraklion-international-airport-n-kazantzakis",
+      "sequence": 4,
+      "role": "Шаттл, регистрация и вылет в Vilnius",
+      "timing": {
+        "start": "14:05",
+        "end": null,
+        "approximate": true
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "rental-shuttle",
+        "durationMinutes": 10,
+        "distanceKm": 2,
+        "status": "standard"
+      },
+      "note": "Рейс HN 2322 в 17:55; после возврата машины остаётся большой запас времени.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": "airport"
     }
   },
   "routes": {
@@ -2994,15 +3086,6 @@
         "2026-08-15-mathena-olive-tree-lastros",
         "2026-08-15-pomegranate-garden-villa",
         "2026-08-15-panigiri-village-tbd"
-      ]
-    },
-    "route-2026-08-22": {
-      "id": "route-2026-08-22",
-      "dayId": "2026-08-22",
-      "mode": "driving",
-      "visitIds": [
-        "2026-08-22-pomegranate-garden-villa",
-        "2026-08-22-gomega-car-rentals-heraklion"
       ]
     },
     "route-2026-08-16": {
@@ -3069,6 +3152,17 @@
         "2026-08-21-pomegranate-garden-villa-start",
         "2026-08-21-platanes-beach",
         "2026-08-21-pomegranate-garden-villa-end"
+      ]
+    },
+    "route-2026-08-22": {
+      "id": "route-2026-08-22",
+      "dayId": "2026-08-22",
+      "visitIds": [
+        "2026-08-22-pomegranate-garden-villa",
+        "2026-08-22-fodele-village",
+        "2026-08-22-litinos-fodele",
+        "2026-08-22-gomega-car-rentals-heraklion",
+        "2026-08-22-heraklion-international-airport-n-kazantzakis"
       ]
     }
   },

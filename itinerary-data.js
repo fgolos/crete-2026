@@ -42,7 +42,7 @@
         "category": "Station Wagon Manual",
         "pickupAt": "2026-08-11T10:00:00+03:00",
         "pickupApproximate": true,
-        "returnDeadline": "2026-08-22T15:00:00+03:00"
+        "returnDeadline": "2026-08-22T16:00:00+03:00"
       },
       "accommodations": [
         {
@@ -406,7 +406,7 @@
           "items": [
             "Начало дня в 12:00.",
             "Rethymno — обед, знакомый город и море без гонки по достопримечательностям.",
-            "Если покупок немного и не жарко — вернуться в Platanes пешком вдоль пляжа."
+            "После Rethymno возвращаемся в Platanes автобусом; если ждать неудобно — taxi."
           ]
         },
         "food": {
@@ -419,7 +419,7 @@
           "items": [
             "Логичнее ехать в город автобусом.",
             "Керамические лавки можно посмотреть в Old Town вместо повторной поездки в Margarites.",
-            "Пеший возврат зависит от жары, ветра и количества покупок."
+            "Не планируем 6 км пешком после Rethymno: автобус — основной вариант, taxi — запасной."
           ]
         }
       },
@@ -587,6 +587,7 @@
         },
         "practical": {
           "items": [
+            "В 10:45 приезжаем к Parking 4 Martires; сам Organic Farmers’ Market начинается в 11:00.",
             "Решение продолжать ли после рынка на Akrotiri принимаем на месте по настроению, погоде и покупкам.",
             "Если купили много скоропортящихся овощей и фруктов, разумнее вернуться домой и убрать их в холодильник.",
             "Полный вариант — дальний день: 182 км и 4 ч 05 мин транспортного времени.",
@@ -644,6 +645,8 @@
         },
         "practical": {
           "items": [
+            "Основная парковка для Laiki — StS - Old Town Parking; Parking 4 Martires в четверг занят самим рынком.",
+            "Одежду и другие термостойкие покупки можно оставить в багажнике, но продукты и оливковое масло не оставляем в раскалённой машине.",
             "Margarites и Arkadi Monastery исключены: семья уже была.",
             "Вечером начать сборы и убрать большую часть вещей.",
             "Не оставлять упаковку чемоданов на 22 августа."
@@ -745,7 +748,7 @@
             "Утро оставить спокойным: завтрак и расслабон без больших сборов.",
             "В 11:00 выехать из Platanes и заехать в Fodele на короткую прогулку и последний критский обед.",
             "Основной ресторан — Litinos; план Б — Το Giasemi.",
-            "В 15:00 вернуть автомобиль в GoMega; рейс HN 2322 вылетает в 17:55."
+            "Планируем прибыть в GoMega к 15:00; контракт аренды продлён до 16:00. Рейс HN 2322 вылетает в 17:55."
           ]
         },
         "food": {
@@ -758,7 +761,7 @@
         "practical": {
           "items": [
             "Checkout из Pomegranate Garden Villa — до 11:00.",
-            "GoMega подтвердили продление аренды до 15:00.",
+            "GoMega подтвердили продление аренды до 16:00; плановое прибытие на возврат — 15:00.",
             "Перед выездом проверить документы, ручную кладь, холодильник и зарядки."
           ]
         }
@@ -771,7 +774,7 @@
           "approximate": false
         },
         "finish": null,
-        "carReturnDeadline": "15:00",
+        "carReturnDeadline": "16:00",
         "flight": {
           "number": "HN 2322",
           "departureTime": "17:55"
@@ -2075,7 +2078,7 @@
       "dayId": "2026-08-16",
       "placeId": "platanes-beach",
       "sequence": 2,
-      "role": "Пляж и возможный пеший возврат вдоль моря",
+      "role": "Пляж после возвращения из Rethymno",
       "timing": {
         "start": "17:30",
         "end": "20:00",
@@ -2083,12 +2086,12 @@
       },
       "durationMinutes": 150,
       "inboundTravel": {
-        "mode": "walking",
-        "durationMinutes": 75,
-        "distanceKm": 6,
+        "mode": "transit",
+        "durationMinutes": 25,
+        "distanceKm": 7,
         "status": "standard"
       },
-      "note": "Пешком только если не накупили тележку сувениров.",
+      "note": "Из Rethymno возвращаемся автобусом; если ожидание неудобное — taxi. Плановый старт пляжа остаётся 17:30.",
       "parking": {
         "primaryId": null,
         "primaryOverrides": null,
@@ -2523,9 +2526,9 @@
         "distanceKm": 8,
         "status": "standard"
       },
-      "note": "Приехать пораньше на машине; майки и оливковое масло смогут ждать в машине.",
+      "note": "Приехать пораньше и оставить машину в StS - Old Town Parking. Одежду и термостойкие покупки можно оставить в багажнике; продукты и оливковое масло в жаркой машине не оставлять.",
       "parking": {
-        "primaryId": null,
+        "primaryId": "rethymno-old-town-parking-sts",
         "primaryOverrides": null,
         "alternatives": []
       },
@@ -2744,20 +2747,20 @@
       "sequence": 1,
       "role": "Organic Farmers’ Market",
       "timing": {
-        "start": "10:45",
+        "start": "11:00",
         "end": "11:45",
         "approximate": false
       },
-      "durationMinutes": 60,
+      "durationMinutes": 45,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": 25,
         "distanceKm": 8,
         "status": "standard"
       },
-      "note": "Рынок желательный. После него по настроению можно отменить дальнюю часть дня, вернуться домой и тюленить на Platanes Beach.",
+      "note": "Приехать к Parking 4 Martires примерно в 10:45, припарковаться и дойти до рынка; торговля начинается в 11:00. После рынка по настроению можно отменить дальнюю часть дня и вернуться на Platanes Beach.",
       "parking": {
-        "primaryId": null,
+        "primaryId": "rethymno-4-martires",
         "primaryOverrides": null,
         "alternatives": []
       },
@@ -2987,7 +2990,7 @@
         "distanceKm": 35,
         "status": "standard"
       },
-      "note": "Возврат автомобиля в подтверждённое GoMega время — 15:00.",
+      "note": "Планируем прибыть в GoMega к 15:00. Контракт аренды продлён до 16:00, поэтому остаётся часовой запас до договорного срока возврата.",
       "parking": {
         "primaryId": null,
         "primaryOverrides": null,
@@ -3196,6 +3199,76 @@
     }
   },
   "parkingLocations": {
+    "rethymno-4-martires": {
+      "id": "rethymno-4-martires",
+      "name": "Parking 4 Martires",
+      "coordinates": {
+        "lat": 35.36615,
+        "lon": 24.47453
+      },
+      "navigationQuery": "35.36615,24.47453",
+      "category": "municipal",
+      "payment": {
+        "type": "paid"
+      },
+      "reliability": "high",
+      "walking": {
+        "durationMinutes": 4
+      },
+      "status": "recommended",
+      "summary": "Основная парковка для Wednesday Organic Farmers’ Market у Municipal Garden.",
+      "priceNote": "Платная; актуальный тариф проверить при въезде.",
+      "crowdingNote": "В среду к открытию рынка может заполняться; приехать примерно к 10:45.",
+      "notes": [
+        {
+          "type": "general",
+          "text": "Подходит для Organic Farmers’ Market в среду."
+        },
+        {
+          "type": "general",
+          "text": "В четверг эту парковку занимает Laiki Market, поэтому для Thursday Laiki её не использовать."
+        }
+      ],
+      "verification": {
+        "date": "2026-08-07",
+        "source": "manual"
+      }
+    },
+    "rethymno-old-town-parking-sts": {
+      "id": "rethymno-old-town-parking-sts",
+      "name": "StS - Old Town Parking",
+      "coordinates": {
+        "lat": 35.3711,
+        "lon": 24.4735
+      },
+      "navigationQuery": "Ioannou Melissinou 17, Rethymno 741 31, Greece",
+      "category": "private",
+      "payment": {
+        "type": "paid"
+      },
+      "reliability": "medium",
+      "walking": {
+        "durationMinutes": 10
+      },
+      "status": "recommended",
+      "summary": "Основная парковка для Thursday Laiki, когда Parking 4 Martires занят рынком.",
+      "priceNote": "Платная; актуальный тариф проверить на месте.",
+      "crowdingNote": "В четверг утром возможна повышенная загрузка из-за Laiki; приезжаем рано.",
+      "notes": [
+        {
+          "type": "general",
+          "text": "После парковки идти пешком к Laiki у Municipal Garden."
+        },
+        {
+          "type": "general",
+          "text": "Если парковка заполнена, не кружить вокруг рынка: использовать резервную парковку западнее/у Marina по ситуации."
+        }
+      ],
+      "verification": {
+        "date": "2026-08-07",
+        "source": "manual"
+      }
+    },
     "heraklion-airport-gomega": {
       "id": "heraklion-airport-gomega",
       "name": "GoMega pickup / airport meeting point",

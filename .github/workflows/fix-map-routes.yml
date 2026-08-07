@@ -1,0 +1,155 @@
+name: Fix itinerary map routes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-map-routes.yml'
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Fix map data and routing behavior
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import json, re
+          from pathlib import Path
+
+          # ----- itinerary data -----
+          path = Path('itinerary-data.js')
+          text = path.read_text(encoding='utf-8')
+          match = re.search(r'window\.CRETE_DATA = deepFreeze\((\{.*\})\);\s*\}\)\(\);\s*$', text, re.S)
+          if not match:
+              raise SystemExit('Could not locate CRETE_DATA payload')
+          data = json.loads(match.group(1))
+          places = data['places']
+          days = data['days']
+          routes = data['routes']
+
+          # Exact beach access point supplied by the user.
+          places['platanes-beach']['coordinates'] = {
+              'lat': 35.371877547839446,
+              'lon': 24.52974075282963,
+          }
+          places['platanes-beach']['navigationQuery'] = '35.371877547839446,24.52974075282963'
+
+          # Kouzina EPE: Google Maps location linked from the restaurant's official contact page.
+          places['kouzina-epe']['coordinates'] = {
+              'lat': 35.5157572,
+              'lon': 24.0214879,
+          }
+          places['kouzina-epe']['navigationQuery'] = 'Splantzia Square 2, Chania 73132, Greece'
+
+          # Fodele village center. Litinos is within ~0.2 km of the village; navigationQuery remains
+          # the named business so external navigation resolves the exact entrance.
+          places['fodele-village']['coordinates'] = {
+              'lat': 35.382542263684506,
+              'lon': 24.958276748657227,
+          }
+          places['fodele-village']['navigationQuery'] = 'Fodele, Heraklion, Crete, Greece'
+          places['litinos-fodele']['coordinates'] = {
+              'lat': 35.3833,
+              'lon': 24.9583,
+          }
+          places['litinos-fodele']['navigationQuery'] = 'Litinos, Kastelianakis, Fodele 71500, Crete, Greece'
+          places['to-giasemi-fodele']['coordinates'] = {
+              'lat': 35.382542263684506,
+              'lon': 24.958276748657227,
+          }
+          places['to-giasemi-fodele']['navigationQuery'] = 'Το Giasemi, Fodele 71500, Crete, Greece'
+
+          # 15 Aug: keep the flexible panigiri in the schedule, but exclude its unknown location
+          # from the road route until the village is chosen.
+          d = '2026-08-15'
+          routes[days[d]['routeId']]['visitIds'] = [
+              vid for vid in days[d]['visitIds']
+              if data['visits'][vid]['placeId'] != 'panigiri-village-tbd'
+          ]
+
+          # 19 and 22 Aug: all scheduled concrete stops should participate in the route.
+          for d in ('2026-08-19', '2026-08-22'):
+              routes[days[d]['routeId']]['visitIds'] = list(days[d]['visitIds'])
+
+          payload = json.dumps(data, ensure_ascii=False, indent=2)
+          path.write_text(text[:match.start(1)] + payload + text[match.end(1):], encoding='utf-8')
+
+          # ----- runtime routing robustness -----
+          runtime = Path('app-runtime.js')
+          rt = runtime.read_text(encoding='utf-8')
+
+          old = '''  function dayRoutePoints(day) {\n    return day.routeVisitIds\n      .map(visitId => day.stops.find(stop => stop.id === visitId))\n      .filter(Boolean)\n      .map(getDrivingCoordinates);\n  }\n\n  function visiblePartStops(day) {\n    return day.stops.filter(stop => stop.mapVisible !== false);\n  }\n\n  async function fetchRoadRouteCoordinates(day) {\n    const routePoints = dayRoutePoints(day);\n    if (routePoints.length < 2) return routePoints;\n'''
+          new = '''  function dayRouteStops(day) {\n    return day.routeVisitIds\n      .map(visitId => day.stops.find(stop => stop.id === visitId))\n      .filter(Boolean)\n      .filter(stop => {\n        const [lat, lon] = getDrivingCoordinates(stop);\n        return Number.isFinite(lat) && Number.isFinite(lon);\n      });\n  }\n\n  function dayRoutePoints(day) {\n    return dayRouteStops(day).map(getDrivingCoordinates);\n  }\n\n  function visiblePartStops(day) {\n    return day.stops.filter(stop =>\n      stop.mapVisible !== false && Number.isFinite(stop.lat) && Number.isFinite(stop.lon)\n    );\n  }\n\n  async function fetchRoadRouteCoordinates(day) {\n    const routeStops = dayRouteStops(day);\n    const routePoints = routeStops.map(getDrivingCoordinates);\n    if (routePoints.length < 2) return routePoints;\n\n    // If the day has no driving legs (for example the protected Platanes beach days),\n    // draw the simple direct path instead of asking the driving router to invent a road detour.\n    const hasDrivingLeg = routeStops.slice(1).some(stop => stop.mode === undefined);\n    if (!hasDrivingLeg) return routePoints;\n'''
+          if old not in rt:
+              raise SystemExit('Expected routing block not found in app-runtime.js')
+          rt = rt.replace(old, new, 1)
+          runtime.write_text(rt, encoding='utf-8')
+
+          # ----- PWA cache -----
+          sw = Path('service-worker.js')
+          sw_text = sw.read_text(encoding='utf-8')
+          sw_text, count = re.subn(
+              r"const CACHE_VERSION = 'crete-2026-v(\d+)';",
+              lambda m: f"const CACHE_VERSION = 'crete-2026-v{int(m.group(1)) + 1}';",
+              sw_text,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit('Could not bump service worker cache')
+          sw.write_text(sw_text, encoding='utf-8')
+          PY
+
+      - name: Validate data and JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check itinerary-data.js
+          node --check app-runtime.js
+          node - <<'NODE'
+          global.window = {};
+          require('./itinerary-data.js');
+          require('./data-validation.js');
+          const result = window.CRETE_VALIDATION_API.validate(window.CRETE_DATA);
+          if (!result.valid) {
+            console.error(result.errors.join('\n'));
+            process.exit(1);
+          }
+          const data = window.CRETE_DATA;
+          for (const dayId of ['2026-08-15','2026-08-19','2026-08-22']) {
+            const day = data.days[dayId];
+            const route = data.routes[day.routeId];
+            for (const visitId of route.visitIds) {
+              const visit = data.visits[visitId];
+              const place = data.places[visit.placeId];
+              if (!Number.isFinite(place.coordinates.lat) || !Number.isFinite(place.coordinates.lon)) {
+                throw new Error(`${dayId}: route stop ${place.name} has invalid coordinates`);
+              }
+            }
+          }
+          const beach = data.places['platanes-beach'].coordinates;
+          if (beach.lat !== 35.371877547839446 || beach.lon !== 24.52974075282963) {
+            throw new Error('Platanes Beach coordinate mismatch');
+          }
+          console.log('Map route checks passed');
+          NODE
+
+      - name: Commit fixes and remove one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/fix-map-routes.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add itinerary-data.js app-runtime.js service-worker.js .github/workflows/fix-map-routes.yml
+          git commit -m 'Fix itinerary map routes and beach access point'
+          git push

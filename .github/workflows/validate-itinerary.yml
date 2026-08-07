@@ -27,10 +27,12 @@ jobs:
           node --check app-runtime.js
           node --check stories-data.js
           node --check service-worker.js
+          node --check pronunciations-data.js
           node --check scripts/generate-audio.mjs
           node --check scripts/validate-itinerary.mjs
           node --check scripts/check-runtime-contract.mjs
           node --check scripts/check-audio-source-contract.mjs
+          node --check scripts/check-speech-overrides.mjs
           node --check scripts/smoke-browser.mjs
       - name: Validate normalized itinerary
         run: node scripts/validate-itinerary.mjs
@@ -38,5 +40,7 @@ jobs:
         run: node scripts/check-runtime-contract.mjs
       - name: Check audio source update contract
         run: node scripts/check-audio-source-contract.mjs
+      - name: Check speech stress overrides
+        run: node scripts/check-speech-overrides.mjs
       - name: Smoke test rendered application
         run: node scripts/smoke-browser.mjs

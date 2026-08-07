@@ -452,20 +452,35 @@
     return dayId === '2026-08-15';
   }
 
-  function dayRoutePoints(day) {
+  function dayRouteStops(day) {
     return day.routeVisitIds
       .map(visitId => day.stops.find(stop => stop.id === visitId))
       .filter(Boolean)
-      .map(getDrivingCoordinates);
+      .filter(stop => {
+        const [lat, lon] = getDrivingCoordinates(stop);
+        return Number.isFinite(lat) && Number.isFinite(lon);
+      });
+  }
+
+  function dayRoutePoints(day) {
+    return dayRouteStops(day).map(getDrivingCoordinates);
   }
 
   function visiblePartStops(day) {
-    return day.stops.filter(stop => stop.mapVisible !== false);
+    return day.stops.filter(stop =>
+      stop.mapVisible !== false && Number.isFinite(stop.lat) && Number.isFinite(stop.lon)
+    );
   }
 
   async function fetchRoadRouteCoordinates(day) {
-    const routePoints = dayRoutePoints(day);
+    const routeStops = dayRouteStops(day);
+    const routePoints = routeStops.map(getDrivingCoordinates);
     if (routePoints.length < 2) return routePoints;
+
+    // If the day has no driving legs (for example the protected Platanes beach days),
+    // draw the simple direct path instead of asking the driving router to invent a road detour.
+    const hasDrivingLeg = routeStops.slice(1).some(stop => stop.mode === undefined);
+    if (!hasDrivingLeg) return routePoints;
 
     const coordinates = routePoints
       .map(([lat, lon]) => `${lon},${lat}`)

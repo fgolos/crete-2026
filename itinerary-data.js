@@ -969,10 +969,10 @@
       "id": "platanes-beach",
       "name": "Platanes Beach",
       "coordinates": {
-        "lat": 35.3713,
-        "lon": 24.5279
+        "lat": 35.371877547839446,
+        "lon": 24.52974075282963
       },
-      "navigationQuery": "Platanes Beach, Rethymno, Greece",
+      "navigationQuery": "35.371877547839446,24.52974075282963",
       "transportMode": "driving"
     },
     "marathi-beach": {
@@ -1089,10 +1089,10 @@
       "id": "kouzina-epe",
       "name": "Kouzina EPE",
       "coordinates": {
-        "lat": null,
-        "lon": null
+        "lat": 35.5157572,
+        "lon": 24.0214879
       },
-      "navigationQuery": "Kouzina EPE, Chania, Greece",
+      "navigationQuery": "Splantzia Square 2, Chania 73132, Greece",
       "transportMode": "driving"
     },
     "apostoloi-amari": {
@@ -1169,30 +1169,30 @@
       "id": "fodele-village",
       "name": "Fodele",
       "coordinates": {
-        "lat": null,
-        "lon": null
+        "lat": 35.382542263684506,
+        "lon": 24.958276748657227
       },
-      "navigationQuery": "Fodele Village, Crete, Greece",
+      "navigationQuery": "Fodele, Heraklion, Crete, Greece",
       "transportMode": "driving"
     },
     "litinos-fodele": {
       "id": "litinos-fodele",
       "name": "Litinos",
       "coordinates": {
-        "lat": null,
-        "lon": null
+        "lat": 35.3833,
+        "lon": 24.9583
       },
-      "navigationQuery": "Litinos, Fodele, Crete, Greece",
+      "navigationQuery": "Litinos, Kastelianakis, Fodele 71500, Crete, Greece",
       "transportMode": "driving"
     },
     "to-giasemi-fodele": {
       "id": "to-giasemi-fodele",
       "name": "Το Giasemi",
       "coordinates": {
-        "lat": null,
-        "lon": null
+        "lat": 35.382542263684506,
+        "lon": 24.958276748657227
       },
-      "navigationQuery": "Το Giasemi, Fodele, Crete, Greece",
+      "navigationQuery": "Το Giasemi, Fodele 71500, Crete, Greece",
       "transportMode": "driving"
     }
   },
@@ -3084,8 +3084,7 @@
         "2026-08-15-kazarma-fortress",
         "2026-08-15-sitia-airbnb-2",
         "2026-08-15-mathena-olive-tree-lastros",
-        "2026-08-15-pomegranate-garden-villa",
-        "2026-08-15-panigiri-village-tbd"
+        "2026-08-15-pomegranate-garden-villa"
       ]
     },
     "route-2026-08-16": {

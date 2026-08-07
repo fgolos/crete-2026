@@ -558,45 +558,50 @@
     },
     "2026-08-19": {
       "id": "2026-08-19",
-      "title": "Organic Farmers’ Market или Akrotiri",
+      "title": "Organic Farmers’ Market, Stavros и Marathi",
       "status": "confirmed",
       "visitIds": [
         "2026-08-19-pomegranate-garden-villa-start",
         "2026-08-19-organic-farmers-market-rethymno",
+        "2026-08-19-stavros-beach",
+        "2026-08-19-kouzina-epe",
+        "2026-08-19-marathi-beach",
         "2026-08-19-pomegranate-garden-villa-end"
       ],
       "routeId": "route-2026-08-19",
       "sections": {
         "essentials": {
           "items": [
-            "План A: Organic Farmers’ Market, затем сразу домой со свежими покупками.",
-            "План Б, если рынок пропускаем: Stavros Beach → обязательный обед в Kouzina EPE → Marathi Beach.",
-            "Akrotiri остаётся потенциальным дальним днём, а не обязанностью."
+            "Основной план: Organic Farmers’ Market → Stavros Beach → Kouzina EPE → Marathi Beach.",
+            "После Organic Farmers’ Market можно по настроению свернуть дальнюю часть дня: вернуться в Airbnb и провести остаток дня на Platanes Beach.",
+            "Если едем на Akrotiri, обед в Kouzina EPE обязателен."
           ]
         },
         "food": {
           "items": [
-            "После рынка — обед и отдых у базы.",
-            "При плане Б обед в Kouzina EPE обязателен."
+            "На Organic Farmers’ Market — свежие продукты по желанию.",
+            "Основной обед — Kouzina EPE.",
+            "При раннем возвращении после рынка — еда дома или возле Platanes Beach."
           ]
         },
         "practical": {
           "items": [
-            "Решение между рынком и Akrotiri принять по настроению и погоде.",
-            "Akrotiri — примерно 175–180 км и около четырёх часов транспортного времени.",
-            "Не пытаться совместить Organic Farmers’ Market и Akrotiri в один день."
+            "Решение продолжать ли после рынка на Akrotiri принимаем на месте по настроению, погоде и покупкам.",
+            "Если купили много скоропортящихся овощей и фруктов, разумнее вернуться домой и убрать их в холодильник.",
+            "Полный вариант — дальний день: ориентировочно около 180 км и примерно четыре часа транспортного времени.",
+            "Не добавляем прогулку по Chania: город уже хорошо знаком и не является целью этого дня."
           ]
         }
       },
-      "mealSummary": "план A: еда дома; план Б: Kouzina EPE",
+      "mealSummary": "Organic Farmers’ Market; обед в Kouzina EPE; при сокращении дня — еда у базы",
       "schedule": {
         "departure": {
-          "start": "10:30",
+          "start": "10:20",
           "end": null,
           "approximate": true
         },
         "finish": {
-          "start": "12:35",
+          "start": "20:50",
           "end": null,
           "approximate": true
         },
@@ -604,11 +609,11 @@
         "flight": null
       },
       "travelTotals": {
-        "drivingDurationMinutes": 40,
-        "distanceKm": 14,
+        "drivingDurationMinutes": 245,
+        "distanceKm": 182,
         "approximate": true
       },
-      "swimming": "Platanes Beach после рынка; Marathi Beach при плане Б"
+      "swimming": "Stavros Beach и Marathi Beach; Platanes Beach при сокращении дня"
     },
     "2026-08-20": {
       "id": "2026-08-20",
@@ -2523,93 +2528,6 @@
       },
       "durationKind": "finish"
     },
-    "2026-08-19-pomegranate-garden-villa-start": {
-      "id": "2026-08-19-pomegranate-garden-villa-start",
-      "dayId": "2026-08-19",
-      "placeId": "pomegranate-garden-villa",
-      "sequence": 0,
-      "role": "Выезд на Organic Farmers’ Market",
-      "timing": {
-        "start": "10:30",
-        "end": null,
-        "approximate": true
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": null,
-        "distanceKm": null,
-        "status": "none"
-      },
-      "note": "",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "start"
-    },
-    "2026-08-19-organic-farmers-market-rethymno": {
-      "id": "2026-08-19-organic-farmers-market-rethymno",
-      "dayId": "2026-08-19",
-      "placeId": "organic-farmers-market-rethymno",
-      "sequence": 1,
-      "role": "Свежие овощи, фрукты и местные продукты",
-      "timing": {
-        "start": "11:00",
-        "end": "12:15",
-        "approximate": true
-      },
-      "durationMinutes": 75,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 20,
-        "distanceKm": 7,
-        "status": "standard"
-      },
-      "note": "Рынок желательный, но не обязательный.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": null
-    },
-    "2026-08-19-pomegranate-garden-villa-end": {
-      "id": "2026-08-19-pomegranate-garden-villa-end",
-      "dayId": "2026-08-19",
-      "placeId": "pomegranate-garden-villa",
-      "sequence": 2,
-      "role": "Сразу вернуть свежие покупки домой",
-      "timing": {
-        "start": "12:35",
-        "end": null,
-        "approximate": true
-      },
-      "durationMinutes": null,
-      "inboundTravel": {
-        "mode": "driving",
-        "durationMinutes": 20,
-        "distanceKm": 7,
-        "status": "standard"
-      },
-      "note": "После рынка — холодильник и полный расслабон.",
-      "parking": {
-        "primaryId": null,
-        "primaryOverrides": null,
-        "alternatives": []
-      },
-      "map": {
-        "visible": true
-      },
-      "durationKind": "finish"
-    },
     "2026-08-20-pomegranate-garden-villa-start": {
       "id": "2026-08-20-pomegranate-garden-villa-start",
       "dayId": "2026-08-20",
@@ -2841,6 +2759,180 @@
         "visible": true
       },
       "durationKind": "finish"
+    },
+    "2026-08-19-pomegranate-garden-villa-start": {
+      "id": "2026-08-19-pomegranate-garden-villa-start",
+      "dayId": "2026-08-19",
+      "placeId": "pomegranate-garden-villa",
+      "sequence": 0,
+      "role": "Выезд на Organic Farmers’ Market",
+      "timing": {
+        "start": "10:20",
+        "end": null,
+        "approximate": true
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": null,
+        "distanceKm": null,
+        "status": "none"
+      },
+      "note": "Основной план дня начинается с рынка.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": "start"
+    },
+    "2026-08-19-organic-farmers-market-rethymno": {
+      "id": "2026-08-19-organic-farmers-market-rethymno",
+      "dayId": "2026-08-19",
+      "placeId": "organic-farmers-market-rethymno",
+      "sequence": 1,
+      "role": "Organic Farmers’ Market",
+      "timing": {
+        "start": "10:45",
+        "end": "11:45",
+        "approximate": true
+      },
+      "durationMinutes": 60,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 25,
+        "distanceKm": 8,
+        "status": "standard"
+      },
+      "note": "Рынок желательный. После него по настроению можно отменить дальнюю часть дня, вернуться домой и тюленить на Platanes Beach.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-19-stavros-beach": {
+      "id": "2026-08-19-stavros-beach",
+      "dayId": "2026-08-19",
+      "placeId": "stavros-beach",
+      "sequence": 2,
+      "role": "Stavros Beach — место съёмок «Грека Зорбы»",
+      "timing": {
+        "start": "13:10",
+        "end": "14:25",
+        "approximate": true
+      },
+      "durationMinutes": 75,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 85,
+        "distanceKm": 70,
+        "status": "standard"
+      },
+      "note": "Основной план: после рынка едем на Akrotiri. Купание и короткая прогулка без длинной жары.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-19-kouzina-epe": {
+      "id": "2026-08-19-kouzina-epe",
+      "dayId": "2026-08-19",
+      "placeId": "kouzina-epe",
+      "sequence": 3,
+      "role": "Обязательный обед в Kouzina EPE",
+      "timing": {
+        "start": "14:50",
+        "end": "16:20",
+        "approximate": true
+      },
+      "durationMinutes": 90,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 25,
+        "distanceKm": 15,
+        "status": "standard"
+      },
+      "note": "Если продолжаем маршрут на Akrotiri, Kouzina EPE — обязательная часть дня.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-19-marathi-beach": {
+      "id": "2026-08-19-marathi-beach",
+      "dayId": "2026-08-19",
+      "placeId": "marathi-beach",
+      "sequence": 4,
+      "role": "Купание и отдых на Marathi Beach",
+      "timing": {
+        "start": "16:50",
+        "end": "19:30",
+        "approximate": true
+      },
+      "durationMinutes": 160,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 30,
+        "distanceKm": 17,
+        "status": "standard"
+      },
+      "note": "Спокойное завершение дальнего дня у моря.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": null
+    },
+    "2026-08-19-pomegranate-garden-villa-end": {
+      "id": "2026-08-19-pomegranate-garden-villa-end",
+      "dayId": "2026-08-19",
+      "placeId": "pomegranate-garden-villa",
+      "sequence": 5,
+      "role": "Возвращение в Platanes",
+      "timing": {
+        "start": "20:50",
+        "end": null,
+        "approximate": true
+      },
+      "durationMinutes": null,
+      "inboundTravel": {
+        "mode": "driving",
+        "durationMinutes": 80,
+        "distanceKm": 72,
+        "status": "standard"
+      },
+      "note": "После возвращения никаких дополнительных планов.",
+      "parking": {
+        "primaryId": null,
+        "primaryOverrides": null,
+        "alternatives": []
+      },
+      "map": {
+        "visible": true
+      },
+      "durationKind": "finish"
     }
   },
   "routes": {
@@ -2953,6 +3045,9 @@
       "visitIds": [
         "2026-08-19-pomegranate-garden-villa-start",
         "2026-08-19-organic-farmers-market-rethymno",
+        "2026-08-19-stavros-beach",
+        "2026-08-19-kouzina-epe",
+        "2026-08-19-marathi-beach",
         "2026-08-19-pomegranate-garden-villa-end"
       ]
     },

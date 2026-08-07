@@ -706,7 +706,7 @@
       "mealSummary": "обед на пляже; последний ужин у базы",
       "schedule": {
         "departure": {
-          "start": "08:00",
+          "start": "09:00",
           "end": null,
           "approximate": false
         },
@@ -2626,11 +2626,11 @@
       "sequence": 0,
       "role": "Практически закончить сборы",
       "timing": {
-        "start": "08:00",
-        "end": "09:00",
+        "start": "09:00",
+        "end": null,
         "approximate": false
       },
-      "durationMinutes": 60,
+      "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": null,
@@ -2646,7 +2646,7 @@
       "map": {
         "visible": true
       },
-      "durationKind": null
+      "durationKind": "start"
     },
     "2026-08-21-platanes-beach": {
       "id": "2026-08-21-platanes-beach",
@@ -2887,11 +2887,11 @@
       "sequence": 0,
       "role": "Спокойное последнее утро и выезд",
       "timing": {
-        "start": "08:00",
-        "end": "11:00",
+        "start": "11:00",
+        "end": null,
         "approximate": false
       },
-      "durationMinutes": 180,
+      "durationMinutes": null,
       "inboundTravel": {
         "mode": "driving",
         "durationMinutes": null,
@@ -2907,7 +2907,7 @@
       "map": {
         "visible": true
       },
-      "durationKind": null
+      "durationKind": "start"
     },
     "2026-08-22-fodele-village": {
       "id": "2026-08-22-fodele-village",

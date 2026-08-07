@@ -48,5 +48,7 @@ for (const [written, ipa] of Object.entries(phonemes)) {
   }
 }
 
-if (!Object.prototype.hasOwnProperty.call(phonemes, 'храмовом')) throw new Error('Regression override for храмовом is missing');
+if (!Object.prototype.hasOwnProperty.call(phonemes, 'храмовым')) throw new Error('Regression override for храмовым is missing');
+const panigiri = corpus.find(story => story.id === 'panigiri-august15');
+if (!panigiri?.text.includes('храмовым')) throw new Error('Expected храмовым in panigiri-august15 narration');
 console.log(`Stress audit: ${used} используемых overrides, ${unused} резервных/неиспользуемых, ${stories.length} stories.`);

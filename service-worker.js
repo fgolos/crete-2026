@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_VERSION = 'crete-2026-v46';
+const CACHE_VERSION = 'crete-2026-v47';
 const SHELL_URL = new URL('./index.html', self.registration.scope).href;
 const CORE_ASSETS = [
   './',
@@ -72,7 +72,7 @@ async function networkFirstAsset(request) {
   const cache = await caches.open(CACHE_VERSION);
   try {
     const response = await fetch(request);
-    if (response.ok) await cache.put(request,response.clone());
+    if (response.status === 200) await cache.put(request,response.clone());
     return response;
   } catch {
     return await cache.match(request,{ ignoreSearch:true }) || Response.error();
@@ -92,6 +92,15 @@ self.addEventListener('fetch', event => {
   const { request } = event;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
+
+  // Safari and other media clients use Range requests for MP3 playback.
+  // Cache Storage cannot store 206 Partial Content responses, so let the
+  // browser talk to the server directly instead of turning a valid 206 into
+  // a service-worker error.
+  if (request.headers.has('range')) {
+    event.respondWith(fetch(request));
+    return;
+  }
 
   if (request.mode === 'navigate') {
     event.respondWith(networkFirstNavigation(request));
